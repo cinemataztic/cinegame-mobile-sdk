@@ -1,0 +1,24 @@
+{
+    "name": "com.cinegamesdk.mobile",
+    "version": "0.1.0",
+    "displayName": "CineGame Mobile SDK",
+    "description": "This is the SDK for creating mobile interfaces for CineGame",
+    "unity": "2019.4",
+    "documentationUrl": "https://github.com/cinemataztic/cinegame-mobile-sdk",
+    "changelogUrl": "https://github.com/cinemataztic/cinegame-mobile-sdk",
+    "licensesUrl": "https://github.com/cinemataztic/cinegame-mobile-sdk",
+    "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "3.0.2",
+        "com.unity.editorcoroutines": "1.0.0"
+    },
+    "keywords": [
+        "CinemaTaztic",
+        "CineGame",
+        "CineClash"
+    ],
+    "author": {
+        "name": "Cinemataztic Aps",
+        "email": "ae@cinemataztic.com",
+        "url": "https://cinega.me"
+    }
+}

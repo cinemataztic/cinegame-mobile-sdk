@@ -1,0 +1,17 @@
+{
+    "name": "com.cinegamesdk.mobileeditor",
+    "rootNamespace": "",
+    "references": [
+        "com.cinegamesdk.mobile",
+        "Unity.EditorCoroutines.Editor"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
