@@ -998,32 +998,81 @@ namespace CineGameEditor.MobileComponents {
 		}
 
 		/// <summary>
-		/// Check to make sure that SDK assembly still has the same GUID. If not, uploads will not work, so we must enforce it
+		/// Map of original script guids in mobile sdk runtime. These should NEVER change.
 		/// </summary>
-		/*
+		static Dictionary<string, string> GuidDict = new Dictionary<string, string> {
+			{ "AlignToAxes.cs", "bc6f7b07091ea43c5b69460b238f3f21" },
+			{ "AnchorPositionFrom3D.cs", "58520810335df4050b2dc0178c26275a" },
+			{ "AngularPointerComponent.cs", "89893ae955bc34500b05153f1ed32f81" },
+			{ "ChoiceComponent.cs", "98ae742f322a244acae0d0b171faa258" },
+			{ "ChoicesComponent.cs", "0b4642e7215dc4f72822fb2c2cf530cc" },
+			{ "DPadComponent.cs", "45e429538ed9a48de98419b8c9b39689" },
+			{ "DragDropAnywhereComponent.cs", "e1aa7d063265c454f97640509e22fd95" },
+			{ "DragDropComponent.cs", "1503548af27b14c779399c3902d41fe2" },
+			{ "GameProxy.cs", "030441cdc81bb46549018a7c5194daf4" },
+			{ "GestureComponent.cs", "f6ca1e250e41b44d186fe3f36c556391" },
+			{ "GravityComponent.cs", "dbbe3d683141c4179b260464465deee6" },
+			{ "GyroComponent.cs", "26b89539eb0da476ea947719c97b02f3" },
+			{ "Interpolation.cs", "df2bb863caf924d39b03d4a92307d6e8" },
+			{ "LookAt.cs", "fc38f85d2165247efa6b93d2eb1c014f" },
+			{ "OnApplicationPlatform.cs", "64f4fb4011f564c0aa5563ebab05ab44" },
+			{ "OnCollision.cs", "5dfa3f8d25ae1459abd6c8bb8e3b1d38" },
+			{ "OnEnableDisable.cs", "fed23ad5ccce34b4ea6ab0ce5138ffcf" },
+			{ "OnLogin.cs", "386257b3b188042edbb69bd4b0965315" },
+			{ "PhysicsConfig.cs", "c1e0d578ccbf94751a0281e3e5132db1" },
+			{ "PlaySound.cs", "6176a34ff93e44dec830f2fa5314494e" },
+			{ "PointerEventComponent.cs", "750b465eec7ec40df8de16f8397a3793" },
+			{ "RemoteControl.cs", "bc700ec6e71a246d79cda4fbe23666c2" },
+			{ "RemoteSpriteComponent.cs", "d2be13e268b77459abc7a99c2fc5ea15" },
+			{ "RemoteTextComponent.cs", "953faf3eaa4114d8bb192c9690867dab" },
+			{ "RenderConfig.cs", "3ede590dc97334bb2a5065f023670759" },
+			{ "SeatInput.cs", "771a9f1c5e3f14b04b1a2c24e59b2388" },
+			{ "SendVariableComponent.cs", "1337d3ffc69e643cf86b6caf62fe331c" },
+			{ "SendVariableEvent.cs", "58b3623694924493aaf21ed1d0235ecb" },
+			{ "SetParticlesColor.cs", "c31012fda56844bf9ab4fd75ba2ce076" },
+			{ "SetTextComponent.cs", "9fb1c0cbf57044d7fa302f68e8323d2f" },
+			{ "SliderComponent.cs", "6ebb0c3b485714f8bb4a188e7e73bc45" },
+			{ "SpawnComponent.cs", "c6e7ff689366748a2b14c73656b60b42" },
+			{ "Supporter.cs", "428491a2e847746f88fe359b0abdc89d" },
+			{ "SwipeComponent.cs", "f8a4f81d4f53e4d4a97799b0889b99bc" },
+			{ "SwipeDirectionComponent.cs", "a6ee5e82fafec41268114b850844af2a" },
+			{ "TextInputComponent.cs", "3034bc8c076b049df9e37a44cc214dfd" },
+			{ "ThrowComponent.cs", "1ff2218adfe6e417685e509dd792a634" },
+			{ "TimingComponent.cs", "0947c5e92fc9648528bb70f4acb8c5d2" },
+			{ "Vibrate.cs", "70bd551c2b7c64889a7bdc2666fa0aa1" },
+		};
+
+		/// <summary>
+		/// Check to make sure that SDK scripts still have the original GUIDs. If not, uploads will not work, so we must enforce it
+		/// </summary>
 		[InitializeOnLoadMethod]
 		static void CheckSDKIntegrity () {
-			var sdkGUID = Util.CineGameSDKGUID;
-			var sdkFilename = Util.CineGameSDKFilename;
-			var sdkPath = AssetDatabase.GUIDToAssetPath (sdkGUID);
-			if (Path.GetFileName (sdkPath) == sdkFilename && AssetImporter.GetAtPath (sdkPath) is PluginImporter) {
-				//Debug.Log ("SDK guid valid");
-			} else {
-				Debug.LogWarning ("CineGameSDK guid invalid, fixing ...");
-				sdkPath = AssetDatabase.GUIDToAssetPath (AssetDatabase.FindAssets (sdkFilename).First ());
-				var sdkMetaPath = sdkPath + ".meta";
-				var metaLines = File.ReadAllLines (sdkMetaPath);
-				for (var i = 0; i < metaLines.Length; i++) {
-					if (metaLines [i].StartsWith ("guid: ")) {
-						metaLines [i] = "guid: " + sdkGUID;
-						File.WriteAllLines (sdkMetaPath, metaLines);
-						AssetDatabase.Refresh ();
-						break;
+			var scriptGuids = AssetDatabase.FindAssets ("t:Script", new string [] { "Packages/com.cinegamesdk.mobile/Runtime" });
+			var resetGuid = false;
+			foreach (var guid in scriptGuids) {
+				var path = AssetDatabase.GUIDToAssetPath (guid);
+				var filename = Path.GetFileName (path);
+				if (GuidDict.TryGetValue (filename, out string originalGuid) && guid != originalGuid) {
+					resetGuid = true;
+					Debug.LogWarning ($"GUID changed {filename} {originalGuid} => {guid} - resetting");
+					var metaPath = path + ".meta";
+					var metaLines = File.ReadAllLines (metaPath);
+					for (var i = 0; i < metaLines.Length; i++) {
+						if (metaLines [i].StartsWith ("guid: ")) {
+							metaLines [i] = "guid: " + guid;
+							File.WriteAllLines (metaPath, metaLines);
+							break;
+						}
 					}
 				}
 			}
+			if (resetGuid) {
+				AssetDatabase.Refresh ();
+			} else {
+				Debug.Log ("SDK guids checked OK");
+			}
 		}
-		*/
+
 
 		private static bool CGSP () {
 			Username = EditorPrefs.GetString ("AssetBundleUser");
