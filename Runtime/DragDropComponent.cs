@@ -5,7 +5,7 @@ using Sfs2X.Entities.Data;
 namespace CineGame.MobileComponents {
 
 	[RequireComponent(typeof(RectTransform))]
-	public class DragDropComponent : ReplicatedComponent, IBeginDragHandler, IEndDragHandler {
+	public class DragDropComponent : ReplicatedComponent, IDragHandler, IBeginDragHandler, IEndDragHandler {
 
         [Tooltip("Should dragged object spring back when drop/enddrag?")]
         public bool ResetPosition = false;
@@ -69,6 +69,10 @@ namespace CineGame.MobileComponents {
 			dragObject = null;
         }
 
+		public void OnDrag (PointerEventData ped) {
+			touchId = ped.pointerId;
+		}
+
         void Update () {
 			var obj = (dragObject != null) ? dragObject : resetPositionObject;
 			if (obj != null) {
@@ -77,7 +81,7 @@ namespace CineGame.MobileComponents {
 				var rtrect = rt.rect;
 
 				if (dragObject != null) {
-					if (!Application.isEditor) {
+					if (!Application.isEditor && touchId < Input.touches.Length) {
 						localPos = Input.touches [touchId].position;
 					} else {
 						localPos = new Vector2 (Input.mousePosition.x, Input.mousePosition.y);
