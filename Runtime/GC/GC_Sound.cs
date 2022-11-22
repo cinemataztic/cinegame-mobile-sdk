@@ -39,6 +39,11 @@ public class GC_Sound : MonoBehaviour {
 
 	void Start () {
 
+        if (musicAudioSource != null) {
+            musicAudioSource.loop = true;
+            musicAudioSource.Play ();
+        }
+
         if (PlayerPrefs.HasKey("GameCenterMusic"))
         {
             if (PlayerPrefs.GetString("GameCenterMusic") == "On")
@@ -98,9 +103,6 @@ public class GC_Sound : MonoBehaviour {
         SFXMuteButton.onClick.AddListener(MuteSFX);
         SFXVolumeSlider.onValueChanged.AddListener(delegate { ChangeSFXVolume(); });
         AudioContainer.SetActive(false);
-
-        musicAudioSource.loop = true;
-        musicAudioSource.Play();
 
     }
 
