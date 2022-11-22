@@ -15,7 +15,7 @@ namespace CineGame.MobileComponents.GC {
         /// <summary>
 		/// Event to CoinController when GC Game wants to reward player with coins
 		/// </summary>
-        public static UnityEvent<int> OnRewardCoins;
+        public static event Action<int> OnRewardCoins;
 
         public Util.APIRegion Market;
 

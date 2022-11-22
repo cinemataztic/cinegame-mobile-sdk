@@ -32,17 +32,17 @@ namespace CineGame.MobileComponents.GC {
 		/// <summary>
 		/// Event to EnterGameCenter that user wants to quit game
 		/// </summary>
-		public static UnityEvent OnQuitGame;
+		public static event Action OnQuitGame;
 
 		/// <summary>
 		/// Event to GameCenterController that user wants to save game session
 		/// </summary>
-		public static UnityEvent<string, int, int> OnSaveGameSession;
+		public static event Action<string, int, int> OnSaveGameSession;
 
 		/// <summary>
 		/// Event to GameCenterController that user has pressed "retry"
 		/// </summary>
-		public static UnityEvent OnRestartGame;
+		public static event Action OnRestartGame;
 
 		// Events from GameCenterController
 		public static Action<GameSessionResponse, long> GameOver;
@@ -119,8 +119,8 @@ namespace CineGame.MobileComponents.GC {
 			OnQuitGame.Invoke ();
 		}
 
-		public static UnityEvent<GoToHighscoreEnum> OnViewHighscore;
-		public static UnityEvent<Image, string> OnDownloadImage;
+		public static event Action<GoToHighscoreEnum> OnViewHighscore;
+		public static event Action<Image, string> OnDownloadImage;
 		public delegate string GetStringEvent (string gameName);
 		public static GetStringEvent OnGetPrizeImageUrl;
 		public static GetStringEvent OnGetPrizeInfoText;
