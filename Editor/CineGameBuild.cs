@@ -12,8 +12,10 @@ using System.Linq;
 using System.Net.Mime;
 using System.Text;
 
-using CineGame.MobileComponents;
 using Newtonsoft.Json;
+
+using CineGame.MobileComponents;
+using CineGame.MobileComponents.GC;
 
 namespace CineGameEditor.MobileComponents {
 	public class CineGameBuild : EditorWindow {
@@ -333,6 +335,7 @@ namespace CineGameEditor.MobileComponents {
 					IsCanvasGame = _isCanvasGame;
 					Repaint ();
 				}
+
 				if (_isCanvasGame && GameType != _gameProxy.GameType) {
 					if (IsSuperAdmin) {
 						GameType = _gameProxy.GameType;
@@ -350,6 +353,17 @@ namespace CineGameEditor.MobileComponents {
 						EditorUtility.DisplayDialog (ProgressBarTitle, "No gametypes available. Contact admin", "OK");
 					}
 					Repaint ();
+				}
+
+				var _gcGameManager = FindObjectOfType<GC_GameManager> ();
+				var _isGcGame = _gcGameManager != null;
+				if (IsGamecenterGame != _isGcGame) {
+					IsGamecenterGame = _isGcGame;
+					Repaint ();
+				}
+				if (_isGcGame && GameType != _gcGameManager.gameObject.scene.name) {
+					GameType = _gcGameManager.gameObject.scene.name;
+					//_gcGameManager.Market
 				}
 			}
 		}
