@@ -10,18 +10,21 @@ namespace CineGame.MobileComponents {
 	/// Simple component for invoking actions and settings based on platform
 	/// </summary>
 	public class OnApplicationPlatform : MonoBehaviour, IGameComponentIcon {
-		[Header ("Trigger events based on mobile device platform and minimum SDK level")]
+		[Header ("Trigger events at OnEnable based on App and OS specifics")]
 
 		[SerializeField] private UnityEvent OnIphone;
 		[SerializeField] private UnityEvent OnAndroid;
 		[Header ("If Phone is newer Huawei (Post-Google) then this event will fire after OnAndroid")]
 		[SerializeField] private UnityEvent OnHuaweiHcm;
-		[Header ("Event that fires if Android SDK/Api is at or above the Minimum SDK")]
+		[Header ("Event that fires if Android SDK/Api is at or above")]
 		[SerializeField] private int MinimumAndroidSdk = 30;
 		[SerializeField] private UnityEvent OnMinimumAndroidSdk;
-		[Header ("Event that fires if iOS SDK is at or above the Minimum SDK")]
+		[Header ("Event that fires if iOS SDK is at or above")]
 		[SerializeField] private int MinimumIosSdk = 14;
 		[SerializeField] private UnityEvent OnMinimumIosSdk;
+		[Header("Event that fires if app version is at or above")]
+		[SerializeField] private string MinimumAppVersion;
+		[SerializeField] private UnityEvent OnMinimumAppVersion;
 
 		void OnEnable () {
 			var scenePath = Util.GetObjectScenePath (gameObject);
@@ -54,6 +57,10 @@ namespace CineGame.MobileComponents {
 						}
 					}
 				}
+			}
+			if (Version.TryParse(MinimumAppVersion, out Version minAppVersion) && Application.version >= minAppVersion)	{
+				Debug.Log($"{scenePath} OnMinimumAppVersion:\n{Util.GetEventPersistentListenersInfo(OnMinimumAppVersion)}");
+				OnMinimumAppVersion.Invoke();
 			}
 		}
 	}
