@@ -9,8 +9,8 @@ namespace CineGame.MobileComponents {
 
         [Tooltip("Should dragged object spring back when drop/enddrag?")]
         public bool ResetPosition = false;
-        [Tooltip("Interval for resetting position")]
-        public float ResetPositionInterval = 0.1f;
+        [Tooltip("Duration for resetting position")]
+        public float ResetPositionDuration = 0.1f;
 
         [Header("Replication")]
         [Tooltip("Smartfox uservariable name for x coordinate")]
@@ -25,6 +25,9 @@ namespace CineGame.MobileComponents {
 
 		[Tooltip("Limit object inner-circularly to parent rect? Eg analog joystick")]
 		public bool Circular = false;
+
+		[Tooltip("Size of deadzone in center. 0 is none, 1 is all of area")]
+		public float Deadzone = .1f;
 
 		Vector2 currentNormalizedPosition = Vector2.zero;
 		Vector2 prevNormalizedPosition = Vector2.zero;
@@ -108,7 +111,7 @@ namespace CineGame.MobileComponents {
 					dragObject.transform.localPosition = localPos;
 				} else {
 					//Smoothly interpolate to resetLocalPosition (eg to simulate a joystick)
-					float t = (ResetPositionInterval != 0f) ? (Time.time - resetPositionStartTime) / ResetPositionInterval : 1f;
+					float t = (ResetPositionDuration != 0f) ? (Time.time - resetPositionStartTime) / ResetPositionDuration : 1f;
 					localPos = Vector2.Lerp (dropLocalPosition, rtrect.center, Interpolation.EaseOutQuad (t));
 					resetPositionObject.transform.localPosition = localPos;
 					if (t >= 1f) {
@@ -120,7 +123,15 @@ namespace CineGame.MobileComponents {
 
 				currentNormalizedPosition = new Vector2 ((localPos.x - rtrect.min.x) / rtrect.width, (localPos.y - rtrect.min.y) / rtrect.height);
 
-				if (currentNormalizedPosition != prevNormalizedPosition && (lastUpdateTime + UpdateInterval) <= Time.time) {
+				var tolerance = .5f * Deadzone;
+
+				if ((lastUpdateTime + UpdateInterval) <= Time.time &&
+					(prevNormalizedPosition != currentNormalizedPosition
+					|| currentNormalizedPosition.x < .5f - tolerance
+					|| currentNormalizedPosition.x > .5f + tolerance
+					|| currentNormalizedPosition.y < .5f - tolerance
+					|| currentNormalizedPosition.y > .5f + tolerance
+					)) {
 					//Debug.LogFormat ("x={0}, y={1}", currentPosition.x, currentPosition.y);
 					Send (VariableNameX, currentNormalizedPosition.x);
 					Send (VariableNameY, currentNormalizedPosition.y);
