@@ -58,7 +58,7 @@ namespace CineGame.MobileComponents {
 					}
 				}
 			}
-			if (Version.TryParse(MinimumAppVersion, out Version minAppVersion) && Application.version >= minAppVersion)	{
+			if (Version.TryParse(MinimumAppVersion, out Version minAppVersion) && new Version (Application.version) >= minAppVersion)	{
 				Debug.Log($"{scenePath} OnMinimumAppVersion:\n{Util.GetEventPersistentListenersInfo(OnMinimumAppVersion)}");
 				OnMinimumAppVersion.Invoke();
 			}
