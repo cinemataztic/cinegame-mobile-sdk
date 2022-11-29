@@ -11,82 +11,61 @@ namespace CineGame.MobileComponents {
 		[Header ("Trigger events based on login type and if user is a minor")]
 
 		[SerializeField]	private int MinorAge = 18;
-		[SerializeField]	private UnityEvent OnFacebook;
-		[SerializeField]	private UnityEvent OnSignInWithApple;
-		[SerializeField]	private UnityEvent OnGooglePlay;
 		[SerializeField]	private UnityEvent OnAnonymous;
+		[SerializeField]	private UnityEvent OnVerified;
 		[SerializeField]	private UnityEvent OnIsMinor;
 		[SerializeField]	private UnityEvent OnLoggedOut;
 
 		public enum LoginType {
 			NotLoggedIn,
 			Anonymous,
-			Facebook,
-			Apple,
-			GooglePlay
+			Verified,
 		}
 
-		public static LoginType CurrentLoginType;
+		static LoginType CurrentLoginType;
 		public static int EstimatedAge;
 
 		void OnEnable () {
-			UpdateLoginType ();
+			PropagateLoginType ();
 		}
 
-		void UpdateLoginType () {
+		void PropagateLoginType () {
 			switch (CurrentLoginType) {
-			case LoginType.Facebook:
-				if (Debug.isDebugBuild) {
-					Debug.LogFormat ("{0} OnFacebook:\n{1}", Util.GetObjectScenePath (gameObject), Util.GetEventPersistentListenersInfo (OnFacebook));
-				}
-				OnFacebook.Invoke ();
-				break;
-			case LoginType.Apple:
-				if (Debug.isDebugBuild) {
-					Debug.LogFormat ("{0} OnSignInWithApple:\n{1}", Util.GetObjectScenePath (gameObject), Util.GetEventPersistentListenersInfo (OnSignInWithApple));
-				}
-				OnSignInWithApple.Invoke ();
-				break;
-			case LoginType.GooglePlay:
-				if (Debug.isDebugBuild) {
-					Debug.LogFormat ("{0} OnGooglePlay:\n{1}", Util.GetObjectScenePath (gameObject), Util.GetEventPersistentListenersInfo (OnGooglePlay));
-				}
-				OnGooglePlay.Invoke ();
-				break;
 			case LoginType.Anonymous:
-				if (Debug.isDebugBuild) {
+				if (Util.IsDevModeActive) {
 					Debug.LogFormat ("{0} OnAnonymous:\n{1}", Util.GetObjectScenePath (gameObject), Util.GetEventPersistentListenersInfo (OnAnonymous));
 				}
 				OnAnonymous.Invoke ();
 				break;
+			case LoginType.Verified:
+				if (Util.IsDevModeActive) {
+					Debug.LogFormat("{0} OnVerified:\n{1}", Util.GetObjectScenePath (gameObject), Util.GetEventPersistentListenersInfo (OnVerified));
+				}
+				OnVerified.Invoke();
+				break;
 			case LoginType.NotLoggedIn:
-				if (Debug.isDebugBuild) {
-					Debug.LogFormat ("{0} OnLoggedOut:\n{1}", Util.GetObjectScenePath (gameObject), Util.GetEventPersistentListenersInfo (OnAnonymous));
+				if (Util.IsDevModeActive) {
+					Debug.LogFormat ("{0} OnLoggedOut:\n{1}", Util.GetObjectScenePath (gameObject), Util.GetEventPersistentListenersInfo (OnLoggedOut));
 				}
 				OnLoggedOut.Invoke ();
 				break;
 			}
-			bool isMinor = EstimatedAge < MinorAge;//(UserInfoSurvey.GetUserAge () < MinorAge) || (FacebookController.LoggedIn && FacebookController.IsMinor);
+			bool isMinor = EstimatedAge < MinorAge;
 			if (isMinor) {
 				OnIsMinor.Invoke ();
-				if (Debug.isDebugBuild) {
+				if (Util.IsDevModeActive) {
 					Debug.LogFormat ("{0} OnIsMinor:\n{1}", Util.GetObjectScenePath (gameObject), Util.GetEventPersistentListenersInfo (OnIsMinor));
 				}
 			}
 		}
 
 		/// <summary>
-		/// login status changed-- either logged out or logged in.
+		/// login status changed-- propagate events
 		/// </summary>
-		public static void LoginChanged () {
-			for (int i = 0; i < SceneManager.sceneCount; i++) {
-				var gos = SceneManager.GetSceneAt (i).GetRootGameObjects ();
-				foreach (var go in gos) {
-					var comps = go.GetComponentsInChildren<OnLogin> ();
-					foreach (var comp in comps) {
-						comp.UpdateLoginType ();
-					}
-				}
+		public static void LoginChanged (LoginType loginType) {
+			CurrentLoginType = loginType;
+			foreach (var onLogin in FindObjectsOfType<OnLogin> (includeInactive: true)) {
+				onLogin.PropagateLoginType ();
 			}
 		}
 	}
