@@ -212,21 +212,28 @@ public class CineGameAdvancedFinder : EditorWindow {
 				var componentType = component.GetType ();
 				var fields = componentType.GetFields (BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
 				foreach (var field in fields) {
-					var unityEvent = field.GetValue (component) as UnityEventBase;
-					if (unityEvent == null)
-						continue;
-					for (int k = 0; k < unityEvent.GetPersistentEventCount (); k++) {
-						var methodName = unityEvent.GetPersistentMethodName (k);
-						var classPath = unityEvent.GetPersistentTarget (k).GetType ().FullName;
-						var hasClassMatch = classPath.IndexOf (classMatch, StringComparison.InvariantCultureIgnoreCase) >= 0;
-						var hasMethodMatch = methodName.IndexOf (methodMatch, StringComparison.InvariantCultureIgnoreCase) >= 0;
-						if ((classMatch != methodMatch && hasClassMatch && hasMethodMatch)
-						 || (classMatch == methodMatch && (hasClassMatch || hasMethodMatch))) {
-							Results.Add (new Result { obj = component, text = gameObject.GetScenePath () + " " + componentType.Name + "." + field.Name + " => " + classPath + "." + methodName });
-							break;
+					if (field.GetValue (component) is UnityEventBase unityEvent) {
+						FindMatchingInvokation (component, field.Name, unityEvent, classMatch, methodMatch);
+					} else if (field.GetValue (component) is List<UnityEngine.EventSystems.EventTrigger.Entry> eventTriggers) {
+						foreach (var et in eventTriggers) {
+							FindMatchingInvokation (component, $"{field.Name}.{et.eventID}", et.callback, classMatch, methodMatch);
 						}
 					}
 				}
+			}
+		}
+	}
+
+	void FindMatchingInvokation (Component component, string fieldName, UnityEventBase unityEvent, string classMatch, string methodMatch) {
+		for (int k = 0; k < unityEvent.GetPersistentEventCount (); k++) {
+			var methodName = unityEvent.GetPersistentMethodName (k);
+			var classPath = unityEvent.GetPersistentTarget (k).GetType ().FullName;
+			var hasClassMatch = classPath.IndexOf (classMatch, StringComparison.InvariantCultureIgnoreCase) >= 0;
+			var hasMethodMatch = methodName.IndexOf (methodMatch, StringComparison.InvariantCultureIgnoreCase) >= 0;
+			if ((classMatch != methodMatch && hasClassMatch && hasMethodMatch)
+			 || (classMatch == methodMatch && (hasClassMatch || hasMethodMatch))) {
+				Results.Add (new Result { obj = component, text = component.gameObject.GetScenePath () + " " + component.GetType ().Name + "." + fieldName + " => " + classPath + "." + methodName });
+				break;
 			}
 		}
 	}
