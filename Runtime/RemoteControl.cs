@@ -26,6 +26,7 @@ namespace CineGame.MobileComponents {
 			Vector2,
 			Vector3,
 			Color,
+			Quaternion,
 		}
 		[Tooltip ("The parameter type. Void if just triggering an action")]
 		public EventType Type = EventType.Void;
@@ -61,6 +62,12 @@ namespace CineGame.MobileComponents {
 		[Serializable] public class ColorEvent : UnityEvent<Color> { }
 		public ColorEvent onReceiveColor;
 
+		[Serializable] public class QuaternionEvent : UnityEvent<Quaternion> { }
+		public QuaternionEvent onReceiveQuaternion;
+
+		//Interpolation variables
+		//
+		Quaternion cQuaternion, startQuaternion, destQuaternion;
 		Color cColor, startColor, destColor;
 		Vector3 cV3, startV3, destV3;
 		Vector2 cV2, startV2, destV2;
@@ -145,6 +152,17 @@ namespace CineGame.MobileComponents {
 						startColor = cColor;
 					}
 					break;
+				case EventType.Quaternion:
+					floats = dataObj.GetFloatArray (Key);
+					destQuaternion = new Quaternion (floats [0], floats [1], floats [2], floats [3]);
+					LogEvent (onReceiveQuaternion, destQuaternion);
+					if (InterpTime == 0f) {
+						startQuaternion = cQuaternion = destQuaternion;
+						onReceiveQuaternion.Invoke (destQuaternion);
+					} else {
+						startQuaternion = cQuaternion;
+					}
+					break;
 				default:
 					LogEvent (onReceiveVoid, null);
 					onReceiveVoid.Invoke ();
@@ -165,19 +183,19 @@ namespace CineGame.MobileComponents {
 
 
 		void Update () {
-			if (InterpTime > 0f) {
+			if (InterpTime > float.Epsilon) {
 				float t = (Time.time - startTime);
 				//Interpolate until we have reached at least t=1f
 				if (t - Time.deltaTime < InterpTime) {
 					t /= InterpTime;
-					var ct = Interpolation.Interp (t, InterpType);
+					var ct = Interpolation.Interp (Mathf.Min (t, 1f), InterpType);
 					switch (Type) {
 					case EventType.Float:
 						cFloat = Mathf.Lerp (startFloat, destFloat, ct);
 						onReceiveFloat.Invoke (cFloat);
 						break;
 					case EventType.Int:
-						cInt = (int)(.5f + Mathf.Lerp ((float)startInt, (float)destInt, ct));
+						cInt = (int)(.5f + Mathf.Lerp (startInt, destInt, ct));
 						onReceiveInt.Invoke (cInt);
 						break;
 					case EventType.Vector2:
@@ -191,6 +209,10 @@ namespace CineGame.MobileComponents {
 					case EventType.Color:
 						cColor = Color.Lerp (startColor, destColor, ct);
 						onReceiveColor.Invoke (cColor);
+						break;
+					case EventType.Quaternion:
+						cQuaternion = Quaternion.Slerp (startQuaternion, destQuaternion, ct);
+						onReceiveQuaternion.Invoke (cQuaternion);
 						break;
 					default:
 						break;
