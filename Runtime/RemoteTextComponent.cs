@@ -1,8 +1,11 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
-using Sfs2X.Entities.Data;
-using System;
+﻿using System;
 using System.Collections.Generic;
+
+using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.Events;
+
+using Sfs2X.Entities.Data;
 
 namespace CineGame.MobileComponents {
 
@@ -28,18 +31,62 @@ namespace CineGame.MobileComponents {
 		}
 		public ComponentType[] Types;
 
+		public UnityEvent<string> OnReceive;
+
 		string formattedString = null;
 		CustomStringFormat customStringFormat;
 
 		public override void InitReplication () {
 			base.InitReplication ();
-			if (IsFormattedString) {
-				var textComponent = GetComponent<Text> ();
-				formattedString = textComponent.text;
-				customStringFormat = new CustomStringFormat ();
-				//Disable text until we have valid data
-				textComponent.enabled = false;
+
+			Component c;
+			bool addListener = false;
+			if (OnReceive.GetPersistentEventCount () != 0) {
+				c = OnReceive.GetPersistentTarget (0) as Component;
+			} else {
+				addListener = true;
+				c = GetComponent<Text> ();
+				if (c == null) {
+					c = GetComponent<TextMesh> ();
+					if (c == null) {
+#if UNITY_2021_1_OR_NEWER
+						c = GetComponent<TMPro.TMP_Text> ();
+#endif
+					}
+				}
 			}
+			if (c is Text textComponent) {
+				formattedString = textComponent.text;
+				textComponent.enabled = false;
+				if (addListener) {
+					OnReceive.AddListener ((value) => {
+						textComponent.text = value;
+						textComponent.enabled = true;
+					});
+				}
+			} else if (c is TextMesh textMesh) {
+				formattedString = textMesh.text;
+				var renderer = textMesh.GetComponent<Renderer> ();
+				renderer.enabled = false;
+				if (addListener) {
+					OnReceive.AddListener ((value) => {
+						textMesh.text = value;
+						renderer.enabled = true;
+					});
+				}
+#if UNITY_2021_1_OR_NEWER
+			} else if (c is TMPro.TMP_Text tmp) {
+				formattedString = tmp.text;
+				tmp.enabled = false;
+				if (addListener) {
+					OnReceive.AddListener ((value) => {
+						tmp.text = value;
+						tmp.enabled = true;
+					});
+				}
+			}
+#endif
+			customStringFormat = new CustomStringFormat ();
 		}
 
 		internal override void OnObjectMessage (ISFSObject dataObj, int senderId) {
@@ -73,9 +120,7 @@ namespace CineGame.MobileComponents {
 				s = dataObj.GetUtfString (Key);
 			}
 			if (s != null) {
-				var textComponent = GetComponent<Text> ();
-				textComponent.text = s;
-				textComponent.enabled = true;
+				OnReceive?.Invoke (s);
 				if (Util.IsDevModeActive) {
 					Debug.Log ($"RemoteTextComponent: {Util.GetObjectScenePath (gameObject)} = \"{s}\"");
 				}
@@ -120,7 +165,7 @@ namespace CineGame.MobileComponents {
 			else if (arg != null)
 				return arg.ToString ();
 			else
-				return String.Empty;
+				return string.Empty;
 		}
 	}
 }

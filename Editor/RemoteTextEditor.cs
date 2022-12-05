@@ -5,9 +5,10 @@ using CineGame.MobileComponents;
 namespace CineGameEditor.MobileComponents {
 
 	[CustomEditor( typeof(RemoteTextComponent) )]
-	public class TextEditor : Editor {
+	public class RemoteTextEditor : Editor {
 		System.Array TypeValuesArray;
 		SerializedProperty TypesArray;
+		bool KeysFoldedOut;
 
 		public override void OnInspectorGUI ()
 		{
@@ -36,7 +37,8 @@ namespace CineGameEditor.MobileComponents {
 					if (obj.name == "m_Script" || (!IsFormattedString && (obj.name == "Keys" || obj.name == "Types")) || (IsFormattedString && obj.name == "Key")) {
 					} else {
 						if (obj.name == "Keys") {
-							if (EditorGUILayout.PropertyField (obj, false)) {
+							KeysFoldedOut = EditorGUILayout.Foldout (KeysFoldedOut, "Keys");
+							if (KeysFoldedOut) {
 								EditorGUI.indentLevel++;
 
 								obj.arraySize = TypesArray.arraySize = EditorGUILayout.IntField ("size", obj.arraySize);
@@ -52,6 +54,7 @@ namespace CineGameEditor.MobileComponents {
 
 								EditorGUI.indentLevel--;
 							}
+							EditorGUILayout.Space ();
 						} else if (obj.name == "Types") {
 							//Don't render, controlled from Keys
 						} else {
