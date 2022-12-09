@@ -130,6 +130,11 @@ namespace CineGameEditor.MobileComponents {
 		void OnGUI () {
 			EditorGUILayout.Space ();
 
+			if (Application.internetReachability == NetworkReachability.NotReachable) {
+				EditorGUILayout.HelpBox ("Internet not reachable.", MessageType.Error);
+				return;
+			}
+
 			if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.Android && EditorUserBuildSettings.activeBuildTarget != BuildTarget.iOS) {
 				EditorGUILayout.HelpBox ($"Build target {EditorUserBuildSettings.activeBuildTarget} not supported!", MessageType.Error);
 
@@ -410,7 +415,7 @@ namespace CineGameEditor.MobileComponents {
 
 			LoginRegionIndex = Mathf.Clamp (Array.IndexOf (LoginRegions, EditorPrefs.GetString ("AssetMarketRegion", LoginRegions [0])), 0, LoginRegions.Length - 1);
 			StayLoggedIn = EditorPrefs.GetBool ("CineGameStayLoggedIn");
-			if (CGSP ()) {
+			if (CGSP () && Application.internetReachability != NetworkReachability.NotReachable) {
 				GetAccessToken (out AccessToken);
 				OnHierarchyChange ();
 			}
