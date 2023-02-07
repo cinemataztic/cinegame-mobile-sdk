@@ -29,7 +29,7 @@ namespace CineGameEditor.MobileComponents {
 		static string Username;
 		static string Password;
 		static bool StayLoggedIn;
-		static string GameType;
+		public static string GameType;
 		static string AppName;
 		static bool IsSuperAdmin;
 
@@ -93,7 +93,7 @@ namespace CineGameEditor.MobileComponents {
 		static bool BuildOnlyCurrentPlatform;
 		static bool IsGamecenterGame;
 		static bool IsCanvasGame;
-		static bool IsARGame;
+		public static bool IsARGame;
 
 		static string progressMessage = "Waiting ...";
 
