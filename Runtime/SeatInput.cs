@@ -9,15 +9,21 @@ using UnityEngine.UI;
 namespace CineGame.MobileComponents {
 
 	public class SeatInput : ReplicatedComponent {
+		public string StartSetupKey = "";
+		public string ClientSendKey = "";
+		public string ClientReceiveKey = "";
+		
+		public string SeatAcceptedValue = "Accepted";
+		public string SeatRejectedValue = "Rejected";
+		public string SeatTakenValue = "Taken";
+		
 		public Dropdown RowDropdown;
 		public Dropdown SeatDropdown;
 		public Button SendButton;
+		public UnityEvent SeatAccepted;
 		public UnityEvent SeatRejected;
 		public UnityEvent SeatTaken;
-
-		private string openkey = "SeatOpenScreen";
-		private string sendkey = "SeatInput";
-		private string getkey = "SeatInputFeedback";
+		
 		private List<SeatRow> rowList = new List<SeatRow> ();
 		private List<Seat> seatList = new List<Seat> ();
 
@@ -105,28 +111,16 @@ namespace CineGame.MobileComponents {
 		}
 
 		internal override void OnObjectMessage (ISFSObject dataObj, int senderId) {
-			if (dataObj.ContainsKey (openkey)) {
-				Setup (dataObj.GetByteArray (openkey).Bytes);
+			if (dataObj.ContainsKey (StartSetupKey)) {
+				Setup (dataObj.GetByteArray (StartSetupKey).Bytes);
 			}
 
-			if (dataObj.ContainsKey (getkey)) {
-				string status = dataObj.GetUtfString (getkey);
-
-				switch (status) {
-				case "Accepted":
-					gameObject.SetActive (false);
-					break;
-				case "Rejected":
-					SeatRejected.Invoke ();
-					break;
-				case "Taken":
-					SeatTaken.Invoke ();
-					break;
-				default:
-					break;
-				}
-
-				SendButton.interactable = true;
+			if (dataObj.ContainsKey (ClientReceiveKey)) {
+				string status = dataObj.GetUtfString (ClientReceiveKey);
+				
+				if (status == SeatAcceptedValue) 		SeatAccepted.Invoke();
+				else if (status == SeatRejectedValue) 	SeatRejected.Invoke();
+				else if (status == SeatTakenValue) 		SeatTaken.Invoke();
 			}
 		}
 
@@ -136,7 +130,7 @@ namespace CineGame.MobileComponents {
 			if (Application.isEditor) {
 				Debug.LogFormat ("{0} SendSeatInputComponent: Sending host message '{1}'", gameObject.GetScenePath (), seatInput);
 			} else {
-				Send (sendkey, seatInput);
+				Send (ClientSendKey, seatInput);
 				SendButton.interactable = false;
 			}
 		}
