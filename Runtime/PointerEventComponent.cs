@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
-using Sfs2X.Entities.Data;
 using System;
 
 namespace CineGame.MobileComponents {

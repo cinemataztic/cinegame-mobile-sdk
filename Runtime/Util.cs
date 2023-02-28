@@ -10,8 +10,6 @@ namespace CineGame.MobileComponents {
 
 	public static class Util {
 		public const string CinematazticIconGUID = "5ea2613536f3d4926b87aa5246734341";
-		public const string CineGameSDKGUID = "bc35b5328b0d743fe8d1db1fee643569";
-		public const string CineGameSDKFilename = "CineGameSDK.Mobile.dll";
 
 		[Serializable]
 		public enum APIRegion {

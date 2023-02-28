@@ -11,6 +11,7 @@ namespace CineGame.MobileComponents {
 	/// Remotely replace sprites (or invoke methods) with a pre-defined sprite array.
 	/// </summary>
 	public class RemoteSpriteComponent : ReplicatedComponent {
+		[Header("Replace a sprite with one from the array below, according to received index")]
 		[Tooltip("Key in the ObjectMessage from host - int index in Sprites array")]
 		public string Key;
 
