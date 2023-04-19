@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
-using Sfs2X.Entities.Data;
 
 namespace CineGame.MobileComponents {
 
@@ -20,14 +20,18 @@ namespace CineGame.MobileComponents {
         [Tooltip("How often should coordinates be replicated")]
         public float UpdateInterval = 0.033f;
 
-		[Tooltip("Key in objectMessage to gamehost when drag begin or end (bool true/false)")]
+
+		[Tooltip("Key in objectMessage to gamehost when drag begins (true) or ends (false)")]
         public string DragDropKey = "";
 
-		[Tooltip("Limit object inner-circularly to parent rect? Eg analog joystick")]
+		[Tooltip("Limit position inner-circularly to parent rect? Eg analog joystick handle")]
 		public bool Circular = false;
 
-		[Tooltip("Size of deadzone in center. 0 is none, 1 is all of area")]
+		[Tooltip ("Size of deadzone in center. 0 is none, 1 is all of inner circle")]
 		public float Deadzone = .1f;
+
+		public UnityEvent OnDragBegin;
+		public UnityEvent OnDragEnd;
 
 		Vector2 currentNormalizedPosition = Vector2.zero;
 		Vector2 prevNormalizedPosition = Vector2.zero;
@@ -47,7 +51,7 @@ namespace CineGame.MobileComponents {
 			resetPositionObject = null;
 		}
 
-        public void OnBeginDrag (PointerEventData ped) {
+		public void OnBeginDrag (PointerEventData ped) {
             eventCamera = ped.pressEventCamera;
             dragObject = ped.pointerDrag;
 			dragOffset = RectTransformUtility.WorldToScreenPoint (eventCamera, dragObject.transform.position) - ped.pressPosition;
@@ -58,6 +62,7 @@ namespace CineGame.MobileComponents {
             if (!string.IsNullOrEmpty (DragDropKey)) {
 				Send (DragDropKey, true);
             }
+			OnDragBegin.Invoke ();
         }
 
 		public void OnEndDrag (PointerEventData ped) {
@@ -70,7 +75,8 @@ namespace CineGame.MobileComponents {
 				resetPositionStartTime = Time.time;
 			}
 			dragObject = null;
-        }
+			OnDragEnd.Invoke ();
+		}
 
 		public void OnDrag (PointerEventData ped) {
 			touchId = ped.pointerId;
