@@ -8,7 +8,6 @@ namespace CineGame.MobileComponents {
 		[Header ("Trigger events when this GameObject becomes enabled or disabled. Optionally delay events")]
 
 		public float OnEnableDelay = 0f;
-		public float OnDisableDelay = 0f;
 
 		[Serializable] public class OnEnableDisableEvent : UnityEvent { }
 
@@ -19,10 +18,6 @@ namespace CineGame.MobileComponents {
 
 		public void CancelEnable () {
 			CancelInvoke ("OnEnableInvoke");
-		}
-
-		public void CancelDisable () {
-			CancelInvoke ("OnDisableInvoke");
 		}
 
 		void OnEnable () {
@@ -41,11 +36,7 @@ namespace CineGame.MobileComponents {
 		}
 
 		void OnDisable () {
-			if (OnDisableDelay > 0f) {
-				Invoke ("OnDisableInvoke", OnDisableDelay);
-			} else {
-				OnDisableInvoke ();
-			}
+			OnDisableInvoke ();
 		}
 
 		void OnDisableInvoke () {
@@ -57,7 +48,6 @@ namespace CineGame.MobileComponents {
 
 		void OnValidate(){
 			OnEnableDelay = Math.Max (0f, OnEnableDelay);
-			OnDisableDelay = Math.Max (0f, OnDisableDelay);
 		}
 	}
 
