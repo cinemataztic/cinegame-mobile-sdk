@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace CineGame.MobileComponents
 {
-    public class JoystickComponent : MonoBehaviour
+    public class JoystickComponent : MonoBehaviour, IGameComponentIcon
     {
         public VariableJoystick JoystickPrefab;
         public JoystickType Type = JoystickType.Fixed;
