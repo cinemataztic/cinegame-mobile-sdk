@@ -129,6 +129,9 @@ namespace CineGame.MobileComponents {
 			if (Reposition) {
 				transform.position = destPosition;
 			}
+			if (Debug.isDebugBuild) {
+				Debug.LogFormat ("{0} AlignToAxes.OnAligned\n{1}", Util.GetObjectScenePath (gameObject), Util.GetEventPersistentListenersInfo (OnAligned));
+			}
 			OnAligned.Invoke ();
 		}
 	}
