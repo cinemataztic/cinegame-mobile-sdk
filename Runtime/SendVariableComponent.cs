@@ -105,6 +105,55 @@ namespace CineGame.MobileComponents {
 				}
 			}
 		}
+
+		public void Action (Vector3 value) {
+			if (Cooldown ()) {
+				if (!string.IsNullOrEmpty (Key)) {
+					Send (Key, new float [3] { value.x, value.y, value.z });
+				}
+				if (!string.IsNullOrEmpty (Message)) {
+					SendMessageWithArgument (value);
+				}
+			}
+		}
+
+		public void Action (Vector2 value) {
+			if (Cooldown ()) {
+				if (!string.IsNullOrEmpty (Key)) {
+					Send (Key, new float [2] { value.x, value.y });
+				}
+				if (!string.IsNullOrEmpty (Message)) {
+					SendMessageWithArgument (value);
+				}
+			}
+		}
+
+		public void Action (Quaternion value) {
+			if (Cooldown ()) {
+				if (!string.IsNullOrEmpty (Key)) {
+					Send (Key, new float [4] { value.x, value.y, value.z, value.w });
+				}
+				if (!string.IsNullOrEmpty (Message)) {
+					SendMessageWithArgument (value);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Sending transform scene path (eg if something is collided with or selected via a raycast)
+		/// </summary>
+		public void Action (Transform value) {
+			if (Cooldown ()) {
+				var scenePath = value.gameObject.GetScenePath ();
+				if (!string.IsNullOrEmpty (Key)) {
+					Send (Key, scenePath);
+				}
+				if (!string.IsNullOrEmpty (Message)) {
+					SendMessageWithArgument (scenePath);
+				}
+			}
+		}
+
 	}
 
 }
