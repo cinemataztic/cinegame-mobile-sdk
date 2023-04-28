@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
@@ -27,30 +29,35 @@ namespace CineGame.MobileComponents {
 
 		[Header ("Value can be Set, Added, Subtracted, Multiplied or Divided")]
 		public float Value;
-		[Header ("Threshold can be Set")]
-		public float Threshold;
-		[Header ("Epsilon for the threshold, .5f is good for integers")]
-		public float Epsilon = .5f;
 
+		[Space]
 		public Text Text;
 		public string Format = "{0:#}";
 
-		public UnityEvent<float> OnBelow;
-		public UnityEvent<float> OnAt;
-		public UnityEvent<float> OnAbove;
+		[Header ("Whether event should fire every update or only when crossing a threshold")]
+		public bool Continuous = false;
 
-		private enum ValueState {
-			Unknown,
-			Below,
-			At,
-			Above,
+		[Space]
+		public UnityEvent<float> OnBelow;
+
+		[System.Serializable]
+		public class Threshold : IComparable<Threshold> {
+			public float Value;
+			public UnityEvent<float> OnAbove;
+
+			public int CompareTo (Threshold b) {
+				return Value.CompareTo (b.Value);
+			}
 		}
-		private ValueState state;
+
+		public List<Threshold> Thresholds;
+
+		int CurrentThresholdIndex = int.MinValue;
 
 		public void Start () {
+			Thresholds.Sort ();
 			UpdateText ();
 			VerboseDebug &= Debug.isDebugBuild;
-			state = ValueState.Unknown;
 		}
 
 		public void SetValue (float v) {
@@ -60,11 +67,6 @@ namespace CineGame.MobileComponents {
 
 		public void SetOther (Transform t) {
 			Other = t;
-		}
-
-		public void SetThreshold (float v) {
-			Threshold = v;
-			FireEvent ();
 		}
 
 		public void Add (float v) {
@@ -89,31 +91,27 @@ namespace CineGame.MobileComponents {
 
 		void FireEvent () {
 			UpdateText ();
-			if (Value < Threshold - Epsilon) {
-				if (state != ValueState.Below) {
-					state = ValueState.Below;
-					if (VerboseDebug) {
-						Debug.LogFormat ("{0} CompareComponent.OnBelow\n{1} {2}", Util.GetObjectScenePath (gameObject), Util.GetEventPersistentListenersInfo (OnBelow), Value);
-					}
-					OnBelow.Invoke (Value);
+			int thresholdIndex = -1;
+			foreach (var threshold in Thresholds) {
+				if (Value < threshold.Value) {
+					break;
 				}
-			} else if (Value >= Threshold + Epsilon) {
-				if (state != ValueState.Above) {
-					state = ValueState.Above;
-					if (VerboseDebug) {
-						Debug.LogFormat ("{0} CompareComponent.OnAbove\n{1} {2}", Util.GetObjectScenePath (gameObject), Util.GetEventPersistentListenersInfo (OnAbove), Value);
-					}
-					OnAbove.Invoke (Value);
-				}
-			} else {
-				if (state != ValueState.At) {
-					state = ValueState.At;
-					if (VerboseDebug) {
-						Debug.LogFormat ("{0} CompareComponent.OnAt\n{1} {2}", Util.GetObjectScenePath (gameObject), Util.GetEventPersistentListenersInfo (OnAt), Value);
-					}
-					OnAt.Invoke (Value);
-				}
+				thresholdIndex++;
 			}
+			if (!Continuous && thresholdIndex == CurrentThresholdIndex)
+				return;
+			if (thresholdIndex == -1) {
+				if (VerboseDebug) {
+					Debug.LogFormat ("{0} CompareComponent.OnBelow\n{1} {2}", Util.GetObjectScenePath (gameObject), Util.GetEventPersistentListenersInfo (OnBelow), Value);
+				}
+				OnBelow?.Invoke (Value);
+			} else {
+				if (VerboseDebug) {
+					Debug.LogFormat ("{0} CompareComponent.Thresholds [{1}].OnAbove\n{2} {3}", Util.GetObjectScenePath (gameObject), thresholdIndex, Util.GetEventPersistentListenersInfo (Thresholds [thresholdIndex].OnAbove), Value);
+				}
+				Thresholds [thresholdIndex].OnAbove?.Invoke (Value);
+			}
+			CurrentThresholdIndex = thresholdIndex;
 		}
 
 		void UpdateText () {
@@ -145,7 +143,6 @@ namespace CineGame.MobileComponents {
 				FireEvent ();
 			}
 		}
-
 	}
 
 }
