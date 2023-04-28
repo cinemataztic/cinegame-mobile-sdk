@@ -1,5 +1,8 @@
-﻿using UnityEditor;
+﻿using System.Linq;
+using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
+
 using CineGame.MobileComponents;
 
 namespace CineGameEditor.MobileComponents {
@@ -7,6 +10,8 @@ namespace CineGameEditor.MobileComponents {
 	public class GameComponentsHierarchyDrawer {
 		static Texture2D texturePanel;
 		static Texture2D textureAppIcon;
+
+		static List<IGameComponentIcon> gameComponentsList = new List<IGameComponentIcon> ();
 
 		static GameComponentsHierarchyDrawer () {
 			// Init
@@ -49,25 +54,27 @@ namespace CineGameEditor.MobileComponents {
 		static void HierarchyItemCB (int instanceID, Rect selectionRect) {
 			var go = EditorUtility.InstanceIDToObject (instanceID) as GameObject;
 
-			if (prevItemHadGameComponentInChildren && (go == null || go.transform.parent != prevItemTransform)) {
-					//One or more children has a GameComponent. draw icon with half opacity
-					var c = GUI.color;
-					c.a = .5f;
-					GUI.color = c;
-				GUI.Label (prevItemIconRect, texturePanel);
-					c.a = 1f;
-					GUI.color = c;
-				}
-			prevItemHadGameComponentInChildren = false;
+			if (gameComponentsList.Count != 0 && (go == null || go.transform.parent != prevItemTransform)) {
+				//One or more children has a GameComponent. draw icon with half opacity
+				var c = GUI.color;
+				c.a = .5f;
+				GUI.color = c;
+				GUI.Label (prevItemIconRect, new GUIContent (texturePanel, string.Join ('\n', gameComponentsList.Select (gc => gc.GetType ().Name).Distinct ())));
+				c.a = 1f;
+				GUI.color = c;
+				gameComponentsList.Clear ();
+			}
 
 			if (go != null) {
 				// Item is a gameobject. if it has a GameComponent directly attached, draw icon with full opacity
 				var xpos = selectionRect.x + selectionRect.width - 16;
 				var r = new Rect (xpos, selectionRect.y, 18, 18);
-				if (go.GetComponent<IGameComponentIcon> () != null) {
-					GUI.Label (r, texturePanel);
+				go.GetComponents<IGameComponentIcon> (gameComponentsList);
+				if (gameComponentsList.Count != 0) {
+					GUI.Label (r, new GUIContent (texturePanel, string.Join ('\n', gameComponentsList.Select (gc => gc.GetType ().Name).Distinct ())));
+					gameComponentsList.Clear ();
 				} else {
-					prevItemHadGameComponentInChildren = go.GetComponentInChildren<IGameComponentIcon> (true) != null;
+					go.GetComponentsInChildren<IGameComponentIcon> (true, gameComponentsList);
 					prevItemIconRect = r;
 					prevItemTransform = go.transform;
 				}
