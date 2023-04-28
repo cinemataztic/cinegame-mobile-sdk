@@ -20,6 +20,8 @@ namespace CineGame.MobileComponents {
         [Tooltip("How often should coordinates be replicated")]
         public float UpdateInterval = 0.033f;
 
+		public Vector2 Offset = new (.5f, .5f);
+		public Vector2 Scale = new (.5f, .5f);
 
 		[Tooltip("Key in objectMessage to gamehost when drag begins (true) or ends (false)")]
         public string DragDropKey = "";
@@ -30,11 +32,23 @@ namespace CineGame.MobileComponents {
 		[Tooltip ("Size of deadzone in center. 0 is none, 1 is all of inner circle")]
 		public float Deadzone = .1f;
 
+		[HideInInspector]
+		[SerializeField]
+		private int eventMask = 0;
+
 		public UnityEvent OnDragBegin;
 		public UnityEvent OnDragEnd;
 
+		public UnityEvent<Vector2> OnDragVector2;
+		public UnityEvent<Vector3> OnDragVector3_XY;
+		public UnityEvent<Vector3> OnDragVector3_XZ;
+		public UnityEvent<Vector3> OnDragVector3_YZ;
+
+		public UnityEvent<float> OnSpeedChange;
+		public UnityEvent<Quaternion> OnAngleChange;
+
 		Vector2 currentNormalizedPosition = Vector2.zero;
-		Vector2 prevNormalizedPosition = Vector2.zero;
+		Vector2 prevSentPosition = Vector2.zero;
         float lastUpdateTime = 0f;
 
         GameObject dragObject;
@@ -45,10 +59,11 @@ namespace CineGame.MobileComponents {
         float resetPositionStartTime;
         Camera eventCamera;
 		int touchId;
+		bool hasAngleListeners;
 
 		void OnEnable () {
 			dragObject = null;
-			resetPositionObject = null;
+			hasAngleListeners = OnAngleChange.GetPersistentEventCount () != 0;
 		}
 
 		public void OnBeginDrag (PointerEventData ped) {
@@ -127,22 +142,40 @@ namespace CineGame.MobileComponents {
 					}
 				}
 
-				currentNormalizedPosition = new Vector2 ((localPos.x - rtrect.min.x) / rtrect.width, (localPos.y - rtrect.min.y) / rtrect.height);
+				currentNormalizedPosition = new Vector2 ((localPos.x - rtrect.center.x) / (rtrect.width / 2f), (localPos.y - rtrect.center.y) / (rtrect.height / 2f));
+				var mag = currentNormalizedPosition.magnitude;
 
-				var tolerance = .5f * Deadzone;
+				if (mag < Deadzone) {
+					currentNormalizedPosition = Vector2.zero;
+					mag = 0f;
+				}
 
-				if ((lastUpdateTime + UpdateInterval) <= Time.time &&
-					(prevNormalizedPosition != currentNormalizedPosition
-					|| currentNormalizedPosition.x < .5f - tolerance
-					|| currentNormalizedPosition.x > .5f + tolerance
-					|| currentNormalizedPosition.y < .5f - tolerance
-					|| currentNormalizedPosition.y > .5f + tolerance
-					)) {
-					//Debug.LogFormat ("x={0}, y={1}", currentPosition.x, currentPosition.y);
-					Send (VariableNameX, currentNormalizedPosition.x);
-					Send (VariableNameY, currentNormalizedPosition.y);
+				//Debug.LogFormat ("x={0}, y={1}", currentPosition.x, currentPosition.y);
+				var translatedPosition = currentNormalizedPosition * Scale + Offset;
+
+				if (!string.IsNullOrEmpty (VariableNameX)
+					&& !string.IsNullOrEmpty (VariableNameY)
+					&& (lastUpdateTime + UpdateInterval) <= Time.time
+					&& prevSentPosition != translatedPosition) {
+					Send (VariableNameX, translatedPosition.x);
+					Send (VariableNameY, translatedPosition.y);
 					lastUpdateTime = Time.time;
-					prevNormalizedPosition = currentNormalizedPosition;
+					prevSentPosition = translatedPosition;
+				}
+
+				OnDragVector2.Invoke (translatedPosition);
+				OnDragVector3_XY.Invoke (new Vector3 (translatedPosition.x, translatedPosition.y));
+				OnDragVector3_XZ.Invoke (new Vector3 (translatedPosition.x, 0f, translatedPosition.y));
+				OnDragVector3_YZ.Invoke (new Vector3 (0f, translatedPosition.x, translatedPosition.y));
+
+				OnSpeedChange.Invoke (mag);
+
+				if (hasAngleListeners && mag >= Deadzone) {
+					var acos = Mathf.Acos (currentNormalizedPosition.y / mag) * 57.29578f;
+					if (currentNormalizedPosition.x < 0) {
+						acos = 360f - acos;
+					}
+					OnAngleChange.Invoke (Quaternion.AngleAxis (acos, Vector3.up));
 				}
 			}
         }
