@@ -1061,6 +1061,7 @@ namespace CineGameEditor.MobileComponents {
 			{ "LogicComponent.cs", "cc7fbe9cb65b24476b1426f19a438a63" },
 			{ "JoystickComponent.cs", "e12223f1cfe254b5fa8b051b88c642a2" },
 			{ "GetTransformProperty.cs", "5ac1a4302dfe6468e8cbe43ec944b6cc" },
+			{ "Destroy.cs", "05255282a40314348a18c91f3f18ffc4" },
 			{ "FollowComponent.cs", "6ce1fb93fd2ad47d599ce2dc1e36d627" },
 			{ "AnimationEventListener.cs", "13d77d1e33ee27f428f0d7175a2076b2" },
 			{ "AnimatorParameter.cs", "40fd1fe7494a34ddba76ed6c1897cd53" },
