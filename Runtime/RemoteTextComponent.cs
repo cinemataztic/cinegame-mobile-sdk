@@ -12,8 +12,8 @@ namespace CineGame.MobileComponents {
 	/// <summary>
 	/// Remotely replace text, or supply params for a formatted string
 	/// </summary>
+	[ComponentReference ("Replicated text. The text can be a string constant or formatted with a set of keys and values. You can apply U and L formatters (upper-case and lower-case)")]
 	public class RemoteTextComponent : ReplicatedComponent {
-		[Header ("Replicated text. The text can be a string constant or formatted with a set of keys and values. You can apply U and L formatters (upper-case and lower-case)")]
 
         [Tooltip("If true, the data from host will be formatted in the default value of the text component")]
         public bool IsFormattedString = false;

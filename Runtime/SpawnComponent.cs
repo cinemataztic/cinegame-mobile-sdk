@@ -4,8 +4,8 @@ using UnityEngine;
 using UnityEngine.Events;
 
 namespace CineGame.MobileComponents {
-	public class SpawnComponent : MonoBehaviour, IGameComponentIcon {
-		[Header ("Utility for spawning a prefab as a child of this Transform, with same position and orientation. An optional impulse can be applied by triggering the Impulse methods. A maximum amount of spawns can be set.")]
+	[ComponentReference ("Utility for spawning a prefab as a child of this Transform, with same position and orientation. An optional impulse can be applied by triggering the Impulse methods. A maximum amount of spawns can be set.")]
+	public class SpawnComponent : BaseComponent {
 
 		public GameObject Prefab;
 		public float RespawnDelay = 0.3f;

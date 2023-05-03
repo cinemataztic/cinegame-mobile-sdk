@@ -22,6 +22,10 @@ namespace CineGame.MobileComponents {
 		[Serializable] public class RemoteSpriteEvent : UnityEvent<Sprite> { }
 		public RemoteSpriteEvent onReceive;
 
+		private void Start () {
+			VerboseDebug &= Debug.isDebugBuild || Util.IsDevModeActive;
+		}
+
 		internal override void OnObjectMessage (ISFSObject dataObj, int senderId) {
 			if (dataObj.ContainsKey (Key)) {
 				onReceive.Invoke (Sprites [dataObj.GetInt (Key)]);

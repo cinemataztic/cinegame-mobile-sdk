@@ -5,16 +5,15 @@ namespace CineGame.MobileComponents {
 	/// Projects a world-space coordinate onto a canvas as a 2D AnchoredPosition coordinate.
 	/// Useful for creating HUD overlays, speech bubbles etc.
 	/// </summary>
+	[ComponentReference ("Projects a world 3D position onto a screen-aligned canvas. This can be used for eg HUD overlays or speech bubbles.")]
 	[ExecuteAlways]
 	[RequireComponent (typeof (CanvasGroup))]
-	public class AnchorPositionFrom3D : MonoBehaviour, IGameComponentIcon {
-		[Header ("Projects a world 3D position onto a screen-aligned canvas. Eg HUD overlays, speech bubbles etc.")]
-
+	public class AnchorPositionFrom3D : BaseComponent {
 		[Tooltip ("Transform to project")]
 		public Transform PositionSource;
 
 		[Tooltip ("Offset in local source transform space")]
-		public Vector3 OffsetInWorldSpace;
+		public Vector3 OffsetInSourceSpace;
 
 		[Tooltip ("Offset on the destination canvas after projection")]
 		public Vector2 OffsetInRectTransform;
@@ -42,7 +41,7 @@ namespace CineGame.MobileComponents {
 		}
 
 		void LateUpdate () {
-			var screenPoint3 = Camera.main.WorldToScreenPoint (PositionSource.TransformPoint (OffsetInWorldSpace));
+			var screenPoint3 = Camera.main.WorldToScreenPoint (PositionSource.TransformPoint (OffsetInSourceSpace));
 			var dz = screenPoint3.z / Camera.main.nearClipPlane;
 			canvasGroup.alpha = Mathf.Clamp01 (dz);
 			if (dz < 0f)

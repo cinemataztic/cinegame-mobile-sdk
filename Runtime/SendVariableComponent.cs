@@ -3,8 +3,8 @@ using UnityEngine.EventSystems;
 
 namespace CineGame.MobileComponents {
 
+	[ComponentReference ("Send variables or messages to host. Invoke the 'Action' methods with variables or constants.")]
 	public class SendVariableComponent : ReplicatedComponent {
-		[Header ("Send variables or messages to host. Invoke the 'Action' methods with variables or constants.")]
 
 		[Header("Replication")]
 		[Tooltip("Message to prefix. Leavy empty if no private message should be sent.")]

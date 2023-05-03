@@ -9,11 +9,10 @@ namespace CineGame.MobileComponents {
 	/// RemoteControl enables game host to control values or invoke methods on this client.
 	/// Values can either be set or (if not void or string) can be interpolated linearly over InterpTime duration.
 	/// </summary>
+	[ComponentReference ("Control unity objects and properties remotely from host")]
 	public class RemoteControl : ReplicatedComponent {
 
-		[Header("Control unity objects remotely")]
-		[Space]
-		[Tooltip("If this key is in ObjectMessage from host then invoke onReceive")]
+		[Header ("Property to listen for")]
 		public string Key;
 
 		public enum EventType {
@@ -28,10 +27,10 @@ namespace CineGame.MobileComponents {
 			Color,
 			Quaternion,
 		}
-		[Tooltip ("The parameter type. Void if just triggering an action")]
+		[Header ("Property type. Void if just triggering an action")]
 		public EventType Type = EventType.Void;
 
-		[Tooltip("If this is not 0 the value will be interpolated (if applicable)")]
+		[Header ("Interpolation time (if applicable), 0=Snap")]
 		public float InterpTime = 0f;
 
 		public Interpolation.Type InterpType = Interpolation.Type.Linear;

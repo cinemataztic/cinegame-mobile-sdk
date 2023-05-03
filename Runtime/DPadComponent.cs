@@ -3,9 +3,8 @@ using UnityEngine.EventSystems;
 
 namespace CineGame.MobileComponents {
 
+	[ComponentReference ("Replicated PointerUp/PointerDown. Think microswitch on a digital-style joystick. CooldownTime will limit how often the event will replicate.")]
 	public class DPadComponent : ReplicatedComponent, IPointerDownHandler, IPointerUpHandler {
-        [Header ("Replicated PointerUp/PointerDown. CooldownTime will limit how often the event will replicate.")]
-
         [Tooltip("Name of smartfox uservariable (bool) to replicate")]
         public string VariableName = "fire";
         [Tooltip("How often should a 'keydown' be able to trigger")]
