@@ -79,7 +79,7 @@ namespace CineGame.MobileComponents {
 		};
 
 		public delegate void HapticEvent (HapticFeedbackConstants feedbackConstant);
-		public delegate void VibrationEvent (TextAsset textAsset);
+		public delegate void VibrationEvent (string pattern);
 		/// <summary>
 		/// App hooks up here so SDK can play haptics via PerformHapticFeedback
 		/// </summary>
@@ -325,11 +325,11 @@ namespace CineGame.MobileComponents {
 		}
 
 		/// <summary>
-		/// Vibrate the phone in a specific pattern (long array of ms, even are vibrate, odd are pause). Only implemented on Android, iOS will vibrate once default time
+		/// Vibrate the phone in a specific pattern. The file format is platform specific (AHAP for iOS, custom VibrationEffect.Composition format for Android)
 		/// </summary>
-		public static void Vibrate (TextAsset textAsset) {
+		public static void Vibrate (string pattern) {
 			if (!Application.isEditor) {
-				OnPlayVibrationEffect?.Invoke (textAsset);
+				OnPlayVibrationEffect?.Invoke (pattern);
 			}
 		}
 
