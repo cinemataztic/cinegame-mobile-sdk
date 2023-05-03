@@ -6,8 +6,8 @@ using Sfs2X.Entities.Data;
 
 namespace CineGame.MobileComponents {
 
+	[ComponentReference ("Gyro controller, replicates mobile device orientation. Host can also set a goal for orientation and GyroComponent will send an event whether succeeded within given timeframe")]
 	public class GyroComponent : ReplicatedComponent {
-        [Header ("Gyro controller, replicates mobile device orientation. Host can also set a goal for orientation and GyroComponent will send an event whether succeeded within given timeframe")]
 
         [Header("2D Graphics")]
         public RectTransform Roll2D;

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace CineGame.MobileComponents {
 
-	public class PlaySound : MonoBehaviour, IGameComponentIcon {
+	public class PlaySound : BaseComponent {
 
 		[Tooltip("Path of each soundfile. Relative to StreamingAssets/Resources/Sounds")]
 		public string[] Sounds;

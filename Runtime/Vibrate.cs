@@ -2,10 +2,8 @@
 
 namespace CineGame.MobileComponents {
 
-	/// <summary>
-	/// Simple class for controlling haptic feedback (vibration) on handheld devices.
-	/// </summary>
-	public class Vibrate: MonoBehaviour, IGameComponentIcon {
+	[ComponentReference ("Play haptic feedback and vibration effects.")]
+	public class Vibrate: BaseComponent {
 
 		/// <summary>
 		/// Start vibrating for 500 ms (default on iOS)

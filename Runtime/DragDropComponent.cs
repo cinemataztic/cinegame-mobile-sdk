@@ -4,6 +4,7 @@ using UnityEngine.EventSystems;
 
 namespace CineGame.MobileComponents {
 
+	[ComponentReference ("Fire events/actions and replicate coordinates when this GameObject is dragged. This can be used as a simple analog joystick. You can specify whether the position should reset when dropped and how fast.")]
 	[RequireComponent(typeof(RectTransform))]
 	public class DragDropComponent : ReplicatedComponent, IDragHandler, IBeginDragHandler, IEndDragHandler {
 

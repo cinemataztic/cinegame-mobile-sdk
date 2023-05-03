@@ -4,7 +4,7 @@ using Sfs2X.Entities.Data;
 
 namespace CineGame.MobileComponents {
 
-	public class ReplicatedComponent : MonoBehaviour, IGameComponentIcon {
+	public class ReplicatedComponent : BaseComponent {
 		public delegate void ObjectMessageDelegate (ISFSObject dataObj, int senderId);
 		public static event ObjectMessageDelegate onObjectMessage;
 

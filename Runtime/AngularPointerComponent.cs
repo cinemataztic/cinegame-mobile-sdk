@@ -7,8 +7,8 @@ namespace CineGame.MobileComponents {
 	/// <summary>
 	/// Tracks a given PointerEvent position angularly, eg for an arrow or a gun to point towards the screen point where the user has clicked
 	/// </summary>
+	[ComponentReference ("Control an arrow/direction on a canvas and optionally replicate the angle. Eg a turret/cannon or steering wheel")]
 	public class AngularPointerComponent : ReplicatedComponent {
-        [Header ("Control an arrow/direction on a canvas and optionally replicate the angle. Eg a turret/cannon or steering wheel")]
 
         public RectTransform Pointer;
 		public float MinValue = -360f;

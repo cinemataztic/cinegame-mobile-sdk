@@ -4,11 +4,8 @@ using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 
 namespace CineGame.MobileComponents {
-	/// <summary>
-	/// GameComponent which fires events based on what type of login is currently used. Also if the user is minor (below MinorAge, defaults to 17)
-	/// </summary>
-	public class OnLogin : MonoBehaviour, IGameComponentIcon {
-		[Header ("Trigger events based on login type and if user is a minor")]
+	[ComponentReference ("Fire events based on what type of login is currently used. Also if the user is minor (below MinorAge, defaults to 17)")]
+	public class OnLogin : BaseComponent {
 
 		[SerializeField]	private int MinorAge = 18;
 		[SerializeField]	private UnityEvent OnAnonymous;

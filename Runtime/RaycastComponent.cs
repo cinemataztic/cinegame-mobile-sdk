@@ -11,11 +11,8 @@ namespace CineGame.MobileComponents {
 	/// <summary>
 	/// Component to proxy parameters or IK values into a specific Animator
 	/// </summary>
-	public class RaycastComponent : MonoBehaviour, IGameComponentIcon {
-		[Header ("Raycast from screen position (mouse or touch)")]
-		[Space]
-		[Tooltip ("Log events verbosely in editor and debug builds")]
-		public bool VerboseDebug = false;
+	[ComponentReference ("Raycast from screen position (mouse or touch)")]
+	public class RaycastComponent : BaseComponent {
 
 		public LayerMask LayerMask = -1;
 

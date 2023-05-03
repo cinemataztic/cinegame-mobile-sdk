@@ -4,8 +4,8 @@ using System;
 
 namespace CineGame.MobileComponents {
 
-	public class OnEnableDisable : MonoBehaviour, IGameComponentIcon {
-		[Header ("Trigger events when this GameObject becomes enabled or disabled. Optionally delay events")]
+	[ComponentReference ("Trigger events when this GameObject becomes enabled or disabled. Optionally delay events")]
+	public class OnEnableDisable : BaseComponent {
 
 		public float OnEnableDelay = 0f;
 
@@ -16,13 +16,17 @@ namespace CineGame.MobileComponents {
 		[Header("When gameobject is deactivated")]
 		public OnEnableDisableEvent onDisable;
 
+		private void Start() {
+			VerboseDebug &= Debug.isDebugBuild || Util.IsDevModeActive;
+		}
+
 		public void CancelEnable () {
-			CancelInvoke ("OnEnableInvoke");
+			CancelInvoke (nameof(OnEnableInvoke));
 		}
 
 		void OnEnable () {
 			if (OnEnableDelay > 0f) {
-				Invoke ("OnEnableInvoke", OnEnableDelay);
+				Invoke (nameof(OnEnableInvoke), OnEnableDelay);
 			} else {
 				OnEnableInvoke ();
 			}

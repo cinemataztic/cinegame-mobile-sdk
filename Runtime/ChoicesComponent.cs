@@ -7,6 +7,7 @@ using Sfs2X.Entities.Data;
 
 namespace CineGame.MobileComponents {
 
+	[ComponentReference ("Component for setting up a multiple choice array or grid. For example a memory card game where the player has to remember the position of a card.")]
 	public class ChoicesComponent : ReplicatedComponent {
 
         [Header("Choice prefab (eg quiz button)")]

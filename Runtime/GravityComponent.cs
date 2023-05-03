@@ -3,8 +3,8 @@ using UnityEngine.EventSystems;
 
 namespace CineGame.MobileComponents {
 
-	public class GravityComponent : MonoBehaviour, IGameComponentIcon {
-		[Header ("Apply gravity to the entire scene according to mobile device gyro.")]
+	[ComponentReference ("Update Physics.gravity according to mobile device gyro.")]
+	public class GravityComponent : BaseComponent {
 
 		public float GravityScale = 20f;
 

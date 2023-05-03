@@ -2,8 +2,9 @@
 using UnityEngine.Events;
 
 namespace CineGame.MobileComponents {
-	public class LookAt : MonoBehaviour, IGameComponentIcon {
-		[Header ("Simple LookAt controller which will orientate the GameObject towards Target")]
+	[ComponentReference ("Simple LookAt controller which will orientate the GameObject towards Target")]
+	public class LookAt : BaseComponent {
+
 		public Transform Target;
 		[Tooltip ("If true, GameObject will 'lookAt' main camera instead of Target")]
 		public bool TargetIsMainCamera;

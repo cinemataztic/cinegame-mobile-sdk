@@ -7,8 +7,8 @@ using UnityEngine.UI;
 using Sfs2X.Entities.Data;
 
 namespace CineGame.MobileComponents {
+	[ComponentReference ("Utility for making dice games. Will apply a random force to this GameObject and when the die stops moving (below thresholds) the result is replicated to host.")]
 	public class ThrowComponent : ReplicatedComponent {
-		[Header ("Utility for making dice games. Will apply a random force to this GameObject and when the die stops moving (below thresholds) the result is replicated to host.")]
 
 	    [SerializeField] float ThrowForce = 200f;
 		[SerializeField] float ThrowTorque = 200f;

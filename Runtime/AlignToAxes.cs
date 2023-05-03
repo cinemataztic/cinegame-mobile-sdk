@@ -8,7 +8,8 @@ namespace CineGame.MobileComponents {
 	/// This can be used to eg zoom in on a die that has been cast.
 	/// If Reposition is true, the position of the object will also be moved.
 	/// </summary>
-	public class AlignToAxes : MonoBehaviour, IGameComponentIcon {
+	[ComponentReference ("Align this transform with the AlignObject transform. Optionally reposition to AlignObject position. You can chose to align the closes axis, or you can set an interpolation time (if you set it to 0 then the transform will snap into position)")]
+	public class AlignToAxes : BaseComponent {
 
 		[Tooltip ("The transform to align object to")]
 		public Transform AlignObject;
