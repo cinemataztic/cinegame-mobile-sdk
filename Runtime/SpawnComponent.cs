@@ -18,14 +18,14 @@ namespace CineGame.MobileComponents {
 		[Tooltip("World units to randomize impulse position")]
 		public float RandomImpulsePosition = 0f;
 
-		public UnityEvent OnSpawn;
+		public UnityEvent<GameObject> OnSpawn;
 		public UnityEvent OnEmpty;
 
 		GameObject Current;
 		int numSpawns=0;
 
 		void Respawn () {
-			Invoke ("Spawn", RespawnDelay);
+			Invoke (nameof(Spawn), RespawnDelay);
 		}
 
 		public void Spawn () {
@@ -36,7 +36,7 @@ namespace CineGame.MobileComponents {
 				Current = Instantiate (Prefab, transform);
 				Current.transform.localPosition = Vector3.zero;
 				Current.transform.localRotation = Quaternion.identity;
-				OnSpawn.Invoke ();
+				OnSpawn.Invoke (Current);
 				numSpawns++;
 			}
 		}
