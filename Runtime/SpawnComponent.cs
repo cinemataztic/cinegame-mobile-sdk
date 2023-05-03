@@ -34,7 +34,19 @@ namespace CineGame.MobileComponents {
 			} else {
 				Log ($"Spawn {Prefab.name}");
 				Current = Instantiate (Prefab, transform);
-				Current.transform.localPosition = Vector3.zero;
+				Current.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+				OnSpawn.Invoke (Current);
+				numSpawns++;
+			}
+		}
+
+		public void SpawnAt (Vector3 worldPosition) {
+			if (Capacity != 0 && numSpawns >= Capacity) {
+				OnEmpty.Invoke ();
+			} else {
+				Log ($"SpawnAt {Prefab.name} {worldPosition}");
+				Current = Instantiate (Prefab, transform);
+				Current.transform.position = worldPosition;
 				Current.transform.localRotation = Quaternion.identity;
 				OnSpawn.Invoke (Current);
 				numSpawns++;
