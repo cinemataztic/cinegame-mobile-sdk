@@ -36,10 +36,12 @@ namespace CineGame.MobileComponents {
 				if (Quaternion.Angle (transform.rotation, deltaRot) > AngleThreshold) {
 					if (!IsInterpolating) {
 						IsInterpolating = true;
+						Log ("LookAt.OnInterpolating");
 						OnInterpolating.Invoke ();
 					}
 				} else if (IsInterpolating) {
 					IsInterpolating = false;
+					Log ("LookAt.OnReachedTarget");
 					OnReachedTarget.Invoke ();
 				}
 				transform.rotation = Quaternion.Slerp (transform.rotation, deltaRot, Time.deltaTime * Speed);

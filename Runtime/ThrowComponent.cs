@@ -46,6 +46,7 @@ namespace CineGame.MobileComponents {
 				lastThrowTime = 0f;
 				var eyes = GetCurrentDieEyes ();
 				Send (ResultKey, eyes);
+				Log ($"ThrowComponent.OnStopped\n{Util.GetEventPersistentListenersInfo (onStopped)}");
 				onStopped.Invoke (eyes);
 			}
 			//Something else has taken control (eg Interpolator)? Then cancel throw... Not sure exactly how to handle this

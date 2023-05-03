@@ -175,9 +175,7 @@ namespace CineGame.MobileComponents {
 		/// If this is a debug build, we would like to know all the listeners of a particular event when it happens, formatted as a single multiline log entry
 		/// </summary>
 		void LogEvent (UnityEventBase e, object value) {
-			if (Debug.isDebugBuild || Util.IsDevModeActive) {
-				Debug.LogFormat ("{0} RemoteControl{1} \"{2}\"={3}\n{4}", Util.GetObjectScenePath (gameObject), (InterpTime > float.Epsilon)? " Interpolate" : string.Empty,  Key, value, Util.GetEventPersistentListenersInfo (e));
-			}
+			Log ("RemoteControl{0} {1}={2}\n{3}", (InterpTime > float.Epsilon)? " Interpolate" : string.Empty,  Key, value, Util.GetEventPersistentListenersInfo (e));
 		}
 
 

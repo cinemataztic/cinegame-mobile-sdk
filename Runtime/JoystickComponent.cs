@@ -4,7 +4,8 @@ using UnityEngine.UI;
 
 namespace CineGame.MobileComponents
 {
-    public class JoystickComponent : MonoBehaviour, IGameComponentIcon
+    [ComponentReference ("Complex Joystick component which can be highly customized")]
+    public class JoystickComponent : BaseComponent
     {
         public VariableJoystick JoystickPrefab;
         public JoystickType Type = JoystickType.Fixed;
@@ -16,7 +17,7 @@ namespace CineGame.MobileComponents
 
         public enum AxisSnap { None, X, Y }
 
-        private void Awake()
+        private void Start ()
         {
             SetAxisType(Type);
             SetAxisOptions(AxisOption);

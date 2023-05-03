@@ -16,11 +16,8 @@ namespace CineGame.MobileComponents {
 		[Header("When gameobject is deactivated")]
 		public OnEnableDisableEvent onDisable;
 
-		private void Start() {
-			VerboseDebug &= Debug.isDebugBuild || Util.IsDevModeActive;
-		}
-
 		public void CancelEnable () {
+			Log ("OnEnableDisable.CancelEnable");
 			CancelInvoke (nameof(OnEnableInvoke));
 		}
 
@@ -33,9 +30,7 @@ namespace CineGame.MobileComponents {
 		}
 
 		void OnEnableInvoke () {
-			if (Debug.isDebugBuild) {
-				Debug.LogFormat ("{0} OnEnable:\n{1}", Util.GetObjectScenePath (gameObject), Util.GetEventPersistentListenersInfo (onEnable));
-			}
+			Log ($"OnEnable:\n{Util.GetEventPersistentListenersInfo (onEnable)}");
 			onEnable.Invoke ();
 		}
 
@@ -44,9 +39,7 @@ namespace CineGame.MobileComponents {
 		}
 
 		void OnDisableInvoke () {
-			if (Debug.isDebugBuild) {
-				Debug.LogFormat ("{0} OnDisable:\n{1}", Util.GetObjectScenePath (gameObject), Util.GetEventPersistentListenersInfo (onDisable));
-			}
+			Log ($"OnDisable:\n{Util.GetEventPersistentListenersInfo (onDisable)}");
 			onDisable.Invoke ();
 		}
 

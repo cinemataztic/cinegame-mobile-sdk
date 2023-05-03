@@ -54,34 +54,39 @@ namespace CineGame.MobileComponents {
 		public void Start () {
 			Thresholds.Sort ();
 			UpdateText ();
-			VerboseDebug &= Debug.isDebugBuild;
 		}
 
 		public void SetValue (float v) {
+			//Log ($"LogicComponent.SetValue ({v})");
 			Value = v;
 			FireEvent ();
 		}
 
 		public void SetOther (Transform t) {
+			Log ($"LogicComponent.SetOther ({t.gameObject.GetScenePath ()})");
 			Other = t;
 		}
 
 		public void Add (float v) {
+			Log ($"LogicComponent.Add ({v})");
 			Value += v;
 			FireEvent ();
 		}
 
 		public void Subtract (float v) {
+			Log ($"LogicComponent.Subtract ({v})");
 			Value -= v;
 			FireEvent ();
 		}
 
 		public void Multiply (float v) {
+			Log ($"LogicComponent.Multiply ({v})");
 			Value *= v;
 			FireEvent ();
 		}
 
 		public void Divide (float v) {
+			Log ($"LogicComponent.Divide ({v})");
 			Value /= v;
 			FireEvent ();
 		}
@@ -98,14 +103,10 @@ namespace CineGame.MobileComponents {
 			if (!Continuous && thresholdIndex == CurrentThresholdIndex)
 				return;
 			if (thresholdIndex == -1) {
-				if (VerboseDebug) {
-					Debug.LogFormat (this, "{0} CompareComponent.OnBelow\n{1} {2}", Util.GetObjectScenePath (gameObject), Util.GetEventPersistentListenersInfo (OnBelow), Value);
-				}
+				Log ($"LogicComponent.OnBelow Value={Value}\n{Util.GetEventPersistentListenersInfo (OnBelow)}");
 				OnBelow?.Invoke (Value);
 			} else {
-				if (VerboseDebug) {
-					Debug.LogFormat (this, "{0} CompareComponent.Thresholds [{1}].OnAbove\n{2} {3}", Util.GetObjectScenePath (gameObject), thresholdIndex, Util.GetEventPersistentListenersInfo (Thresholds [thresholdIndex].OnAbove), Value);
-				}
+				Log ($"LogicComponent.Thresholds [{thresholdIndex}].OnAbove Value={Value}\n{Util.GetEventPersistentListenersInfo (Thresholds [thresholdIndex].OnAbove)}");
 				Thresholds [thresholdIndex].OnAbove?.Invoke (Value);
 			}
 			CurrentThresholdIndex = thresholdIndex;
@@ -118,9 +119,7 @@ namespace CineGame.MobileComponents {
 					fmt = fmt.Replace ("{0:#}", "0");
 				}
 				var str = string.Format (fmt, Value);
-				//if (VerboseDebug) {
-				//	Debug.LogFormat (this, "{0} CompareComponent.UpdateText \"{1}\"", Util.GetObjectScenePath (gameObject), str);
-				//}
+				//Log ($"CompareComponent.UpdateText \"{str}\"");
 				Text.text = str;
 			}
 		}

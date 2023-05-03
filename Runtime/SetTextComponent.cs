@@ -3,8 +3,8 @@ using UnityEngine.UI;
 
 namespace CineGame.MobileComponents {
 
-	public class SetTextComponent : MonoBehaviour, IGameComponentIcon {
-		[Header ("Change text in a Text Component based on an index")]
+	[ComponentReference ("Change text in a Text Component based on an index")]
+	public class SetTextComponent : BaseComponent {
 
 		public string[] Texts;
 

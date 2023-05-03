@@ -23,14 +23,18 @@ namespace CineGame.MobileComponents {
 		public void OnPointerDown (PointerEventData eventData) {
             if (lastUpdateTime + CooldownTime <= Time.time) {
                 //State = true;
+                Log ("DPadComponent.Down");
                 Send (VariableName, true);
                 lastUpdateTime = Time.time;
                 Util.PerformHapticFeedback (Util.HapticFeedbackConstants.VIRTUAL_KEY);
-            }
-        }
+            } else {
+				Log ("DPadComponent.Down ignored, cooldown");
+			}
+		}
 
 		public void OnPointerUp (PointerEventData eventData) {
-            //State = false;
+			//State = false;
+			Log ("DPadComponent.Up");
 			Send (VariableName, false);
             Util.PerformHapticFeedback (Util.HapticFeedbackConstants.VIRTUAL_KEY_RELEASE);
         }

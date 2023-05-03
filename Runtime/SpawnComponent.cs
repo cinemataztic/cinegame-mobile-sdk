@@ -32,9 +32,7 @@ namespace CineGame.MobileComponents {
 			if (Capacity != 0 && numSpawns >= Capacity) {
 				OnEmpty.Invoke ();
 			} else {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-				Debug.LogFormat ("{0} Spawn", Util.GetObjectScenePath (gameObject));
-#endif
+				Log ($"Spawn {Prefab.name}");
 				Current = Instantiate (Prefab, transform);
 				Current.transform.localPosition = Vector3.zero;
 				Current.transform.localRotation = Quaternion.identity;
@@ -44,20 +42,19 @@ namespace CineGame.MobileComponents {
 		}
 
 		public void Reload () {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-			Debug.LogFormat ("{0} Reload", Util.GetObjectScenePath (gameObject));
-#endif
+			Log ("SpawnComponent.Reload");
 			numSpawns = 0;
 		}
 
 		public void SetCapacity (int newCapacity) {
+			Log ($"SpawnComponent.SetCapacity ({newCapacity})");
 			Capacity = newCapacity;
 		}
 
 		public void Impulse (Vector2 force) {
 			var t = (ImpulseAlign != null)? ImpulseAlign : this.transform;
-			var rb2d = Current.GetComponent<Rigidbody2D> ();
-			if (rb2d != null) {
+			if (Current.TryGetComponent<Rigidbody2D>(out var rb2d)) {
+				Log ($"SpawnComponent.Impulse 2D ({force})");
 				rb2d.AddForce (force, ForceMode2D.Impulse);
 				Respawn ();
 			} else {
@@ -67,7 +64,9 @@ namespace CineGame.MobileComponents {
 
 		public void Impulse (Vector3 force) {
 			var t = (ImpulseAlign != null)? ImpulseAlign : this.transform;
-			Current.GetComponent<Rigidbody> ().AddForceAtPosition (force, t.position + Random.insideUnitSphere * RandomImpulsePosition, ForceMode.Impulse);
+			var pos = t.position + Random.insideUnitSphere * RandomImpulsePosition;
+			Log ($"SpawnComponent.Impulse ({force}) at position ({pos})");
+			Current.GetComponent<Rigidbody> ().AddForceAtPosition (force, pos, ForceMode.Impulse);
 			Respawn ();
 		}
 	}

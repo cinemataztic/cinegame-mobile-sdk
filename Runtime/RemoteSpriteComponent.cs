@@ -10,8 +10,8 @@ namespace CineGame.MobileComponents {
 	/// <summary>
 	/// Remotely replace sprites (or invoke methods) with a pre-defined sprite array.
 	/// </summary>
+	[ComponentReference ("Replace a sprite with one from the Sprites array, according to received index")]
 	public class RemoteSpriteComponent : ReplicatedComponent {
-		[Header("Replace a sprite with one from the array below, according to received index")]
 		[Tooltip("Key in the ObjectMessage from host - int index in Sprites array")]
 		public string Key;
 
@@ -22,13 +22,12 @@ namespace CineGame.MobileComponents {
 		[Serializable] public class RemoteSpriteEvent : UnityEvent<Sprite> { }
 		public RemoteSpriteEvent onReceive;
 
-		private void Start () {
-			VerboseDebug &= Debug.isDebugBuild || Util.IsDevModeActive;
-		}
-
 		internal override void OnObjectMessage (ISFSObject dataObj, int senderId) {
 			if (dataObj.ContainsKey (Key)) {
-				onReceive.Invoke (Sprites [dataObj.GetInt (Key)]);
+				var idx = dataObj.GetInt (Key);
+				var sprite = Sprites [idx];
+				Log ($"RemoteSpriteComponent index={idx} Sprite={((sprite != null) ? sprite.name : string.Empty)}");
+				onReceive.Invoke (sprite);
 			}
         }
     }
