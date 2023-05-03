@@ -121,9 +121,7 @@ namespace CineGame.MobileComponents {
 			}
 			if (s != null) {
 				OnReceive?.Invoke (s);
-				if (Util.IsDevModeActive) {
-					Debug.Log ($"RemoteTextComponent: {Util.GetObjectScenePath (gameObject)} = \"{s}\"");
-				}
+				Log ($"RemoteTextComponent: \"{s}\"\n{Util.GetEventPersistentListenersInfo (OnReceive)}");
 			}
         }
     }

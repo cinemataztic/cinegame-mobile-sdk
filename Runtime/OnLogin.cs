@@ -10,7 +10,7 @@ namespace CineGame.MobileComponents {
 		[SerializeField]	private int MinorAge = 18;
 		[SerializeField]	private UnityEvent OnAnonymous;
 		[SerializeField]	private UnityEvent OnVerified;
-		[SerializeField]	private UnityEvent OnIsMinor;
+		[SerializeField]	private UnityEvent<int> OnIsMinor;
 		[SerializeField]	private UnityEvent OnLoggedOut;
 
 		public enum LoginType {
@@ -29,30 +29,22 @@ namespace CineGame.MobileComponents {
 		void PropagateLoginType () {
 			switch (CurrentLoginType) {
 			case LoginType.Anonymous:
-				if (Util.IsDevModeActive) {
-					Debug.LogFormat ("{0} OnAnonymous:\n{1}", Util.GetObjectScenePath (gameObject), Util.GetEventPersistentListenersInfo (OnAnonymous));
-				}
+				Log ($"OnAnonymous:\n{Util.GetEventPersistentListenersInfo (OnAnonymous)}");
 				OnAnonymous.Invoke ();
 				break;
 			case LoginType.Verified:
-				if (Util.IsDevModeActive) {
-					Debug.LogFormat("{0} OnVerified:\n{1}", Util.GetObjectScenePath (gameObject), Util.GetEventPersistentListenersInfo (OnVerified));
-				}
+				Log ($"OnVerified:\n{Util.GetEventPersistentListenersInfo (OnVerified)}");
 				OnVerified.Invoke();
 				break;
 			case LoginType.NotLoggedIn:
-				if (Util.IsDevModeActive) {
-					Debug.LogFormat ("{0} OnLoggedOut:\n{1}", Util.GetObjectScenePath (gameObject), Util.GetEventPersistentListenersInfo (OnLoggedOut));
-				}
+				Log ($"OnLoggedOut:\n{Util.GetEventPersistentListenersInfo (OnLoggedOut)}");
 				OnLoggedOut.Invoke ();
 				break;
 			}
 			bool isMinor = EstimatedAge < MinorAge;
 			if (isMinor) {
-				OnIsMinor.Invoke ();
-				if (Util.IsDevModeActive) {
-					Debug.LogFormat ("{0} OnIsMinor:\n{1}", Util.GetObjectScenePath (gameObject), Util.GetEventPersistentListenersInfo (OnIsMinor));
-				}
+				Log ($"OnIsMinor:\n{Util.GetEventPersistentListenersInfo (OnIsMinor)}");
+				OnIsMinor.Invoke (EstimatedAge);
 			}
 		}
 

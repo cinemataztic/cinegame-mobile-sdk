@@ -95,7 +95,7 @@ namespace CineGame.MobileComponents {
 
 		public void DestroyGameObject (GameObject go) {
 			if (go != null) {
-				if (Debug.isDebugBuild) {
+				if (Debug.isDebugBuild || Util.IsDevModeActive) {
 					Debug.LogFormat ("GameProxy.DestroyGameObject {0}", Util.GetObjectScenePath (go));
 				}
 				Destroy (go);

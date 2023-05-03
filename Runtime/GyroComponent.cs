@@ -104,11 +104,11 @@ namespace CineGame.MobileComponents {
                     failTime += Time.deltaTime;
                     if (FailTimeThreshold != 0f && failTime >= FailTimeThreshold) {
 						failTime = 0f;
-                        Debug.Log ("Gyro failed!");
                         if (!string.IsNullOrEmpty (FailedMessage)) {
                             SendHostMessage (FailedMessage);
                         }
-                        onFail.Invoke ();
+						Log ($"GyroComponent.OnFail\n{Util.GetEventPersistentListenersInfo (onSuccess)}");
+						onFail.Invoke ();
 						Pause ();
                     }
                 } else {
@@ -116,10 +116,10 @@ namespace CineGame.MobileComponents {
 					successTime += Time.deltaTime;
 					if (SuccessTimeThreshold != 0f && successTime >= SuccessTimeThreshold) {
 						successTime = 0f;
-						Debug.Log ("Gyro success!");
 						if (!string.IsNullOrEmpty (SuccessMessage)) {
 							SendHostMessage (SuccessMessage);
 						}
+						Log ($"GyroComponent.OnSuccess\n{Util.GetEventPersistentListenersInfo (onSuccess)}");
 						onSuccess.Invoke ();
 						Pause ();
 					}

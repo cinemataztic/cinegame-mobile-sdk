@@ -31,8 +31,6 @@ namespace CineGame.MobileComponents {
 		private HashSet<string> _filterTags;
 
 		void Start () {
-			VerboseDebug &= Debug.isDebugBuild || Util.IsDevModeActive;
-
 			_filterObjects = new HashSet<GameObject> (FilterObjects);
 			_filterTags = new HashSet<string> (FilterTags);
 		}
@@ -46,72 +44,56 @@ namespace CineGame.MobileComponents {
 
 		void OnTriggerEnter (Collider other) {
 			if (ShouldFireEvent (other.gameObject)) {
-				if (Debug.isDebugBuild) {
-					Debug.LogFormat ("{0} OnTriggerEnter {1}\n{2}", Util.GetObjectScenePath (gameObject), Util.GetObjectScenePath (other.gameObject), Util.GetEventPersistentListenersInfo (m_onTriggerEnter));
-				}
+				Log ($"OnTriggerEnter {other.gameObject.GetScenePath ()}\n{Util.GetEventPersistentListenersInfo (m_onTriggerEnter)}");
 				m_onTriggerEnter.Invoke (other.gameObject);
 			}
 		}
 
 		void OnTriggerEnter2D (Collider2D other) {
 			if (ShouldFireEvent (other.gameObject)) {
-				if (Debug.isDebugBuild) {
-					Debug.LogFormat ("{0} OnTriggerEnter2D {1}\n{2}", Util.GetObjectScenePath (gameObject), Util.GetObjectScenePath (other.gameObject), Util.GetEventPersistentListenersInfo (m_onTriggerEnter));
-				}
+				Log ($"OnTriggerEnter2D {other.gameObject.GetScenePath ()}\n{Util.GetEventPersistentListenersInfo (m_onTriggerEnter)}");
 				m_onTriggerEnter.Invoke (other.gameObject);
             }
 		}
 
 		void OnTriggerExit (Collider other) {
 			if (ShouldFireEvent (other.gameObject)) {
-				if (Debug.isDebugBuild) {
-					Debug.LogFormat ("{0} OnTriggerExit {1}\n{2}", Util.GetObjectScenePath (gameObject), Util.GetObjectScenePath (other.gameObject), Util.GetEventPersistentListenersInfo (m_onTriggerExit));
-				}
+				Log ($"OnTriggerExit {other.gameObject.GetScenePath ()}\n{Util.GetEventPersistentListenersInfo (m_onTriggerExit)}");
 				m_onTriggerExit.Invoke (other.gameObject);
 			}
 		}
 
 		void OnTriggerExit2D (Collider2D other) {
 			if (ShouldFireEvent (other.gameObject)) {
-				if (Debug.isDebugBuild) {
-					Debug.LogFormat ("{0} OnTriggerExit2D {1}\n{2}", Util.GetObjectScenePath (gameObject), Util.GetObjectScenePath (other.gameObject), Util.GetEventPersistentListenersInfo (m_onTriggerExit));
-				}
+				Log ($"OnTriggerExit2D {other.gameObject.GetScenePath ()}\n{Util.GetEventPersistentListenersInfo (m_onTriggerExit)}");
 				m_onTriggerExit.Invoke (other.gameObject);
 			}
 		}
 
 		void OnCollisionEnter (Collision collision) {
 			if (ShouldFireEvent (collision.gameObject)) {
-				if (Debug.isDebugBuild) {
-					Debug.LogFormat ("{0} OnCollisionEnter {1}\n{2}", Util.GetObjectScenePath (gameObject), Util.GetObjectScenePath (collision.gameObject), Util.GetEventPersistentListenersInfo (m_onCollisionEnter));
-				}
+				Log ($"OnCollisionEnter {collision.gameObject.GetScenePath ()}\n{Util.GetEventPersistentListenersInfo (m_onCollisionEnter)}");
 				m_onCollisionEnter.Invoke (collision.gameObject);
 			}
 		}
 
 		void OnCollisionEnter2D (Collision2D collision) {
 			if (ShouldFireEvent (collision.gameObject)) {
-				if (Debug.isDebugBuild) {
-					Debug.LogFormat ("{0} OnCollisionEnter2D {1}\n{2}", Util.GetObjectScenePath (gameObject), Util.GetObjectScenePath (collision.gameObject), Util.GetEventPersistentListenersInfo (m_onCollisionEnter));
-				}
+				Log ($"OnCollisionEnter2D {collision.gameObject.GetScenePath ()}\n{Util.GetEventPersistentListenersInfo (m_onCollisionEnter)}");
 				m_onCollisionEnter.Invoke (collision.gameObject);
 			}
 		}
 
 		void OnCollisionExit (Collision collision) {
 			if (ShouldFireEvent (collision.gameObject)) {
-				if (Debug.isDebugBuild) {
-					Debug.LogFormat ("{0} OnCollisionExit {1}\n{2}", Util.GetObjectScenePath (gameObject), Util.GetObjectScenePath (collision.gameObject), Util.GetEventPersistentListenersInfo (m_onCollisionExit));
-				}
+				Log ($"OnCollisionExit {collision.gameObject.GetScenePath ()}\n{Util.GetEventPersistentListenersInfo (m_onCollisionExit)}");
 				m_onCollisionExit.Invoke (collision.gameObject);
 			}
 		}
 
 		void OnCollisionExit2D (Collision2D collision) {
 			if (ShouldFireEvent (collision.gameObject)) {
-				if (Debug.isDebugBuild) {
-					Debug.LogFormat ("{0} OnCollisionExit2D/b> {1}\n{2}", Util.GetObjectScenePath (gameObject), Util.GetObjectScenePath (collision.gameObject), Util.GetEventPersistentListenersInfo (m_onCollisionExit));
-				}
+				Log ($"OnCollisionExit2D {collision.gameObject.GetScenePath ()}\n{Util.GetEventPersistentListenersInfo (m_onCollisionExit)}");
 				m_onCollisionExit.Invoke (collision.gameObject);
 			}
 		}

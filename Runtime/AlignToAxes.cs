@@ -88,13 +88,19 @@ namespace CineGame.MobileComponents {
 		void DisablePhysicsIfPresent () {
 			var rb = GetComponent<Rigidbody> ();
 			if (rb != null) {
+				Log ("AlignToAxes Disable physics");
 				rb.isKinematic = true;
 				rb.angularVelocity =
 					rb.velocity = Vector3.zero;
 			}
 		}
 
+		public void SetAlignObject (Transform t) {
+			AlignObject = t;
+		}
+
 		public void Snap () {
+			Log ("AlignToAxes.Snap");
 			DisablePhysicsIfPresent ();
 			transform.rotation = GetLookRotation (AlignObject.rotation);
 			if (Reposition) {
@@ -111,6 +117,7 @@ namespace CineGame.MobileComponents {
 		}
 
 		IEnumerator E_Interp (float time) {
+			Log ("AlignToAxes.Interpolate time={time}");
 			var startRotation = transform.rotation;
 			var startPosition = transform.position;
 			var destRotation = GetLookRotation (AlignObject.rotation);
@@ -130,9 +137,7 @@ namespace CineGame.MobileComponents {
 			if (Reposition) {
 				transform.position = destPosition;
 			}
-			if (Debug.isDebugBuild) {
-				Debug.LogFormat ("{0} AlignToAxes.OnAligned\n{1}", Util.GetObjectScenePath (gameObject), Util.GetEventPersistentListenersInfo (OnAligned));
-			}
+			Log ("AlignToAxes.OnAligned\n{Util.GetEventPersistentListenersInfo (OnAligned)}");
 			OnAligned.Invoke ();
 		}
 	}

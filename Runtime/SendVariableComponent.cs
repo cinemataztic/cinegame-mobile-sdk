@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.EventSystems;
 
 namespace CineGame.MobileComponents {
@@ -26,9 +27,7 @@ namespace CineGame.MobileComponents {
 
 		new void SendHostMessage (string action) {
 			if (!string.IsNullOrEmpty (action)) {
-				if (Debug.isDebugBuild) {
-					Debug.LogFormat ("{0} SendVariableComponent: Sending host message '{1}'", Util.GetObjectScenePath (this.gameObject), action);
-				}
+				Log ($"SendVariableComponent: Sending host message \"{action}\"");
 				base.SendHostMessage (action);
 			}
 		}
@@ -43,6 +42,7 @@ namespace CineGame.MobileComponents {
 			if (Cooldown ()) {
 				if (!string.IsNullOrEmpty (Key)) {
 					//Send dummy bool as a sort of flag
+					Log ($"SendVariableComponent {Key}=True");
 					Send (Key, true);
 				}
 				if (!string.IsNullOrEmpty (Message)) {
@@ -54,6 +54,7 @@ namespace CineGame.MobileComponents {
 		public void Action (string value) {
 			if (Cooldown ()) {
 				if (!string.IsNullOrEmpty (Key)) {
+					Log ($"SendVariableComponent {Key}={value}");
 					Send (Key, value);
 				}
 				if (!string.IsNullOrEmpty (Message)) {
@@ -65,6 +66,7 @@ namespace CineGame.MobileComponents {
 		public void Action (float value) {
 			if (Cooldown ()) {
 				if (!string.IsNullOrEmpty (Key)) {
+					Log ($"SendVariableComponent {Key}={value}");
 					Send (Key, value);
 				}
 				if (!string.IsNullOrEmpty (Message)) {
@@ -76,6 +78,7 @@ namespace CineGame.MobileComponents {
 		public void Action (int value) {
 			if (Cooldown ()) {
 				if (!string.IsNullOrEmpty (Key)) {
+					Log ($"SendVariableComponent {Key}={value}");
 					Send (Key, value);
 				}
 				if (!string.IsNullOrEmpty (Message)) {
@@ -87,6 +90,7 @@ namespace CineGame.MobileComponents {
 		public void Action (char value) {
 			if (Cooldown ()) {
 				if (!string.IsNullOrEmpty (Key)) {
+					Log ($"SendVariableComponent {Key}={value}");
 					Send (Key, value);
 				}
 				if (!string.IsNullOrEmpty (Message)) {
@@ -98,6 +102,7 @@ namespace CineGame.MobileComponents {
 		public void Action (bool value) {
 			if (Cooldown ()) {
 				if (!string.IsNullOrEmpty (Key)) {
+					Log ($"SendVariableComponent {Key}={value}");
 					Send (Key, value);
 				}
 				if (!string.IsNullOrEmpty (Message)) {
@@ -109,6 +114,7 @@ namespace CineGame.MobileComponents {
 		public void Action (Vector3 value) {
 			if (Cooldown ()) {
 				if (!string.IsNullOrEmpty (Key)) {
+					Log ($"SendVariableComponent {Key}={value}");
 					Send (Key, new float [3] { value.x, value.y, value.z });
 				}
 				if (!string.IsNullOrEmpty (Message)) {
@@ -120,6 +126,7 @@ namespace CineGame.MobileComponents {
 		public void Action (Vector2 value) {
 			if (Cooldown ()) {
 				if (!string.IsNullOrEmpty (Key)) {
+					Log ($"SendVariableComponent {Key}={value}");
 					Send (Key, new float [2] { value.x, value.y });
 				}
 				if (!string.IsNullOrEmpty (Message)) {
@@ -131,6 +138,7 @@ namespace CineGame.MobileComponents {
 		public void Action (Quaternion value) {
 			if (Cooldown ()) {
 				if (!string.IsNullOrEmpty (Key)) {
+					Log ($"SendVariableComponent {Key}={value}");
 					Send (Key, new float [4] { value.x, value.y, value.z, value.w });
 				}
 				if (!string.IsNullOrEmpty (Message)) {
@@ -146,12 +154,20 @@ namespace CineGame.MobileComponents {
 			if (Cooldown ()) {
 				var scenePath = value.gameObject.GetScenePath ();
 				if (!string.IsNullOrEmpty (Key)) {
+					Log ($"SendVariableComponent {Key}={scenePath}");
 					Send (Key, scenePath);
 				}
 				if (!string.IsNullOrEmpty (Message)) {
 					SendMessageWithArgument (scenePath);
 				}
 			}
+		}
+
+		/// <summary>
+		/// Sending gameobject scene path (eg if something is collided with or selected via a raycast)
+		/// </summary>
+		public void Action (GameObject value) {
+			Action (value.transform);
 		}
 
 	}

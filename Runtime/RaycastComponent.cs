@@ -35,8 +35,6 @@ namespace CineGame.MobileComponents {
 		bool hasDragListeners, hasHoverListeners;
 
 		void Start () {
-			VerboseDebug &= Util.IsDevModeActive || Debug.isDebugBuild;
-
 			hasDragListeners =
 				OnDragPosition.GetPersistentEventCount ()
 				+ OnDragNormal.GetPersistentEventCount ()
@@ -56,24 +54,51 @@ namespace CineGame.MobileComponents {
 		void Update () {
 			RaycastHit hit;
 			if (Input.GetMouseButtonDown (0) && RaycastFromScreen (out hit)) {
-				if (VerboseDebug) {
-					Debug.LogFormat ("{0} RaycastComponent.OnClick {1}\n{2}", gameObject.GetScenePath (), hit.point, Util.GetEventPersistentListenersInfo (OnClickPosition));
+
+				if (OnClickPosition.GetPersistentEventCount () != 0) {
+					Log ($"RaycastComponent.OnClickPosition {hit.point}\n{Util.GetEventPersistentListenersInfo (OnClickPosition)}");
+					OnClickPosition.Invoke (hit.point);
 				}
-				OnClickPosition?.Invoke (hit.point);
-				OnClickNormal?.Invoke (hit.normal);
-				OnClickTransform?.Invoke (hit.transform);
+				if (OnClickNormal.GetPersistentEventCount () != 0) {
+					Log ($"RaycastComponent.OnClickNormal {hit.point}\n{Util.GetEventPersistentListenersInfo (OnClickNormal)}");
+					OnClickNormal.Invoke (hit.normal);
+				}
+				if (OnClickTransform.GetPersistentEventCount () != 0) {
+					Log ($"RaycastComponent.OnClickTransform {hit.point}\n{Util.GetEventPersistentListenersInfo (OnClickTransform)}");
+					OnClickTransform.Invoke (hit.transform);
+				}
+
 			} else if ((hasDragListeners || hasHoverListeners) && RaycastFromScreen (out hit)) {
-				if (VerboseDebug) {
-					Debug.LogFormat ("{0} RaycastComponent.OnDrag {1}\n{2}", gameObject.GetScenePath (), hit.point, Util.GetEventPersistentListenersInfo (OnClickPosition));
-				}
 				if (Input.GetMouseButton (0)) {
-					OnDragPosition?.Invoke (hit.point);
-					OnDragNormal?.Invoke (hit.normal);
-					OnDragTransform?.Invoke (hit.transform);
+
+					if (OnDragPosition.GetPersistentEventCount () != 0) {
+						Log ($"RaycastComponent.OnDragPosition {hit.point}\n{Util.GetEventPersistentListenersInfo (OnDragPosition)}");
+						OnDragPosition.Invoke (hit.point);
+					}
+					if (OnDragNormal.GetPersistentEventCount () != 0) {
+						Log ($"RaycastComponent.OnDragNormal {hit.point}\n{Util.GetEventPersistentListenersInfo (OnDragNormal)}");
+						OnDragNormal.Invoke (hit.normal);
+					}
+					if (OnDragTransform.GetPersistentEventCount () != 0) {
+						Log ($"RaycastComponent.OnDragTransform {hit.point}\n{Util.GetEventPersistentListenersInfo (OnDragTransform)}");
+						OnDragTransform.Invoke (hit.transform);
+					}
+
 				} else {
-					OnHoverPosition?.Invoke (hit.point);
-					OnHoverNormal?.Invoke (hit.normal);
-					OnHoverTransform?.Invoke (hit.transform);
+
+					if (OnHoverPosition.GetPersistentEventCount () != 0) {
+						Log ($"RaycastComponent.OnHoverPosition {hit.point}\n{Util.GetEventPersistentListenersInfo (OnHoverPosition)}");
+						OnHoverPosition.Invoke (hit.point);
+					}
+					if (OnHoverNormal.GetPersistentEventCount () != 0) {
+						Log ($"RaycastComponent.OnHoverNormal {hit.point}\n{Util.GetEventPersistentListenersInfo (OnHoverNormal)}");
+						OnHoverNormal.Invoke (hit.normal);
+					}
+					if (OnHoverTransform.GetPersistentEventCount () != 0) {
+						Log ($"RaycastComponent.OnHoverTransform {hit.point}\n{Util.GetEventPersistentListenersInfo (OnHoverTransform)}");
+						OnHoverTransform.Invoke (hit.transform);
+					}
+
 				}
 			}
 		}

@@ -32,7 +32,8 @@ namespace CineGame.MobileComponents {
             float t = Time.time;
 			float currentAngle = Pointer.eulerAngles.z;
             if (currentAngle != prevAngle && (lastUpdateTime + UpdateInterval) <= t) {
-                Send (VariableName, currentAngle);
+				Log ($"AngularPointerComponent.Update {VariableName}={currentAngle}");
+				Send (VariableName, currentAngle);
                 lastUpdateTime = t;
                 prevAngle = currentAngle;
             }
@@ -47,10 +48,11 @@ namespace CineGame.MobileComponents {
                 angles.z -= 360f;
             }
             angles.z = Mathf.Clamp (angles.z, MinValue, MaxValue);
-            Pointer.eulerAngles = angles;
+			Pointer.eulerAngles = angles;
         }
 
 		public void SetAngle (float angle) {
+			Log ($"AngularPointerComponent.SetAngle {angle}");
 			var angles = Pointer.eulerAngles;
 			angles.z = Mathf.Clamp (angle, MinValue, MaxValue);
 			Pointer.eulerAngles = angles;
