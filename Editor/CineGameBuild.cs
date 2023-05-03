@@ -1060,6 +1060,7 @@ namespace CineGameEditor.MobileComponents {
 			{ "AlignToAxes.cs", "bcde88b88311a4a6e87eed4799886cde" },
 			{ "LogicComponent.cs", "cc7fbe9cb65b24476b1426f19a438a63" },
 			{ "JoystickComponent.cs", "e12223f1cfe254b5fa8b051b88c642a2" },
+			{ "AnimationEventListener.cs", "13d77d1e33ee27f428f0d7175a2076b2" },
 		};
 
 		/// <summary>
