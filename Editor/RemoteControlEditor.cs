@@ -6,11 +6,12 @@ namespace CineGameEditor.MobileComponents {
 
 	[CustomEditor ( typeof(RemoteControl) )]
 	[CanEditMultipleObjects]
-	public class RemoteControlEditor : Editor {
+	public class RemoteControlEditor : EditorBase {
 		public override void OnInspectorGUI ()
 		{
 			// Update the serializedProperty - always do this in the beginning of OnInspectorGUI.
 			serializedObject.Update ();
+			DrawReferenceButton ();
 
 			var typeProperty = serializedObject.FindProperty ("Type");
 			var typeName = string.Format ("onReceive{0}", typeProperty.enumNames [typeProperty.enumValueIndex]);

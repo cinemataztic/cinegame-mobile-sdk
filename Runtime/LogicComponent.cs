@@ -9,11 +9,8 @@ namespace CineGame.MobileComponents {
 	/// <summary>
 	/// Choice component, to reside inside a ChoicesComponent container.
 	/// </summary>
-	public class CompareComponent : MonoBehaviour, IGameComponentIcon {
-		[Header ("Fire events based on current Value compared to Threshold")]
-		[Space]
-		[Tooltip ("Log events verbosely in editor and debug builds")]
-		public bool VerboseDebug = true;
+	[ComponentReference ("Compare values, distance, angles and trigger events/actions based on these. You can perform simple arithmetic operations and specify whether the events should fire continuously each frame or only when passing a threshold.")]
+	public class LogicComponent : BaseComponent {
 
 		public enum CompareFunction {
 			Value,
@@ -102,12 +99,12 @@ namespace CineGame.MobileComponents {
 				return;
 			if (thresholdIndex == -1) {
 				if (VerboseDebug) {
-					Debug.LogFormat ("{0} CompareComponent.OnBelow\n{1} {2}", Util.GetObjectScenePath (gameObject), Util.GetEventPersistentListenersInfo (OnBelow), Value);
+					Debug.LogFormat (this, "{0} CompareComponent.OnBelow\n{1} {2}", Util.GetObjectScenePath (gameObject), Util.GetEventPersistentListenersInfo (OnBelow), Value);
 				}
 				OnBelow?.Invoke (Value);
 			} else {
 				if (VerboseDebug) {
-					Debug.LogFormat ("{0} CompareComponent.Thresholds [{1}].OnAbove\n{2} {3}", Util.GetObjectScenePath (gameObject), thresholdIndex, Util.GetEventPersistentListenersInfo (Thresholds [thresholdIndex].OnAbove), Value);
+					Debug.LogFormat (this, "{0} CompareComponent.Thresholds [{1}].OnAbove\n{2} {3}", Util.GetObjectScenePath (gameObject), thresholdIndex, Util.GetEventPersistentListenersInfo (Thresholds [thresholdIndex].OnAbove), Value);
 				}
 				Thresholds [thresholdIndex].OnAbove?.Invoke (Value);
 			}
@@ -120,7 +117,11 @@ namespace CineGame.MobileComponents {
 				if ((int)Value == 0 && fmt.Contains ("{0:#}", System.StringComparison.InvariantCultureIgnoreCase)) {
 					fmt = fmt.Replace ("{0:#}", "0");
 				}
-				Text.text = string.Format (fmt, Value);
+				var str = string.Format (fmt, Value);
+				//if (VerboseDebug) {
+				//	Debug.LogFormat (this, "{0} CompareComponent.UpdateText \"{1}\"", Util.GetObjectScenePath (gameObject), str);
+				//}
+				Text.text = str;
 			}
 		}
 

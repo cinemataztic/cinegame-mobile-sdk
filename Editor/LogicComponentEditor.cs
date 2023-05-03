@@ -6,16 +6,17 @@ using CineGame.MobileComponents;
 
 namespace CineGameEditor.MobileComponents {
 
-	[CustomEditor (typeof (CompareComponent))]
+	[CustomEditor (typeof (LogicComponent))]
 	[CanEditMultipleObjects]
-	public class CompareEditor : Editor {
+	public class LogicComponentEditor : EditorBase {
 		public override void OnInspectorGUI () {
 			// Update the serializedProperty - always do this in the beginning of OnInspectorGUI.
 			serializedObject.Update ();
+			DrawReferenceButton ();
 
 			var funcProperty = serializedObject.FindProperty ("Function");
-			var function = (CompareComponent.CompareFunction)funcProperty.enumValueIndex;
-			var isValueFunction = (function == CompareComponent.CompareFunction.Value);
+			var function = (LogicComponent.CompareFunction)funcProperty.enumValueIndex;
+			var isValueFunction = (function == LogicComponent.CompareFunction.Value);
 
 			var obj = serializedObject.GetIterator ();
 			if (obj.NextVisible (true)) {

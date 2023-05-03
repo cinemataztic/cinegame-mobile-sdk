@@ -1058,7 +1058,7 @@ namespace CineGameEditor.MobileComponents {
 			{ "AngularPointerComponent.cs", "7814844a3c70f4ceb88a8b90fd1833f2" },
 			{ "AnchorPositionFrom3D.cs", "29803c86459594ae388d0f536654bc6d" },
 			{ "AlignToAxes.cs", "bcde88b88311a4a6e87eed4799886cde" },
-			{ "CompareComponent.cs", "cc7fbe9cb65b24476b1426f19a438a63" },
+			{ "LogicComponent.cs", "cc7fbe9cb65b24476b1426f19a438a63" },
 			{ "JoystickComponent.cs", "e12223f1cfe254b5fa8b051b88c642a2" },
 		};
 

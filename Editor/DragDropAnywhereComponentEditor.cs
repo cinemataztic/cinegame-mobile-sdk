@@ -6,10 +6,11 @@ using CineGame.MobileComponents;
 
 namespace CineGameEditor.MobileComponents {
     [CustomEditor (typeof (DragDropAnywhereComponent))]
-    public class DragDropAnywhereComponentEditor : Editor {
+    public class DragDropAnywhereComponentEditor : EditorBase {
         DragDropAnywhereComponent dragDropComponent;
 
-        private void OnEnable () {
+        protected override void OnEnable () {
+            base.OnEnable ();
             dragDropComponent = target as DragDropAnywhereComponent;
         }
 

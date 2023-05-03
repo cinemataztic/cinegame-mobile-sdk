@@ -5,7 +5,7 @@ using CineGame.MobileComponents;
 namespace CineGameEditor.MobileComponents {
 
 	[CustomEditor( typeof(RemoteTextComponent) )]
-	public class RemoteTextEditor : Editor {
+	public class RemoteTextEditor : EditorBase {
 		System.Array TypeValuesArray;
 		SerializedProperty TypesArray;
 		bool KeysFoldedOut;
@@ -14,6 +14,7 @@ namespace CineGameEditor.MobileComponents {
 		{
 			// Update the serializedProperty - always do this in the beginning of OnInspectorGUI.
 			serializedObject.Update ();
+			DrawReferenceButton ();
 
 			if (TypeValuesArray == null) {
 				TypeValuesArray = System.Enum.GetValues (typeof (RemoteTextComponent.ComponentType));
