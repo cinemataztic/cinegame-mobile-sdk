@@ -500,4 +500,17 @@ namespace CineGame.MobileComponents {
 		}
 	}
 
+	[AttributeUsage (AttributeTargets.Class)]
+	public class ComponentReferenceAttribute : Attribute {
+		public string Text { get; set; }
+		public ComponentReferenceAttribute (string text) {
+			Text = text;
+		}
+	}
+
+	[AttributeUsage (AttributeTargets.Field)]
+	public class TagSelectorAttribute : PropertyAttribute {
+		//public bool UseDefaultTagFieldDrawer = false;
+	}
+
 }
