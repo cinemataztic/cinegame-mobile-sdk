@@ -57,7 +57,7 @@ namespace CineGame.MobileComponents {
 
 				currentNormalizedPosition = new Vector2 ((localPos.x - rtrect.min.x) / rtrect.width, (localPos.y - rtrect.min.y) / rtrect.height);
 				if (currentNormalizedPosition != prevNormalizedPosition && (lastUpdateTime + UpdateInterval) <= Time.time) {
-					Debug.LogFormat ("x={0}, y={1}", currentNormalizedPosition.x, currentNormalizedPosition.y);
+					Log ($"PointerEventComponent Send {VariableNameX}={currentNormalizedPosition.x}, {VariableNameY}={currentNormalizedPosition.y}");
 					Send (VariableNameX, currentNormalizedPosition.x);
 					Send (VariableNameY, currentNormalizedPosition.y);
 					lastUpdateTime = Time.time;
