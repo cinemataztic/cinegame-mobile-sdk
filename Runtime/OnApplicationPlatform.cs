@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.Events;
@@ -47,14 +47,9 @@ namespace CineGame.MobileComponents {
 					Log ($"OnHuaweiHcm:\n{Util.GetEventPersistentListenersInfo (OnHuaweiHcm)}");
 					OnHuaweiHcm.Invoke ();
 				}
-				if (!Application.isEditor) {
-					using (var buildVersion = new AndroidJavaClass ("android.os.Build$VERSION")) {
-						var sdk_int = buildVersion.GetStatic<int> ("SDK_INT");
-						if (sdk_int >= MinimumAndroidSdk) {
-							Log ($"OnMinimumAndroidSdk:\n{Util.GetEventPersistentListenersInfo (OnMinimumAndroidSdk)}");
-							OnMinimumAndroidSdk.Invoke ();
-						}
-					}
+				if (!Application.isEditor && Util.AndroidAPILevel >= MinimumAndroidSdk) {
+					Log ($"OnMinimumAndroidSdk:\n{Util.GetEventPersistentListenersInfo (OnMinimumAndroidSdk)}");
+					OnMinimumAndroidSdk.Invoke ();
 				}
 			}
 			if (Version.TryParse(MinimumAppVersion, out Version minAppVersion) && new Version (Application.version) >= minAppVersion)	{
