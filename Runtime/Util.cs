@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.Events;
 using System;
 using System.Reflection;
+using System.IO;
 
 namespace CineGame.MobileComponents {
 
@@ -291,6 +292,28 @@ namespace CineGame.MobileComponents {
 			}
 		}
 
+		private static AndroidJavaClass _androidVibrationEffect;
+		public static AndroidJavaClass AndroidVibrationEffect {
+			get {
+				if (_androidVibrationEffect == null) {
+					_androidVibrationEffect = new AndroidJavaClass ("android.os.VibrationEffect");
+				}
+				return _androidVibrationEffect;
+			}
+		}
+
+		private static int _androidAPILevel;
+		public static int AndroidAPILevel {
+			get {
+				if (_androidAPILevel == default) {
+					using (var version = new AndroidJavaClass ("android.os.Build$VERSION")) {
+						_androidAPILevel = version.GetStatic<int> ("SDK_INT");
+					}
+				}
+				return _androidAPILevel;
+			}
+		}
+
 		/// <summary>
 		/// Vibrate the phone (default time)
 		/// </summary>
@@ -421,6 +444,131 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public static void PerformHapticFeedback (HapticFeedbackConstants feedbackConstant) {
 			OnPlayHapticFeedback?.Invoke (feedbackConstant);
+		}
+
+		/// <summary>
+		/// From https://android.googlesource.com/platform/frameworks/base.git/+/master/core/java/android/os/VibrationEffect.java#838
+		/// </summary>
+		public enum AndroidHapticPrimitive {
+
+			/// <summary>
+			/// This effect should produce a sharp, crisp click sensation. (API level 30)
+			/// </summary>
+			PRIMITIVE_CLICK = 1,
+
+			/// <summary>
+			/// A haptic effect that simulates downwards movement with gravity. Often followed by extra energy of hitting and reverberation to augment physicality. (API 31)
+			/// </summary>
+			PRIMITIVE_THUD = 2,
+
+			/// <summary>
+			/// A haptic effect that simulates spinning momentum. (API 31)
+			/// </summary>
+			PRIMITIVE_SPIN = 3,
+
+			/// <summary>
+			/// A haptic effect that simulates quick upward movement against gravity. (API 30)
+			/// </summary>
+			PRIMITIVE_QUICK_RISE = 4,
+
+			/// <summary>
+			/// A haptic effect that simulates slow upward movement against gravity. (API 30)
+			/// </summary>
+			PRIMITIVE_SLOW_RISE = 5,
+
+			/// <summary>
+			/// A haptic effect that simulates quick downwards movement with gravity. (API 30)
+			/// </summary>
+			PRIMITIVE_QUICK_FALL = 6,
+
+			/// <summary>
+			/// This very short effect should produce a light crisp sensation intended to be used repetitively for dynamic feedback. (API 30)
+			/// </summary>
+			PRIMITIVE_TICK = 7,
+
+			/// <summary>
+			/// This very short low frequency effect should produce a light crisp sensation intended to be used repetitively for dynamic feedback. (API 31)
+			/// </summary>
+			PRIMITIVE_LOW_TICK = 8,
+		}
+
+		static readonly string FALLBACK_HEADER = "#fallback:";
+		static Dictionary<int, AndroidJavaObject> AndroidHapticCompositions = new Dictionary<int, AndroidJavaObject> ();
+
+		public static AndroidJavaObject CreateAndroidHapticEffect (string pattern, string filename = "") {
+			var hash = pattern.GetHashCode ();
+			if (AndroidHapticCompositions.TryGetValue (hash, out AndroidJavaObject vibrationEffect)) {
+				return vibrationEffect;
+			}
+
+			using var sr = new System.IO.StringReader (pattern);
+			string line = string.Empty;
+			var lineNum = 0;
+
+			if (Application.isEditor || Util.AndroidAPILevel >= 30) {
+				// Android 11 (API 30) haptic primitives
+				// If no primitives are defined or there's an error parsing the data, use fallback waveform
+				var composition = Application.isEditor ? null : AndroidVibrationEffect.CallStatic<AndroidJavaObject> ("startComposition");
+				try {
+					var numPrimitives = 0;
+					while ((line = sr.ReadLine ()) != null && !line.Trim ().Equals (FALLBACK_HEADER, StringComparison.InvariantCultureIgnoreCase)) {
+						var columns = line.Split (',');
+						if (columns.Length == 3) {
+							var primId = columns [0].Trim ();
+							if (!primId.StartsWith ("PRIMITIVE_", StringComparison.InvariantCultureIgnoreCase)) {
+								primId = "PRIMITIVE_" + primId;
+							}
+							var primitiveId = System.Enum.Parse<AndroidHapticPrimitive> (primId);
+							if ((primitiveId == AndroidHapticPrimitive.PRIMITIVE_THUD || primitiveId == AndroidHapticPrimitive.PRIMITIVE_LOW_TICK || primitiveId == AndroidHapticPrimitive.PRIMITIVE_SPIN)
+								&& (Application.isEditor || AndroidAPILevel == 30)) {
+								Debug.LogWarning ($"{primitiveId} not supported on API 30, fallback on PRIMITIVE_TICK");
+								primitiveId = AndroidHapticPrimitive.PRIMITIVE_TICK;
+							}
+							composition?.Call ("addPrimitive", (int)primitiveId, float.Parse (columns [1].Trim ()), int.Parse (columns [2].Trim ()));
+							numPrimitives++;
+						}
+						lineNum++;
+					}
+					if (numPrimitives > 0) {
+						vibrationEffect = composition?.Call<AndroidJavaObject> ("compose");
+						if (vibrationEffect != null) {
+							AndroidHapticCompositions [hash] = vibrationEffect;
+						}
+						composition?.Dispose ();
+						return vibrationEffect;
+					}
+				} catch (Exception ex) {
+					Debug.LogError ($"Exception while parsing Android haptic pattern {filename} line {lineNum}: {line} => {ex}");
+				}
+				composition?.Dispose ();
+			}
+
+			// Fallback: Android 8 (API 26) vibration waveforms
+			try {
+				List<long> timings = new List<long> (16);
+				List<int> amplitudes = new List<int> (16);
+				while ((line = sr.ReadLine ()) != null) {
+					if (line.Trim ().Equals (FALLBACK_HEADER, StringComparison.InvariantCultureIgnoreCase))
+						break;
+					lineNum++;
+				}
+				while ((line = sr.ReadLine ()) != null) {
+					var columns = line.Split (',');
+					if (columns.Length == 2) {
+						amplitudes.Add ((int)(float.Parse (columns [0].Trim ()) * 255f));
+						timings.Add (long.Parse (columns [1].Trim ()));
+					}
+					lineNum++;
+				}
+				if (Application.isEditor)
+					return null;
+				vibrationEffect = AndroidVibrationEffect.CallStatic<AndroidJavaObject> ("createWaveform", timings.ToArray (), amplitudes.ToArray (), -1);
+				AndroidHapticCompositions [hash] = vibrationEffect;
+				return vibrationEffect;
+			} catch (Exception ex) {
+				Debug.LogError ($"Exception while parsing Android vibration waveform line {lineNum}: {line} => {ex}");
+				return null;
+			}
 		}
 
 		/// <summary>
