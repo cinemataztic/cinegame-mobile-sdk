@@ -136,11 +136,10 @@ namespace CineGame.MobileComponents {
 			}
 		}
 
-#if UNITY_EDITOR
 		private void OnValidate() {
 			RepeatCount = Mathf.Max (RepeatCount, 1);
 			RepeatInterval = Mathf.Max (RepeatInterval, 0f);
-
+#if UNITY_EDITOR
 			if (iOSHapticFile != null) {
 				JObject.Parse (iOSHapticFile.text);
 			}
@@ -148,7 +147,7 @@ namespace CineGame.MobileComponents {
 			if (AndroidHapticFile != null) {
 				Util.CreateAndroidHapticEffect (AndroidHapticFile.text, AndroidHapticFile.name);
 			}
-		}
 #endif
+		}
 	}
 }
