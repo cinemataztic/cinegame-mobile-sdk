@@ -108,11 +108,21 @@ namespace CineGame.MobileComponents {
 			}
 		}
 
+		public void Snap (GameObject alignObject) {
+			AlignObject = alignObject.transform;
+			Snap ();
+		}
+
 		public void Interpolate (float time) {
 			StartCoroutine (E_Interp (time));
 		}
 
 		public void Interpolate () {
+			Interpolate (InterpTime);
+		}
+
+		public void Interpolate (GameObject alignObject) {
+			AlignObject = alignObject.transform;
 			Interpolate (InterpTime);
 		}
 
