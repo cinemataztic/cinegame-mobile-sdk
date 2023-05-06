@@ -130,22 +130,20 @@ namespace CineGame.MobileComponents {
 			Log ("AlignToAxes.Interpolate time={time}");
 			var startRotation = transform.rotation;
 			var startPosition = transform.position;
-			var destRotation = GetLookRotation (AlignObject.rotation);
-			var destPosition = AlignObject.position;
 			float t = 0f;
 			while (t < 1f) {
 				DisablePhysicsIfPresent ();
 				float tCubic = Interpolation.Interp (t, InterpType);
-				transform.rotation = Quaternion.Slerp (startRotation, destRotation, tCubic);
+				transform.rotation = Quaternion.Slerp (startRotation, GetLookRotation (AlignObject.rotation), tCubic);
 				if (Reposition) {
-					transform.position = Vector3.Lerp (startPosition, destPosition, tCubic);
+					transform.position = Vector3.Lerp (startPosition, AlignObject.position, tCubic);
 				}
 				t += Time.deltaTime;
 				yield return null;
 			}
-			transform.rotation = destRotation;
+			transform.rotation = GetLookRotation (AlignObject.rotation);
 			if (Reposition) {
-				transform.position = destPosition;
+				transform.position = AlignObject.position;
 			}
 			Log ("AlignToAxes.OnAligned\n{Util.GetEventPersistentListenersInfo (OnAligned)}");
 			OnAligned.Invoke ();
