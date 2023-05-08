@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
+using UnityEngine.Serialization;
 
 using Sfs2X.Entities.Data;
 
@@ -12,10 +13,10 @@ namespace CineGame.MobileComponents {
 	/// <summary>
 	/// Remotely replace text, or supply params for a formatted string
 	/// </summary>
-	[ComponentReference ("Replicated text. The text can be a string constant or formatted with a set of keys and values. You can apply U and L formatters (upper-case and lower-case)")]
+	[ComponentReference ("Replicated text. The text can be a string constant or formatted with a set of keys and values. You can apply custom U and L formatters (upper-case and lower-case).\nIf the StringFormat property is left empty, the format will be determined from the receiving Text, TextMesh or TMP serialized value.")]
 	public class RemoteTextComponent : ReplicatedComponent {
 
-        [Tooltip("If true, the data from host will be formatted in the default value of the text component")]
+        [Tooltip("If true, the data from host will be formatted in the StringFormat string or the default value of the listener")]
         public bool IsFormattedString = false;
 
 		[Tooltip("Key in the ObjectMessage from host. Eg 'question'")]
@@ -31,10 +32,12 @@ namespace CineGame.MobileComponents {
 		}
 		public ComponentType[] Types;
 
+		[Tooltip ("The format string to invoke OnReceive with. If empty the format will be determined runtime from the listener")]
+		public string StringFormat;
+
 		public UnityEvent<string> OnReceive;
 
-		string formattedString = null;
-		CustomStringFormat customStringFormat;
+		CustomStringFormatter customStringFormatter;
 
 		public override void InitReplication () {
 			base.InitReplication ();
@@ -56,8 +59,10 @@ namespace CineGame.MobileComponents {
 				}
 			}
 			if (c is Text textComponent) {
-				formattedString = textComponent.text;
-				textComponent.enabled = false;
+				if (string.IsNullOrWhiteSpace (StringFormat)) {
+					StringFormat = textComponent.text;
+					textComponent.enabled = false;
+				}
 				if (addListener) {
 					OnReceive.AddListener ((value) => {
 						textComponent.text = value;
@@ -65,9 +70,11 @@ namespace CineGame.MobileComponents {
 					});
 				}
 			} else if (c is TextMesh textMesh) {
-				formattedString = textMesh.text;
 				var renderer = textMesh.GetComponent<Renderer> ();
-				renderer.enabled = false;
+				if (string.IsNullOrWhiteSpace (StringFormat)) {
+					StringFormat = textMesh.text;
+					renderer.enabled = false;
+				}
 				if (addListener) {
 					OnReceive.AddListener ((value) => {
 						textMesh.text = value;
@@ -76,8 +83,10 @@ namespace CineGame.MobileComponents {
 				}
 #if UNITY_2021_1_OR_NEWER
 			} else if (c is TMPro.TMP_Text tmp) {
-				formattedString = tmp.text;
-				tmp.enabled = false;
+				if (string.IsNullOrWhiteSpace (StringFormat)) {
+					StringFormat = tmp.text;
+					tmp.enabled = false;
+				}
 				if (addListener) {
 					OnReceive.AddListener ((value) => {
 						tmp.text = value;
@@ -86,7 +95,7 @@ namespace CineGame.MobileComponents {
 				}
 			}
 #endif
-			customStringFormat = new CustomStringFormat ();
+			customStringFormatter = new CustomStringFormatter ();
 		}
 
 		internal override void OnObjectMessage (ISFSObject dataObj, int senderId) {
@@ -113,8 +122,8 @@ namespace CineGame.MobileComponents {
 					}
 					i++;
 				}
-				if (formattedString != null && args.Count == Keys.Length) {
-					s = string.Format (customStringFormat, formattedString, args.ToArray ());
+				if (!string.IsNullOrWhiteSpace (StringFormat) && args.Count == Keys.Length) {
+					s = string.Format (customStringFormatter, StringFormat, args.ToArray ());
 				}
 			} else if (dataObj.ContainsKey (Key)) {
 				s = dataObj.GetUtfString (Key);
@@ -124,12 +133,12 @@ namespace CineGame.MobileComponents {
 				Log ($"RemoteTextComponent: \"{s}\"\n{Util.GetEventPersistentListenersInfo (OnReceive)}");
 			}
         }
-    }
+	}
 
 	/// <summary>
 	/// Custom string formatting. U is uppercase, L is lowercase, Txx trims to max xx characters with ellipse character if trimmed
 	/// </summary>
-	public class CustomStringFormat : IFormatProvider, ICustomFormatter {
+	public class CustomStringFormatter : IFormatProvider, ICustomFormatter {
 		public object GetFormat (Type formatType) {
 			if (formatType == typeof (ICustomFormatter))
 				return this;
