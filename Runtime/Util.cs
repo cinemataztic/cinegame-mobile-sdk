@@ -10,7 +10,7 @@ using System.IO;
 namespace CineGame.MobileComponents {
 
 	public static class Util {
-		public const string CinematazticIconGUID = "5ea2613536f3d4926b87aa5246734341";
+		public const string CinematazticIconGUID = "efec9089586ac4574995396036ef8524";
 
 		[Serializable]
 		public enum APIRegion {
