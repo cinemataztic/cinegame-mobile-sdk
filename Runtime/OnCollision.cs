@@ -39,7 +39,7 @@ namespace CineGame.MobileComponents {
 		 * Return true if filterObjects contains 'other' gameobject OR filterTags contains its tag
 		 **/
 		bool ShouldFireEvent (GameObject other) {
-			return (_filterObjects.Count == 0 && _filterTags.Count == 0) || _filterObjects.Contains (other) || _filterTags.Contains (other.tag);
+			return enabled && ((_filterObjects.Count == 0 && _filterTags.Count == 0) || _filterObjects.Contains (other) || _filterTags.Contains (other.tag));
 		}
 
 		void OnTriggerEnter (Collider other) {
