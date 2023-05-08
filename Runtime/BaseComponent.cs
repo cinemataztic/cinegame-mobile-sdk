@@ -23,6 +23,10 @@ namespace CineGame.MobileComponents {
 			}
 		}
 
+		protected void LogError (string message) {
+			Debug.LogError ($"{gameObject.GetScenePath ()} " + message, this);
+		}
+
 		protected void Log (string format, params object[] args) {
 			if (VerboseDebug) {
 				Debug.LogFormat (this, $"{gameObject.GetScenePath ()} " + format, args);
