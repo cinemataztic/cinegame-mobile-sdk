@@ -3,8 +3,22 @@ using UnityEngine.Rendering;
 
 namespace CineGame.MobileComponents {
 
-	public class RenderConfig : MonoBehaviour, IGameComponentIcon {
-		[Header ("Global config for render settings")]
+	[ComponentReference ("Render and Quality settings applied in OnEnable")]
+	public class RenderConfig : BaseComponent {
+
+		[System.Serializable]
+		public enum AALevel {
+			Disabled = 0,
+			SamplingX2 = 2,
+			SamplingX4 = 4,
+			SamplingX8 = 8,
+		}
+		public AALevel AntiAliasing = AALevel.Disabled;
+
+		public ShadowResolution ShadowResolution = ShadowResolution.High;
+
+		[Tooltip("Shadow distance from camera. Smaller distance = finer shadows")]
+		public float ShadowDistance = 50;
 		
 		public AmbientMode AmbientMode = AmbientMode.Flat;
 		[Tooltip ("Flat ambient color, or sky color if mode is TriLight")]
@@ -19,6 +33,9 @@ namespace CineGame.MobileComponents {
 		public Cubemap CustomReflection;
 
 		void OnEnable () {
+			QualitySettings.shadowDistance = ShadowDistance;
+			QualitySettings.shadowResolution = ShadowResolution;
+			QualitySettings.antiAliasing = (int)AntiAliasing;
 			RenderSettings.defaultReflectionMode = (CustomReflection != null)? DefaultReflectionMode.Custom : DefaultReflectionMode.Skybox;
 			RenderSettings.customReflection = CustomReflection;
 
