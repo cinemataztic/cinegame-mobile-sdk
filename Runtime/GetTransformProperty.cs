@@ -11,18 +11,23 @@ namespace CineGame.MobileComponents {
 		public float UpdateInterval = 0f;
 		public UnityEvent<Vector3> OnUpdatePosition;
 		public UnityEvent<Quaternion> OnUpdateRotation;
+		public UnityEvent<float> OnUpdateSpeed;
 
 		float lastSetTime = float.MinValue;
+		Vector3 lastSourcePosition;
+		float speed;
 
 		private void OnEnable () {
 			if (Source != null) {
+				lastSourcePosition = Source.position;
+				speed = 0f;
 				UpdateNow ();
 			}
 		}
 
 		public void SetSource (Transform s) {
 			Source = s;
-			UpdateNow ();
+			OnEnable ();
 		}
 
 		public void UpdateNow () {
@@ -30,11 +35,20 @@ namespace CineGame.MobileComponents {
 			Log ($"GetTransformProperty.UpdateNow {Source.gameObject.GetScenePath ()}");
 			OnUpdatePosition?.Invoke (Source.position);
 			OnUpdateRotation?.Invoke (Source.rotation);
+			OnUpdateSpeed?.Invoke (speed);
 		}
 
 		private void Update () {
-			if (Source != null && UpdateInterval > float.Epsilon && (lastSetTime + UpdateInterval) >= Time.time) {
-				UpdateNow ();
+			if (Source != null) {
+				if (OnUpdateSpeed.GetPersistentEventCount () != 0) {
+					var position = Source.position;
+					speed = speed * .7f + .3f * (position - lastSourcePosition).magnitude / Time.deltaTime;
+					lastSourcePosition = position;
+				}
+
+				if (UpdateInterval > float.Epsilon && (lastSetTime + UpdateInterval) <= Time.time) {
+					UpdateNow ();
+				}
 			}
 		}
 	}
