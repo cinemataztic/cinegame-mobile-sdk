@@ -7,7 +7,7 @@ namespace CineGame.MobileComponents {
 	/// Should be added to each canvas of each scene.
 	/// </summary>
 	public class GameProxy : MonoBehaviour {
-		[Header ("Proxy for games to contact the app functions, eg Exit Game, Facebook Share, Show Prizes etc")]
+		[Header ("Proxy for games to contact the app functions, eg Exit Game, Show Prizes etc")]
 
 		[Tooltip ("Mark if this canvas blocks the background completely. This way we can disable background effects and save battery.")]
 		public bool BlocksBackground = true;
@@ -35,7 +35,6 @@ namespace CineGame.MobileComponents {
 		public static event SimpleEvent OpenMenuEvent;
 		public static event SimpleEvent OpenWalletEvent;
 		public static event SimpleEvent GoBackEvent;
-		public static event SimpleEvent FacebookShareEvent;
 		public static event GotoScreenEvent GotoEvent;
 		public static event GotoScreenEvent ConfirmExitEvent;
 
@@ -83,14 +82,6 @@ namespace CineGame.MobileComponents {
 
 		public void ExitGameWithPopup (string message) {
 			ConfirmExitEvent.Invoke (message);
-		}
-
-		/// <summary>
-		/// Invokable method which opens a facebook share dialog with the preset parameters in FacebookController (usually set up from the host via SmartfoxClient)
-		/// </summary>
-		public void FacebookShare () {
-			FacebookShareEvent.Invoke ();
-			//FacebookController.Share ();
 		}
 
 		public void DestroyGameObject (GameObject go) {
