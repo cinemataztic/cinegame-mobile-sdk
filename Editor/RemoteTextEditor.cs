@@ -35,7 +35,7 @@ namespace CineGameEditor.MobileComponents {
 			obj = serializedObject.GetIterator ();
 			if (obj.NextVisible (true)) {
 				do {
-					if (obj.name == "m_Script" || (!IsFormattedString && (obj.name == "Keys" || obj.name == "Types")) || (IsFormattedString && obj.name == "Key")) {
+					if (obj.name == "m_Script" || (!IsFormattedString && (obj.name == "Keys" || obj.name == "Types" || obj.name == "StringFormat")) || (IsFormattedString && obj.name == "Key")) {
 					} else {
 						if (obj.name == "Keys") {
 							KeysFoldedOut = EditorGUILayout.Foldout (KeysFoldedOut, "Keys");
