@@ -24,23 +24,26 @@ namespace CineGame.MobileComponents {
 		GameObject Current;
 		int numSpawns=0;
 
+		/// <summary>
+		/// Remember to test for null in case an instance has already been destroyed!
+		/// </summary>
+		List<GameObject> Instances = new List<GameObject> ();
+
 		void Respawn () {
 			Invoke (nameof(Spawn), RespawnDelay);
 		}
 
 		public void Spawn () {
-			if (Capacity != 0 && numSpawns >= Capacity) {
-				OnEmpty.Invoke ();
-			} else {
-				Log ($"Spawn {Prefab.name}");
-				Current = Instantiate (Prefab, transform);
-				Current.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
-				OnSpawn.Invoke (Current);
-				numSpawns++;
-			}
+			Log ($"Spawn {Prefab.name}");
+			Spawn (transform.position);
 		}
 
 		public void SpawnAt (Vector3 worldPosition) {
+			Log ($"SpawnAt {Prefab.name} {worldPosition}");
+			Spawn (worldPosition);
+		}
+
+		private void Spawn (Vector3 worldPosition) {
 			if (Capacity != 0 && numSpawns >= Capacity) {
 				OnEmpty.Invoke ();
 			} else {
@@ -51,6 +54,18 @@ namespace CineGame.MobileComponents {
 				OnSpawn.Invoke (Current);
 				numSpawns++;
 			}
+		}
+
+		public void DestroyInstances () {
+			var i = 0;
+			foreach (var go in Instances) {
+				if (go != null) {
+					Destroy (go);
+					i++;
+				}
+			}
+			Instances.Clear ();
+			Log ($"DestroyInstances destroyed {i} instances");
 		}
 
 		public void Reload () {
