@@ -71,6 +71,7 @@ namespace CineGameEditor.MobileComponents {
 				var r = new Rect (xpos, selectionRect.y, 18, 18);
 				go.GetComponents<IGameComponentIcon> (gameComponentsList);
 				if (gameComponentsList.Count != 0) {
+					go.GetComponentsInChildren<IGameComponentIcon> (true, gameComponentsList);
 					GUI.Label (r, new GUIContent (texturePanel, string.Join ('\n', gameComponentsList.Select (gc => gc.GetType ().Name).Distinct ())));
 					gameComponentsList.Clear ();
 				} else {
