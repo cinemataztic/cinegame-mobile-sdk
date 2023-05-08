@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.UI;
+using UnityEngine.Serialization;
 
 namespace CineGame.MobileComponents {
 
@@ -27,12 +27,15 @@ namespace CineGame.MobileComponents {
 		[Header ("Value can be Set, Added, Subtracted, Multiplied or Divided")]
 		public float Value;
 
-		[Space]
-		public Text Text;
-		public string Format = "{0:#}";
-
 		[Header ("Whether event should fire every update or only when crossing a threshold")]
 		public bool Continuous = false;
+
+		[Space]
+		[Header ("Format string to invoke OnUpdateString with")]
+		[FormerlySerializedAs ("Format")]
+		public string StringFormat = "{0:#}";
+
+		public UnityEvent<string> OnUpdateString;
 
 		[Space]
 		public UnityEvent<float> OnBelow;
@@ -53,7 +56,7 @@ namespace CineGame.MobileComponents {
 
 		public void Start () {
 			Thresholds.Sort ();
-			UpdateText ();
+			UpdateString ();
 		}
 
 		public void SetValue (float v) {
@@ -92,7 +95,7 @@ namespace CineGame.MobileComponents {
 		}
 
 		void FireEvent () {
-			UpdateText ();
+			UpdateString ();
 			int thresholdIndex = -1;
 			foreach (var threshold in Thresholds) {
 				if (Value < threshold.Value) {
@@ -112,15 +115,15 @@ namespace CineGame.MobileComponents {
 			CurrentThresholdIndex = thresholdIndex;
 		}
 
-		void UpdateText () {
-			if (Text != null) {
-				var fmt = Format;
+		void UpdateString () {
+			if (!string.IsNullOrWhiteSpace (StringFormat)) {
+				var fmt = StringFormat;
 				if ((int)Value == 0 && fmt.Contains ("{0:#}", System.StringComparison.InvariantCultureIgnoreCase)) {
 					fmt = fmt.Replace ("{0:#}", "0");
 				}
 				var str = string.Format (fmt, Value);
-				//Log ($"CompareComponent.UpdateText \"{str}\"");
-				Text.text = str;
+				//Log ($"LogicComponent.OnUpdateString \"{str}\"\n{Util.GetEventPersistentListenersInfo (OnUpdateString)}");
+				OnUpdateString?.Invoke (str);
 			}
 		}
 
