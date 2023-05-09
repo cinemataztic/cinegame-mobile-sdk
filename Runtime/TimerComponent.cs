@@ -56,12 +56,12 @@ namespace CineGame.MobileComponents {
 		}
 
 		void Update() {
-			if (!stopped) {
+			if (!stopped && TimeInSeconds > float.Epsilon) {
 				var time = CountDown ? t0 - Time.time : Time.time - t0;
 				if (time < float.Epsilon) {
 					time = 0f;
 				}
-				OnUpdate?.Invoke (time);
+				OnUpdate?.Invoke (time / TimeInSeconds);
 				if (!string.IsNullOrWhiteSpace (StringFormat)) {
 					UpdateString (time);
 				}
