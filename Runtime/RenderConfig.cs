@@ -54,6 +54,10 @@ namespace CineGame.MobileComponents {
 				break;
 			}
 		}
+
+		void OnValidate() {
+			OnEnable ();
+		}
 	}
 
 }
