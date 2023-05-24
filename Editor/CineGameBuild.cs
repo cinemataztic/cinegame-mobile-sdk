@@ -1065,6 +1065,7 @@ namespace CineGameEditor.MobileComponents {
 			{ "FollowComponent.cs", "6ce1fb93fd2ad47d599ce2dc1e36d627" },
 			{ "AnimationEventListener.cs", "13d77d1e33ee27f428f0d7175a2076b2" },
 			{ "AnimatorParameter.cs", "40fd1fe7494a34ddba76ed6c1897cd53" },
+			{ "TimerComponent.cs", "1a13d68ca6f1f4f209d3ffcd1b467e3b" },
 		};
 
 		/// <summary>

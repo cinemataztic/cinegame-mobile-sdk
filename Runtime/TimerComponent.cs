@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace CineGame.MobileComponents {
 
-	[ComponentReference("TimerComponent can be used as a stopclock. You can use it for countdowns and countups. When the time has passed, OnTimeout event will be invoked.\n\nOnUpdate will output the seconds as Single/float eg for comparison in the LogicComponent.\n\nOnUpdateString will format the TimeSpan value for eg a Text, TextMesh or TMPro.Text component.\n\nYou can invoke methods StartClock, StopClock and ResumeClock as you please.")]
+	[ComponentReference("TimerComponent can be used as a stopclock. You can use it for countdowns and countups. When the time has passed, OnTimeout event will be invoked.\n\nOnUpdate will output the normalized time eg for Image.fillAmount or Slider.normalizedValue.\n\nOnUpdateString will format the TimeSpan value for eg a Text, TextMesh or TMPro.Text component.\n\nYou can invoke methods StartClock, StopClock and ResumeClock as you please.")]
 	public class TimerComponent : BaseComponent {
 
 		public bool StartOnEnable = true;
