@@ -6,7 +6,7 @@ using UnityEngine.Serialization;
 
 namespace CineGame.MobileComponents {
 
-    [ComponentReference ("Destroyer of Objects. If Delay/DelayRandomSpread is set to nonzero, this GameObject will be destroyed. Otherwise you can use the public methods to destroy objects immediately")]
+    [ComponentReference ("Destroyer of Objects. If Delay/DelayRandomSpread is set to nonzero, this GameObject will be destroyed. Otherwise you can use the public methods to destroy other objects immediately\n\nYou can also use DestroyChildrenNow to destroy all children of the supplied transform")]
     public class Destroy : BaseComponent {
         [FormerlySerializedAs ("destroySelfDelay")]
         [Range (0, float.MaxValue)]
@@ -49,11 +49,15 @@ namespace CineGame.MobileComponents {
         }
 
 		/// <summary>
-		/// Destroy the Object passed in as argument with the delay specified in properties
+		/// Destroy the child transforms now
 		/// </summary>
-		public void DestroyDelayed (UnityEngine.Object objectToDestroy) {
-			Log ("Destroy.DestroyDelayed {1}", objectToDestroy is GameObject gameObj ? gameObj.GetScenePath () : objectToDestroy.name);
-            StartCoroutine (E_DestroyAfterDelay (objectToDestroy));
+		public void DestroyChildrenNow (Transform parent) {
+            var i = 0;
+            foreach (Transform child in parent) {
+                Destroy (child.gameObject);
+                i++;
+            }
+			Log ($"Destroy.DestroyChildrenNow ({parent.gameObject.GetScenePath ()}) destroyed {i} children");
 		}
 	}
 }
