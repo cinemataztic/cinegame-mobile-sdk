@@ -12,13 +12,9 @@ namespace CineGame.MobileComponents {
 	/// Component to proxy parameters or IK values into a specific Animator
 	/// </summary>
 	[ComponentReference ("Raycast from screen position (mouse or touch)")]
-	public class RaycastComponent : BaseComponent {
+	public class RaycastComponent : BaseEventComponent {
 
 		public LayerMask LayerMask = -1;
-
-		[HideInInspector]
-		[SerializeField]
-		private int eventMask = 0;
 
 		public UnityEvent<Vector3> OnClickPosition;
 		public UnityEvent<Vector3> OnClickNormal;

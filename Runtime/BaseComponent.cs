@@ -32,5 +32,10 @@ namespace CineGame.MobileComponents {
 				Debug.LogFormat (this, $"{gameObject.GetScenePath ()} " + format, args);
 			}
 		}
+
+    public abstract class BaseEventComponent : BaseComponent {
+        [HideInInspector]
+        [SerializeField]
+        private int eventMask = 0;
 	}
 }

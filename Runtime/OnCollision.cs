@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace CineGame.MobileComponents {
 
 	[ComponentReference("OnCollision can fire events/actions based on collisions and trigger volumes in both 2D and 3D. The events can be filtered on specific objects or tags besides the standard physics layers.")]
-	public class OnCollision : BaseComponent {
+	public class OnCollision : BaseEventComponent {
 
 		[Header ("Listen to trigger/collision with these other gameobjects. Leave empty to test with all other objects.")]
 		[SerializeField] private GameObject[] FilterObjects;
@@ -14,10 +14,6 @@ namespace CineGame.MobileComponents {
 		[Header("Listen to trigger/collision with these tags. Leave empty to test with all tags")]
 		[TagSelector]
 		[SerializeField] private string [] FilterTags;
-
-		[HideInInspector]
-		[SerializeField]
-		private int eventMask = 0;
 
 		[Serializable] public class OnCollisionEvent : UnityEvent<GameObject> { }
 
