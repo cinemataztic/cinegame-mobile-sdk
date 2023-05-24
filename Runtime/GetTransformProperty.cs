@@ -4,7 +4,7 @@ using UnityEngine.Events;
 namespace CineGame.MobileComponents {
 
 	[ComponentReference ("Pass through a transform's position or rotation. Continuous or one-shot. Useful for eg setting and updating a NavMeshAgent destination")]
-	public class GetTransformProperty : BaseComponent {
+	public class GetTransformProperty : BaseEventComponent {
 
 		public Transform Source;
 		[Tooltip ("Update interval in msecs. 0=One-shot")]
