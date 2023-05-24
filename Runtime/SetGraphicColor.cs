@@ -21,7 +21,7 @@ namespace CineGame.MobileComponents {
 		public void CrossfadeColor (string html) {
 			if (ColorUtility.TryParseHtmlString (html, out Color color)) {
 				Log ($"CrossfadeColor \"{html}\"");
-				Receiver.CrossFadeColor (color, CrossfadeDuration, false, true, true);
+				Receiver.CrossFadeColor (color, CrossfadeDuration, false, false);
 			} else {
 				LogError ($"Unable to parse string as color: \"{html}\"");
 			}

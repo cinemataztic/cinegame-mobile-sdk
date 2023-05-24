@@ -8,6 +8,7 @@ namespace CineGame.MobileComponents {
 
 		public string[] Texts;
 
+		[System.Obsolete("Just use Text component's text property")]
 		public void SetText (string text) {
 			var textComponent = GetComponent<Text> ();
 			textComponent.text = text;

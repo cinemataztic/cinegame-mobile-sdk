@@ -490,11 +490,11 @@ namespace CineGame.MobileComponents {
 				return vibrationEffect;
 			}
 
-			using var sr = new System.IO.StringReader (pattern);
+			using var sr = new StringReader (pattern);
 			string line = string.Empty;
 			var lineNum = 0;
 
-			if (Application.isEditor || Util.AndroidAPILevel >= 30) {
+			if (Application.isEditor || AndroidAPILevel >= 30) {
 				// Android 11 (API 30) haptic primitives
 				// If no primitives are defined or there's an error parsing the data, use fallback waveform
 				var composition = Application.isEditor ? null : AndroidVibrationEffect.CallStatic<AndroidJavaObject> ("startComposition");
@@ -507,7 +507,7 @@ namespace CineGame.MobileComponents {
 							if (!primId.StartsWith ("PRIMITIVE_", StringComparison.InvariantCultureIgnoreCase)) {
 								primId = "PRIMITIVE_" + primId;
 							}
-							var primitiveId = System.Enum.Parse<AndroidHapticPrimitive> (primId);
+							var primitiveId = Enum.Parse<AndroidHapticPrimitive> (primId);
 							if ((primitiveId == AndroidHapticPrimitive.PRIMITIVE_THUD || primitiveId == AndroidHapticPrimitive.PRIMITIVE_LOW_TICK || primitiveId == AndroidHapticPrimitive.PRIMITIVE_SPIN)
 								&& (Application.isEditor || AndroidAPILevel == 30)) {
 								Debug.LogWarning ($"{primitiveId} not supported on API 30, fallback on PRIMITIVE_TICK");
