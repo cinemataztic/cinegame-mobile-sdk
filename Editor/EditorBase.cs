@@ -1,13 +1,16 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Collections.Generic;
+
 using UnityEditor;
 using UnityEngine;
 
 using CineGame.MobileComponents;
-using System.Diagnostics.Eventing.Reader;
 
 namespace CineGameEditor.MobileComponents {
+
+	/// <summary>
+	/// Custom editor for our components which need multiple events. The editor behaves exactly like the standard EventTrigger editor.
+	/// </summary>
 	[CanEditMultipleObjects]
 	public class EventEditorBase : EditorBase {
 		SerializedProperty EventMaskProperty;
@@ -23,7 +26,7 @@ namespace CineGameEditor.MobileComponents {
 			AddButonContent = new GUIContent ("Add New Event Type");
 			// Have to create a copy since otherwise the tooltip will be overwritten.
 			IconToolbarMinus = new GUIContent (EditorGUIUtility.IconContent ("Toolbar Minus"));
-			IconToolbarMinus.tooltip = "Remove all events in this list.";
+			IconToolbarMinus.tooltip = "Remove all listeners on this event";
 
 			// Find all event properties and make sure they are expanded if they have listeners
 			var eventMask = EventMaskProperty.intValue;
@@ -71,7 +74,6 @@ namespace CineGameEditor.MobileComponents {
 							EditorGUILayout.PropertyField (obj);
 
 							Rect callbackRect = GUILayoutUtility.GetLastRect ();
-
 							Rect removeButtonPos = new Rect (callbackRect.xMax - removeButtonSize.x - 8, callbackRect.y + 1, removeButtonSize.x, removeButtonSize.y);
 							if (GUI.Button (removeButtonPos, IconToolbarMinus, GUIStyle.none)) {
 								EventMaskProperty.intValue ^= 1 << idxOfEvent;
@@ -128,6 +130,9 @@ namespace CineGameEditor.MobileComponents {
 		}
 	}
 
+	/// <summary>
+	/// Custom property drawer for Tag string values.
+	/// </summary>
 	[CustomPropertyDrawer (typeof (TagSelectorAttribute))]
 	public class TagSelectorPropertyDrawer : PropertyDrawer {
 
@@ -142,6 +147,9 @@ namespace CineGameEditor.MobileComponents {
 		}
 	}
 
+    /// <summary>
+    /// Our own base editor for all our components. 
+    /// </summary>
 	public class EditorBase : Editor {
 		private string ReferenceText;
 		private GUIContent ReferenceIcon;
@@ -241,4 +249,15 @@ namespace CineGameEditor.MobileComponents {
 			serializedObject.ApplyModifiedProperties ();
 		}
 	}
+
+
+    [CustomEditor (typeof (RaycastComponent))]
+    [CanEditMultipleObjects]
+    public class RaycastEditor : EventEditorBase {
+    }
+
+    [CustomEditor (typeof (GetTransformProperty))]
+    [CanEditMultipleObjects]
+    public class GetTransformPropertyEditor : EventEditorBase {
+    }
 }
