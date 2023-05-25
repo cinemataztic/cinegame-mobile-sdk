@@ -230,13 +230,7 @@ namespace CineGameEditor.MobileComponents {
 			}
 
 			if (gameTypeEntered && !string.IsNullOrWhiteSpace (GameType)) {
-				var _gameProxy = FindObjectOfType<GameProxy> ();
-				if (_gameProxy != null && GameType != _gameProxy.GameType) {
-					var so = new SerializedObject (_gameProxy);
-					so.FindProperty ("GameType").stringValue = GameType;
-					so.ApplyModifiedProperties ();
-					Debug.Log ("Changed GameProxy.GameType to " + GameType);
-				}
+				UpdateGameTypeInGameProxy ();
 			}
 
 			var _marketIndex = Mathf.Clamp (MarketIndex, 0, AppNamesAvailable.Length);
@@ -344,6 +338,10 @@ namespace CineGameEditor.MobileComponents {
 				if (_isCanvasGame && GameType != _gameProxy.GameType) {
 					if (IsSuperAdmin) {
 						GameType = _gameProxy.GameType;
+						if (string.IsNullOrWhiteSpace (GameType)) {
+							GameType = EditorSceneManager.GetActiveScene ().name;
+							UpdateGameTypeInGameProxy ();
+						}
 					} else if (GameTypesAvailable.Length > 0) {
 						GameTypeIndex = Array.IndexOf (GameTypesAvailable, _gameProxy.GameType);
 						if (GameTypeIndex == -1) {
@@ -370,6 +368,16 @@ namespace CineGameEditor.MobileComponents {
 					GameType = _gcGameManager.gameObject.scene.name;
 					//_gcGameManager.Market
 				}
+			}
+		}
+
+		void UpdateGameTypeInGameProxy () {
+			var _gameProxy = FindObjectOfType<GameProxy> ();
+			if (_gameProxy != null && GameType != _gameProxy.GameType) {
+				var so = new SerializedObject (_gameProxy);
+				so.FindProperty ("GameType").stringValue = GameType;
+				so.ApplyModifiedProperties ();
+				Debug.Log ("Changed GameProxy.GameType to " + GameType);
 			}
 		}
 
