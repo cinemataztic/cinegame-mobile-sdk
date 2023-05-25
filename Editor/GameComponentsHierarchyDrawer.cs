@@ -14,9 +14,7 @@ namespace CineGameEditor.MobileComponents {
 		static List<IGameComponentIcon> gameComponentsList = new ();
 
 		static GameComponentsHierarchyDrawer () {
-			// Init
 			texturePanel = AssetDatabase.LoadAssetAtPath (AssetDatabase.GUIDToAssetPath (Util.CinematazticIconGUID), typeof (Texture2D)) as Texture2D;
-			ReloadAppIcon ();
 			EditorApplication.hierarchyWindowItemOnGUI -= HierarchyItemCB;
 			EditorApplication.hierarchyWindowItemOnGUI += HierarchyItemCB;
 			SceneView.duringSceneGui -= SceneView_OnSceneGUIDelegate;
@@ -24,10 +22,10 @@ namespace CineGameEditor.MobileComponents {
 		}
 
 		static void SceneView_OnSceneGUIDelegate (SceneView sceneView) {
-			if (textureAppIcon != null) {
+			if (AppIconContent != null) {
 				Handles.BeginGUI ();
-				var r = new Rect (0f, 0f, 50f, 50f);
-				GUI.Label (r, textureAppIcon);
+				var r = new Rect (-2f, sceneView.position.height - 73f, 50f, 50f);
+				GUI.Label (r, AppIconContent);
 				Handles.EndGUI ();
 			}
 		}
@@ -46,14 +44,25 @@ namespace CineGameEditor.MobileComponents {
 				textureAppIcon = new Texture2D (t.width, t.height, t.format, true);
 				Graphics.CopyTexture (t, 0, 0, textureAppIcon, 0, 0);
 				textureAppIcon.Apply (true, true);
-				AppIconContent = new GUIContent (textureAppIcon) {
+				_appIconContent = new GUIContent (textureAppIcon) {
 					tooltip = $"{PlayerSettings.productName} {Util.GetRegion ()}"
 				};
+			} else {
+				Debug.LogError ("No app icon textures!");
 			}
 			EditorApplication.RepaintHierarchyWindow ();
 		}
 
-		static GUIContent AppIconContent;
+		static GUIContent AppIconContent {
+			get {
+				if (_appIconContent == null || _appIconContent.image == null) {
+					ReloadAppIcon ();
+				}
+				return _appIconContent;
+			}
+		}
+		static GUIContent _appIconContent;
+
 		static Transform prevItemTransform;
 		static Rect prevItemIconRect;
 
@@ -87,9 +96,10 @@ namespace CineGameEditor.MobileComponents {
 				}
 			} else {
 				// Item is a scene. Draw app icon and region, if available
-				if (AppIconContent != null) {
-					var size = selectionRect.height + 6f;
-					var r = new Rect (selectionRect.x - 3f, selectionRect.y - 2f, size, size);
+				if (AppIconContent != null && selectionRect.y < 1f) {
+					var size = selectionRect.height + 8f;
+					var r = new Rect (selectionRect.x - 4f, selectionRect.y - 2f, size, size);
+					GUI.color = Color.white;
 					GUI.Label (r, AppIconContent);
 				}
 			}
