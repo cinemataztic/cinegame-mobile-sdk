@@ -270,7 +270,9 @@ namespace LaxityAssets {
                 functionContent.tooltip = buttonLabel;
             }
 
-            functionRect.width = Mathf.Min (rect.width * .7f, EditorStyles.popup.CalcSize (functionContent).x);
+            var hasArgument = mode != PersistentListenerMode.Void && mode != PersistentListenerMode.EventDefined;
+
+            functionRect.width = Mathf.Min (rect.width * (hasArgument ? .7f : 1f), EditorStyles.popup.CalcSize (functionContent).x);
             argRect.xMin = rect.xMin + functionRect.width + EditorGUIUtility.standardVerticalSpacing;
 
             if (mode == PersistentListenerMode.Object) {
@@ -278,7 +280,7 @@ namespace LaxityAssets {
                 var result = EditorGUI.ObjectField (argRect, GUIContent.none, argument.objectReferenceValue, desiredType, true);
                 if (EditorGUI.EndChangeCheck ())
                     argument.objectReferenceValue = result;
-            } else if (mode != PersistentListenerMode.Void && mode != PersistentListenerMode.EventDefined)
+            } else if (hasArgument)
                 EditorGUI.PropertyField (argRect, argument, GUIContent.none);
 
             using (new EditorGUI.DisabledScope (listenerTarget.objectReferenceValue == null)) {
