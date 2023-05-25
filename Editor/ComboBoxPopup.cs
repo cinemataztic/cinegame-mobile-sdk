@@ -85,7 +85,7 @@ namespace LaxityAssets {
 		}
 
 		private void OnGUI () {
-			if (Values == null) {
+			if (Values == null || Values.Count () == 0) {
 				Close ();
 				return;
 			}

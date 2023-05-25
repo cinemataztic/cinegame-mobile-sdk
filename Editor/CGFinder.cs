@@ -97,12 +97,13 @@ public class CGFinder : EditorWindow {
 		}
 
 		var buttonMaxWidthOption = GUILayout.MaxWidth (100f);
-		var inputMaxWidthOption = GUILayout.MaxWidth (400f);
+		var bigButtonMaxWidthOption = GUILayout.MaxWidth (160f);
+		var expandWidthOption = GUILayout.ExpandWidth (true);
 
 		EditorGUILayout.Separator ();
 
 		EditorGUILayout.BeginHorizontal ();
-		var li = EditorGUILayout.LayerField (new GUIContent ("Layer:", "Find all gameobjects in the given layer"), LayerIndex, inputMaxWidthOption);
+		var li = EditorGUILayout.LayerField (new GUIContent ("Layer:", "Find all gameobjects in the given layer"), LayerIndex, expandWidthOption);
 		if (li != LayerIndex || GUILayout.Button ("Find objects", buttonMaxWidthOption)) {
 			LayerIndex = li;
 			FindObjectsInLayer (LayerIndex);
@@ -110,7 +111,7 @@ public class CGFinder : EditorWindow {
 		EditorGUILayout.EndHorizontal ();
 
 		EditorGUILayout.BeginHorizontal ();
-		var tag = EditorGUILayout.TagField (new GUIContent ("Tag:", "Find all gameobjects in a scene with the given tag"), TagName, inputMaxWidthOption);
+		var tag = EditorGUILayout.TagField (new GUIContent ("Tag:", "Find all gameobjects in a scene with the given tag"), TagName, expandWidthOption);
 		if (tag != TagName || GUILayout.Button ("Find objects", buttonMaxWidthOption)) {
 			TagName = tag;
 			FindObjectsWithTag (TagName);
@@ -119,10 +120,9 @@ public class CGFinder : EditorWindow {
 
 		EditorGUILayout.BeginHorizontal ();
 		EditorGUILayout.PrefixLabel (new GUIContent ("Method:", "Whole or partial method and class name to find references to"));
-		var mw = GUILayout.MaxWidth (400f - GUILayoutUtility.GetLastRect ().width);
 		GUI.SetNextControlName ("Method");
 		EditorGUI.BeginChangeCheck ();
-		MethodName = EditorGUILayout.TextField (MethodName, mw);
+		MethodName = EditorGUILayout.TextField (MethodName, expandWidthOption);
 		if (Event.current.type == EventType.Repaint) {
 			MethodRect = GUILayoutUtility.GetLastRect ();
 		}
@@ -163,11 +163,11 @@ public class CGFinder : EditorWindow {
 		var atlasLabelContent = new GUIContent ("Sprite Atlas:", "Find all sprites packed in the given atlas");
 		if (Packer.atlasNames.Length == 0) {
 			EditorGUILayout.PrefixLabel (atlasLabelContent);
-			if (GUILayout.Button ("Rebuild Sprite Atlas", inputMaxWidthOption)) {
+			if (GUILayout.Button ("Rebuild Sprite Atlas", bigButtonMaxWidthOption)) {
 				Packer.RebuildAtlasCacheIfNeeded (EditorUserBuildSettings.activeBuildTarget, true);
 			}
 		} else {
-			var selectedAtlas = EditorGUILayout.Popup (atlasLabelContent, AtlasName, Packer.atlasNames, inputMaxWidthOption);
+			var selectedAtlas = EditorGUILayout.Popup (atlasLabelContent, AtlasName, Packer.atlasNames, expandWidthOption);
 			if (selectedAtlas != AtlasName || GUILayout.Button ("Find sprites", buttonMaxWidthOption)) {
 				AtlasName = selectedAtlas;
 				FindTextureAssetsInAtlas (Packer.atlasNames [selectedAtlas]);
@@ -175,19 +175,11 @@ public class CGFinder : EditorWindow {
 		}
 		EditorGUILayout.EndHorizontal ();
 
-		/*EditorGUILayout.BeginHorizontal ();
-		GUI.SetNextControlName ("Text");
-		TextString = EditorGUILayout.TextField (new GUIContent ("Text:", "Substring to search all loaded scenes' text components for"), TextString, inputMaxWidthOption);
-		if (!string.IsNullOrWhiteSpace (TextString) && GUILayout.Button ("Find text", buttonMaxWidthOption)) {
-			FindTextString (TextString);
-		}
-		EditorGUILayout.EndHorizontal ();*/
-
 		EditorGUILayout.BeginHorizontal ();
 		EditorGUILayout.PrefixLabel (new GUIContent ("String:", "Whole or partial string to search for"));
 		GUI.SetNextControlName ("Text");
 		EditorGUI.BeginChangeCheck ();
-		TextString = EditorGUILayout.TextField (TextString, mw);
+		TextString = EditorGUILayout.TextField (TextString, expandWidthOption);
 		if (Event.current.type == EventType.Repaint) {
 			TextRect = GUILayoutUtility.GetLastRect ();
 		}
@@ -217,9 +209,12 @@ public class CGFinder : EditorWindow {
 		}
 		EditorGUILayout.EndHorizontal ();
 
-		if (GUILayout.Button (new GUIContent ("Find missing references", "Find all missing references in open scenes"), inputMaxWidthOption)) {
+		EditorGUILayout.BeginHorizontal ();
+		EditorGUILayout.PrefixLabel (new GUIContent ("Missing references:", "Find all missing references in open scenes"));
+		if (GUILayout.Button (new GUIContent ("Find missing references", "Find all missing references in open scenes"), bigButtonMaxWidthOption)) {
 			FindMissingReferences ();
 		}
+		EditorGUILayout.EndHorizontal ();
 
 		EditorGUILayout.Separator ();
 
