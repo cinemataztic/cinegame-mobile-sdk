@@ -256,6 +256,23 @@ namespace LaxityAssets {
             if (!string.IsNullOrEmpty (desiredArgTypeName))
                 desiredType = Type.GetType (desiredArgTypeName, false) ?? desiredType;
 
+            if (m_DummyEvent == null) {
+                var tUnityEventDrawer = typeof (UnityEventDrawer);
+                m_DummyEvent = tUnityEventDrawer.GetField ("m_DummyEvent", BindingFlags.NonPublic | BindingFlags.Instance).GetValue (this) as UnityEventBase;
+            }
+
+            GUIContent functionContent;
+            if (EditorGUI.showMixedValue) {
+                functionContent = s_MixedValueContent;
+            } else {
+                var buttonLabel = GetFunctionDropdownText (pListener);
+                functionContent = new GUIContent (buttonLabel, buttonLabel);
+                functionContent.tooltip = buttonLabel;
+            }
+
+            functionRect.width = Mathf.Min (rect.width * .7f, EditorStyles.popup.CalcSize (functionContent).x);
+            argRect.xMin = rect.xMin + functionRect.width + EditorGUIUtility.standardVerticalSpacing;
+
             if (mode == PersistentListenerMode.Object) {
                 EditorGUI.BeginChangeCheck ();
                 var result = EditorGUI.ObjectField (argRect, GUIContent.none, argument.objectReferenceValue, desiredType, true);
@@ -267,21 +284,7 @@ namespace LaxityAssets {
             using (new EditorGUI.DisabledScope (listenerTarget.objectReferenceValue == null)) {
                 EditorGUI.BeginProperty (functionRect, GUIContent.none, methodName);
                 {
-                    if (m_DummyEvent == null) {
-                        var tUnityEventDrawer = typeof (UnityEventDrawer);
-                        m_DummyEvent = tUnityEventDrawer.GetField ("m_DummyEvent", BindingFlags.NonPublic | BindingFlags.Instance).GetValue (this) as UnityEventBase;
-                    }
-
-                    GUIContent buttonContent;
-                    if (EditorGUI.showMixedValue) {
-                        buttonContent = s_MixedValueContent;
-                    } else {
-                        var buttonLabel = GetFunctionDropdownText (pListener);
-                        buttonContent = new GUIContent (buttonLabel, buttonLabel);
-                        buttonContent.tooltip = buttonLabel;
-                    }
-
-                    if (EditorGUI.DropdownButton (functionRect, buttonContent, FocusType.Passive, EditorStyles.popup)) {
+                    if (EditorGUI.DropdownButton (functionRect, functionContent, FocusType.Passive, EditorStyles.popup)) {
                         var genericMenu = miBuildPopupList.Invoke (null, new object [] { listenerTarget.objectReferenceValue, m_DummyEvent, pListener }) as GenericMenu;
                         genericMenu.DropDown (functionRect);
                     }
