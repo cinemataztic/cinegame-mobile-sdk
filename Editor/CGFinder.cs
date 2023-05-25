@@ -308,44 +308,43 @@ public class CGFinder : EditorWindow {
 		Init ();
 		Results.Clear ();
 		var allObjects = Resources.FindObjectsOfTypeAll (typeof (GameObject)) as GameObject [];
-		foreach (var obj in allObjects) {
-			if (!obj.scene.isLoaded)
+		var allComponents = allObjects.Where (o => o.scene.isLoaded).SelectMany (o => o.GetComponents<Component> ());
+		foreach (var component in allComponents) {
+			if (component == null)
 				continue;
-			var components = obj.GetComponents (typeof (Component));
-			foreach (var component in components) {
-				var so = new SerializedObject (component);
-				var sp = so.GetIterator ();
-				SerializedProperty pCalls;
-				if (!sp.NextVisible (true))
-					continue;
-				do {
-					if (sp.propertyType == SerializedPropertyType.Generic && (pCalls = sp.FindPropertyRelative ("m_PersistentCalls.m_Calls")) != null) {
-						var len = pCalls.arraySize;
-						for (int i = 0; i < len; i++) {
-							//Check if object is used as a target
-							var oa = pCalls.GetArrayElementAtIndex (i).FindPropertyRelative ("m_Target").objectReferenceValue;
-							if (oa != null) {
-								var go = (oa is Component co) ? co.gameObject : oa;
-								if (go == activeObject)
-									Results.Add (new Result { obj = component, text = $"{obj.GetScenePath ()} {component.GetType ().Name}.{sp.name}" });
-							}
-							//Check if object is used as an argument
-							oa = pCalls.GetArrayElementAtIndex (i).FindPropertyRelative ("m_Arguments.m_ObjectArgument").objectReferenceValue;
-							if (oa != null) {
-								var go = (oa is Component co) ? co.gameObject : oa;
-								if (go == activeObject)
-									Results.Add (new Result { obj = component, text = $"{obj.GetScenePath ()} {component.GetType ().Name}.{sp.name}" });
-							}
+			var go = component.gameObject;
+			var so = new SerializedObject (component);
+			var sp = so.GetIterator ();
+			SerializedProperty pCalls;
+			if (!sp.NextVisible (true))
+				continue;
+			do {
+				if (sp.propertyType == SerializedPropertyType.Generic && (pCalls = sp.FindPropertyRelative ("m_PersistentCalls.m_Calls")) != null) {
+					var len = pCalls.arraySize;
+					for (int i = 0; i < len; i++) {
+						//Check if object is used as a target
+						var oa = pCalls.GetArrayElementAtIndex (i).FindPropertyRelative ("m_Target").objectReferenceValue;
+						if (oa != null) {
+							var parentObject = (oa is Component co) ? co.gameObject : oa;
+							if (parentObject == activeObject)
+								Results.Add (new Result { obj = component, text = $"{go.GetScenePath ()} {component.GetType ().Name}.{sp.name}" });
 						}
-					} else if (sp.propertyType == SerializedPropertyType.ObjectReference) {
-						//Check if object is used as a reference
-						var oa = sp.objectReferenceValue;
-						var go = (oa is Component co) ? co.gameObject : oa;
-						if (go == activeObject)
-							Results.Add (new Result { obj = obj, text = $"{obj.GetScenePath ()} {component.GetType ().Name}.{sp.name}" });
+						//Check if object is used as an argument
+						oa = pCalls.GetArrayElementAtIndex (i).FindPropertyRelative ("m_Arguments.m_ObjectArgument").objectReferenceValue;
+						if (oa != null) {
+							var parentObject = (oa is Component co) ? co.gameObject : oa;
+							if (parentObject == activeObject)
+								Results.Add (new Result { obj = component, text = $"{go.GetScenePath ()} {component.GetType ().Name}.{sp.name}" });
+						}
 					}
-				} while (sp.NextVisible (false));
-			}
+				} else if (sp.propertyType == SerializedPropertyType.ObjectReference) {
+					//Check if object is used as a reference
+					var oa = sp.objectReferenceValue;
+					var parentObject = (oa is Component co) ? co.gameObject : oa;
+					if (parentObject == activeObject)
+						Results.Add (new Result { obj = go, text = $"{go.GetScenePath ()} {component.GetType ().Name}.{sp.name}" });
+				}
+			} while (sp.NextVisible (false));
 		}
 		ResultsLabel = $"Found {Results.Count} references to {((GameObject)activeObject).GetScenePath ()}.";
 		instance.Repaint ();
@@ -376,30 +375,28 @@ public class CGFinder : EditorWindow {
 	void FindString (string textString) {
 		Results.Clear ();
 		var allGOs = Resources.FindObjectsOfTypeAll (typeof (GameObject)) as GameObject [];
-		foreach (var obj in allGOs) {
-			if (!obj.scene.isLoaded)
+		var allComponents = allGOs.Where (o => o.scene.isLoaded).SelectMany (o => o.GetComponents<Component> ());
+		foreach (var component in allComponents) {
+			if (component == null)
 				continue;
-			var components = obj.GetComponents (typeof (Component));
-			foreach (var component in components) {
-				var so = new SerializedObject (component);
-				var sp = so.GetIterator ();
-				SerializedProperty pCalls;
-				if (!sp.NextVisible (true))
-					continue;
-				do {
-					if (sp.propertyType == SerializedPropertyType.Generic && (pCalls = sp.FindPropertyRelative ("m_PersistentCalls.m_Calls")) != null) {
-						var len = pCalls.arraySize;
-						for (int i = 0; i < len; i++) {
-							var sv = pCalls.GetArrayElementAtIndex (i).FindPropertyRelative ("m_Arguments.m_StringArgument").stringValue;
-							if (sv.Contains (textString, StringComparison.InvariantCultureIgnoreCase))
-								Results.Add (new Result { obj = component, text = $"{obj.GetScenePath ()} {component.GetType ().Name}.{sp.name}" });
-						}
-					} else if (sp.propertyType == SerializedPropertyType.String
-					 && sp.stringValue.Contains (textString, StringComparison.InvariantCultureIgnoreCase)) {
-						Results.Add (new Result { obj = component, text = $"{obj.GetScenePath ()} {component.GetType ().Name}.{sp.name}" });
+			var so = new SerializedObject (component);
+			var sp = so.GetIterator ();
+			SerializedProperty pCalls;
+			if (!sp.NextVisible (true))
+				continue;
+			do {
+				if (sp.propertyType == SerializedPropertyType.Generic && (pCalls = sp.FindPropertyRelative ("m_PersistentCalls.m_Calls")) != null) {
+					var len = pCalls.arraySize;
+					for (int i = 0; i < len; i++) {
+						var sv = pCalls.GetArrayElementAtIndex (i).FindPropertyRelative ("m_Arguments.m_StringArgument").stringValue;
+						if (sv.Contains (textString, StringComparison.InvariantCultureIgnoreCase))
+							Results.Add (new Result { obj = component, text = $"{component.gameObject.GetScenePath ()} {component.GetType ().Name}.{sp.name}" });
 					}
-				} while (sp.NextVisible (false));
-			}
+				} else if (sp.propertyType == SerializedPropertyType.String
+				 && sp.stringValue.Contains (textString, StringComparison.InvariantCultureIgnoreCase)) {
+					Results.Add (new Result { obj = component, text = $"{component.gameObject.GetScenePath ()} {component.GetType ().Name}.{sp.name}" });
+				}
+			} while (sp.NextVisible (false));
 		}
 		ResultsLabel = $"Found {Results.Count} instances of the string '{textString}'";
 	}
@@ -409,32 +406,30 @@ public class CGFinder : EditorWindow {
 	/// </summary>
 	void FindAllStrings () {
 		var allGOs = Resources.FindObjectsOfTypeAll (typeof (GameObject)) as GameObject [];
+		var allComponents = allGOs.Where (o => o.scene.isLoaded).SelectMany (o => o.GetComponents<Component> ());
 		ListStrings.Clear ();
-		foreach (var obj in allGOs) {
-			if (!obj.scene.isLoaded)
+		foreach (var component in allComponents) {
+			if (component == null)
 				continue;
-			var components = obj.GetComponents (typeof (Component));
-			foreach (var component in components) {
-				var so = new SerializedObject (component);
-				var sp = so.GetIterator ();
-				SerializedProperty pCalls;
-				if (!sp.NextVisible (true))
-					continue;
-				do {
-					if (sp.propertyType == SerializedPropertyType.Generic && (pCalls = sp.FindPropertyRelative ("m_PersistentCalls.m_Calls")) != null) {
-						var len = pCalls.arraySize;
-						for (int i = 0; i < len; i++) {
-							var sv = pCalls.GetArrayElementAtIndex (i).FindPropertyRelative ("m_Arguments.m_StringArgument").stringValue;
-							if (!string.IsNullOrWhiteSpace (sv))
-								ListStrings.Add (sv);
-						}
-					} else if (sp.propertyType == SerializedPropertyType.String) {
-						var sv = sp.stringValue;
+			var so = new SerializedObject (component);
+			var sp = so.GetIterator ();
+			SerializedProperty pCalls;
+			if (!sp.NextVisible (true))
+				continue;
+			do {
+				if (sp.propertyType == SerializedPropertyType.Generic && (pCalls = sp.FindPropertyRelative ("m_PersistentCalls.m_Calls")) != null) {
+					var len = pCalls.arraySize;
+					for (int i = 0; i < len; i++) {
+						var sv = pCalls.GetArrayElementAtIndex (i).FindPropertyRelative ("m_Arguments.m_StringArgument").stringValue;
 						if (!string.IsNullOrWhiteSpace (sv))
 							ListStrings.Add (sv);
 					}
-				} while (sp.NextVisible (false));
-			}
+				} else if (sp.propertyType == SerializedPropertyType.String) {
+					var sv = sp.stringValue;
+					if (!string.IsNullOrWhiteSpace (sv))
+						ListStrings.Add (sv);
+				}
+			} while (sp.NextVisible (false));
 		}
 	}
 
@@ -453,6 +448,8 @@ public class CGFinder : EditorWindow {
 		var allObjects = Resources.FindObjectsOfTypeAll (typeof (GameObject)) as GameObject [];
 		var allComponents = allObjects.Where (o => o.scene.isLoaded).SelectMany (o => o.GetComponents<Component> ());
 		foreach (var component in allComponents) {
+			if (component == null)
+				continue;
 			var componentType = component.GetType ();
 			var fields = componentType.GetFields (BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
 			foreach (var field in fields) {
@@ -476,6 +473,8 @@ public class CGFinder : EditorWindow {
 		var allComponents = allObjects.Where (o => o.scene.isLoaded).SelectMany (o => o.GetComponents<Component> ());
 		ListInvokations.Clear ();
 		foreach (var component in allComponents) {
+			if (component == null)
+				continue;
 			var componentType = component.GetType ();
 			var fields = componentType.GetFields (BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
 			foreach (var field in fields) {
