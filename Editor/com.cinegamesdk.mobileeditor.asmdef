@@ -3,6 +3,7 @@
     "rootNamespace": "",
     "references": [
         "com.cinegamesdk.mobile",
+        "Unity.TextMeshPro",
         "Unity.EditorCoroutines.Editor"
     ],
     "includePlatforms": [

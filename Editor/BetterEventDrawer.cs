@@ -225,6 +225,8 @@ namespace LaxityAssets {
             Rect goRect = subRects [2];
             Rect argRect = subRects [3];
 
+            Highlighter.HighlightIdentifier (rect, $"{pListener.serializedObject.targetObject.GetInstanceID ()}.{pListener.propertyPath}");
+
             // find the current event target...
             var callState = pListener.FindPropertyRelative (kCallStatePath);
             var arguments = pListener.FindPropertyRelative (kArgumentsPath);
