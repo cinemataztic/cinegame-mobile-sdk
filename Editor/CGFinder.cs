@@ -318,7 +318,9 @@ public class CGFinder : EditorWindow {
 			SerializedProperty pCalls;
 			if (!sp.NextVisible (true))
 				continue;
+				bool enterChildren;
 			do {
+					enterChildren = true;
 				if (sp.propertyType == SerializedPropertyType.Generic && (pCalls = sp.FindPropertyRelative ("m_PersistentCalls.m_Calls")) != null) {
 					var len = pCalls.arraySize;
 					for (int i = 0; i < len; i++) {
@@ -337,6 +339,7 @@ public class CGFinder : EditorWindow {
 								Results.Add (new Result { obj = component, text = $"{go.GetScenePath ()} {component.GetType ().Name}.{sp.name}" });
 						}
 					}
+						enterChildren = false;
 				} else if (sp.propertyType == SerializedPropertyType.ObjectReference) {
 					//Check if object is used as a reference
 					var oa = sp.objectReferenceValue;
@@ -344,7 +347,7 @@ public class CGFinder : EditorWindow {
 					if (parentObject == activeObject)
 						Results.Add (new Result { obj = go, text = $"{go.GetScenePath ()} {component.GetType ().Name}.{sp.name}" });
 				}
-			} while (sp.NextVisible (false));
+				} while (sp.NextVisible (enterChildren));
 		}
 		ResultsLabel = $"Found {Results.Count} references to {((GameObject)activeObject).GetScenePath ()}.";
 		instance.Repaint ();
@@ -384,7 +387,9 @@ public class CGFinder : EditorWindow {
 			SerializedProperty pCalls;
 			if (!sp.NextVisible (true))
 				continue;
+				bool enterChildren;
 			do {
+					enterChildren = true;
 				if (sp.propertyType == SerializedPropertyType.Generic && (pCalls = sp.FindPropertyRelative ("m_PersistentCalls.m_Calls")) != null) {
 					var len = pCalls.arraySize;
 					for (int i = 0; i < len; i++) {
@@ -392,11 +397,12 @@ public class CGFinder : EditorWindow {
 						if (sv.Contains (textString, StringComparison.InvariantCultureIgnoreCase))
 							Results.Add (new Result { obj = component, text = $"{component.gameObject.GetScenePath ()} {component.GetType ().Name}.{sp.name}" });
 					}
+						enterChildren = false;
 				} else if (sp.propertyType == SerializedPropertyType.String
 				 && sp.stringValue.Contains (textString, StringComparison.InvariantCultureIgnoreCase)) {
 					Results.Add (new Result { obj = component, text = $"{component.gameObject.GetScenePath ()} {component.GetType ().Name}.{sp.name}" });
 				}
-			} while (sp.NextVisible (false));
+				} while (sp.NextVisible (enterChildren));
 		}
 		ResultsLabel = $"Found {Results.Count} instances of the string '{textString}'";
 	}
@@ -416,7 +422,9 @@ public class CGFinder : EditorWindow {
 			SerializedProperty pCalls;
 			if (!sp.NextVisible (true))
 				continue;
+				bool enterChildren;
 			do {
+					enterChildren = true;
 				if (sp.propertyType == SerializedPropertyType.Generic && (pCalls = sp.FindPropertyRelative ("m_PersistentCalls.m_Calls")) != null) {
 					var len = pCalls.arraySize;
 					for (int i = 0; i < len; i++) {
@@ -424,12 +432,13 @@ public class CGFinder : EditorWindow {
 						if (!string.IsNullOrWhiteSpace (sv))
 							ListStrings.Add (sv);
 					}
+						enterChildren = false;
 				} else if (sp.propertyType == SerializedPropertyType.String) {
 					var sv = sp.stringValue;
 					if (!string.IsNullOrWhiteSpace (sv))
 						ListStrings.Add (sv);
 				}
-			} while (sp.NextVisible (false));
+				} while (sp.NextVisible (enterChildren));
 		}
 	}
 
