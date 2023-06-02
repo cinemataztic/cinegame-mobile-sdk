@@ -302,6 +302,7 @@ public class CGFinder : EditorWindow {
 	}
 
 	[MenuItem (itemName: "GameObject/CGFinder/Find references", isValidateFunction: false, priority: 0)]
+		[MenuItem (itemName: "Assets/CGFinder/Find references", isValidateFunction: false, priority: 0)]
 	static void FindReferencesToSelectedObject () {
 		var activeObject = Selection.activeObject;
 		activeObject = (activeObject is Component c) ? c.gameObject : activeObject;
@@ -349,7 +350,11 @@ public class CGFinder : EditorWindow {
 				}
 				} while (sp.NextVisible (enterChildren));
 		}
-		ResultsLabel = $"Found {Results.Count} references to {((GameObject)activeObject).GetScenePath ()}.";
+			if (activeObject is GameObject ago) {
+				ResultsLabel = $"Found {Results.Count} references to {ago.GetScenePath ()}.";
+			} else {
+				ResultsLabel = $"Found {Results.Count} references to {AssetDatabase.GetAssetPath (activeObject)}.";
+			}
 		instance.Repaint ();
 	}
 
