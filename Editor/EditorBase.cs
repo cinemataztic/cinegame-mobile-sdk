@@ -11,7 +11,7 @@ namespace CineGameEditor.MobileComponents {
 	/// <summary>
 	/// Custom editor for our components which need multiple events. The editor behaves exactly like the standard EventTrigger editor.
 	/// </summary>
-	[CanEditMultipleObjects]
+    [CanEditMultipleObjects]
 	public class EventEditorBase : EditorBase {
 		SerializedProperty EventMaskProperty;
 		List<GUIContent> EventTypes = new List<GUIContent> ();
@@ -22,14 +22,14 @@ namespace CineGameEditor.MobileComponents {
 		protected override void OnEnable () {
 			base.OnEnable ();
 
-			EventMaskProperty = serializedObject.FindProperty ("eventMask");
+            EventMaskProperty = serializedObject.FindProperty ("eventMask");
 			AddButonContent = new GUIContent ("Add New Event Type");
 			// Have to create a copy since otherwise the tooltip will be overwritten.
 			IconToolbarMinus = new GUIContent (EditorGUIUtility.IconContent ("Toolbar Minus"));
 			IconToolbarMinus.tooltip = "Remove all listeners on this event";
 
-			// Find all event properties and make sure they are expanded if they have listeners
-			var eventMask = EventMaskProperty.intValue;
+            // Find all event properties and make sure they are expanded if they have listeners
+            var eventMask = EventMaskProperty.intValue;
 
 			var obj = serializedObject.GetIterator ();
 			if (obj.NextVisible (true)) {
@@ -61,6 +61,8 @@ namespace CineGameEditor.MobileComponents {
 			var eventMask = EventMaskProperty.intValue;
 			var moreEventsToAdd = false;
 
+			var instanceID = serializedObject.targetObject.GetInstanceID ();
+
 			var obj = serializedObject.GetIterator ();
 			if (obj.NextVisible (true)) {
 				var idxOfEvent = 0;
@@ -73,7 +75,7 @@ namespace CineGameEditor.MobileComponents {
 							EditorGUILayout.Space ();
 							EditorGUILayout.PropertyField (obj);
 
-							Rect callbackRect = GUILayoutUtility.GetLastRect ();
+                            Rect callbackRect = GUILayoutUtility.GetLastRect ();
 							Rect removeButtonPos = new Rect (callbackRect.xMax - removeButtonSize.x - 8, callbackRect.y + 1, removeButtonSize.x, removeButtonSize.y);
 							if (GUI.Button (removeButtonPos, IconToolbarMinus, GUIStyle.none)) {
 								EventMaskProperty.intValue ^= 1 << idxOfEvent;
@@ -82,7 +84,8 @@ namespace CineGameEditor.MobileComponents {
 						}
 						idxOfEvent++;
 					} else {
-						EditorGUILayout.PropertyField (obj, true);
+                        EditorGUILayout.PropertyField (obj, true);
+						Highlighter.HighlightIdentifier (GUILayoutUtility.GetLastRect (), $"{instanceID}.{obj.propertyPath}");
 					}
 				} while (obj.NextVisible (false));
 			}
@@ -101,7 +104,7 @@ namespace CineGameEditor.MobileComponents {
 			serializedObject.ApplyModifiedProperties ();
 		}
 
-		void ShowAddTriggermenu () {
+        void ShowAddTriggermenu () {
 			var eventMask = EventMaskProperty.intValue;
 
 			// Now create the menu, add items and show it
@@ -150,7 +153,7 @@ namespace CineGameEditor.MobileComponents {
     /// <summary>
     /// Our own base editor for all our components. 
     /// </summary>
-	public class EditorBase : Editor {
+    public class EditorBase : Editor {
 		private string ReferenceText;
 		private GUIContent ReferenceIcon;
 		private GUIStyle ReferenceButtonStyle;
@@ -215,13 +218,15 @@ namespace CineGameEditor.MobileComponents {
 			}
 
 			public override void OnOpen () {
-				Style = new GUIStyle (EditorStyles.label);
-				Style.wordWrap = true;
-				Style.alignment = TextAnchor.UpperLeft;
+				Style = new GUIStyle (EditorStyles.label) {
+					wordWrap = true,
+					alignment = TextAnchor.UpperLeft
+				};
 
-				TitleStyle = new GUIStyle (EditorStyles.label);
-				TitleStyle.alignment = TextAnchor.UpperCenter;
-				TitleStyle.fontStyle = FontStyle.Bold;
+				TitleStyle = new GUIStyle (EditorStyles.label) {
+					alignment = TextAnchor.UpperCenter,
+					fontStyle = FontStyle.Bold
+				};
 			}
 		}
 	}
@@ -237,12 +242,15 @@ namespace CineGameEditor.MobileComponents {
 
 			DrawReferenceButton ();
 
+			var instanceID = serializedObject.targetObject.GetInstanceID ();
+
 			var obj = serializedObject.GetIterator ();
 			if (obj.NextVisible (true)) {
 				do {
 					if (obj.name == "m_Script")
 						continue;
 					EditorGUILayout.PropertyField (obj, true);
+					Highlighter.HighlightIdentifier (GUILayoutUtility.GetLastRect (), $"{instanceID}.{obj.propertyPath}");
 				} while (obj.NextVisible (false));
 			}
 
