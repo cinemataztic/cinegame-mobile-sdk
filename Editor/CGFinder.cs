@@ -393,18 +393,19 @@ public class CGFinder : EditorWindow {
 				if (sp.propertyType == SerializedPropertyType.Generic && (pCalls = sp.FindPropertyRelative ("m_PersistentCalls.m_Calls")) != null) {
 					var len = pCalls.arraySize;
 					for (int i = 0; i < len; i++) {
-						var sv = pCalls.GetArrayElementAtIndex (i).FindPropertyRelative ("m_Arguments.m_StringArgument").stringValue;
-						if (sv.Contains (textString, StringComparison.InvariantCultureIgnoreCase))
-							Results.Add (new Result { obj = component, text = $"{component.gameObject.GetScenePath ()} {component.GetType ().Name}.{sp.name}" });
+							var pCall = pCalls.GetArrayElementAtIndex (i);
+							var sv = pCall.FindPropertyRelative ("m_Arguments.m_StringArgument").stringValue;
+							if (sv.Replace ('\n', ' ').Contains (textString, StringComparison.InvariantCultureIgnoreCase))
+								Results.Add (new Result { obj = component, propertyPath = pCall.propertyPath, text = $"{component.gameObject.GetScenePath ()} {component.GetType ().Name}.{NicePropertyPath (sp)}" });
 					}
 						enterChildren = false;
 				} else if (sp.propertyType == SerializedPropertyType.String
-				 && sp.stringValue.Contains (textString, StringComparison.InvariantCultureIgnoreCase)) {
-					Results.Add (new Result { obj = component, text = $"{component.gameObject.GetScenePath ()} {component.GetType ().Name}.{sp.name}" });
+					 && sp.stringValue.Replace ('\n', ' ').Contains (textString, StringComparison.InvariantCultureIgnoreCase)) {
+						Results.Add (new Result { obj = component, propertyPath = sp.propertyPath, text = $"{component.gameObject.GetScenePath ()} {component.GetType ().Name}.{NicePropertyPath (sp)}" });
 				}
 				} while (sp.NextVisible (enterChildren));
 		}
-		ResultsLabel = $"Found {Results.Count} instances of the string '{textString}'";
+			ResultsLabel = $"Found {Results.Count} instances of the string '{textString.Replace ('\n', ' ').Truncate (32)}'";
 	}
 
 	/// <summary>
@@ -430,13 +431,13 @@ public class CGFinder : EditorWindow {
 					for (int i = 0; i < len; i++) {
 						var sv = pCalls.GetArrayElementAtIndex (i).FindPropertyRelative ("m_Arguments.m_StringArgument").stringValue;
 						if (!string.IsNullOrWhiteSpace (sv))
-							ListStrings.Add (sv);
+								ListStrings.Add (sv.Replace ('\n', ' '));
 					}
 						enterChildren = false;
 				} else if (sp.propertyType == SerializedPropertyType.String) {
 					var sv = sp.stringValue;
 					if (!string.IsNullOrWhiteSpace (sv))
-						ListStrings.Add (sv);
+							ListStrings.Add (sv.Replace ('\n', ' '));
 				}
 				} while (sp.NextVisible (enterChildren));
 		}
@@ -612,4 +613,22 @@ static class ExtensionMethods {
 		AppendParentName (ref sb, obj.transform, separator);
 		return sb.ToString ();
 	}
+
+		/// <summary>
+		/// Builds a 'path' to the specified Component's GameObject in the scene hierarchy. Useful for logging/debugging
+		/// </summary>
+		public static string GetScenePath (this Component comp, char separator = '/') {
+			var sb = new StringBuilder ();
+			sb.Append (comp.gameObject.scene.name);
+			AppendParentName (ref sb, comp.transform, separator);
+			return sb.ToString ();
+		}
+
+		/// <summary>
+		/// Cap string length and if capped, add a postfix (defaults to ellipsis character)
+		/// </summary>
+		public static string Truncate (this string s, int maxLength, string postfix = "…") {
+			if (s.Length <= maxLength) return s;
+			return s.Substring (0, maxLength) + postfix;
+		}
 }
