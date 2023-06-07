@@ -225,6 +225,7 @@ namespace LaxityAssets {
 			buttonHoverStyle.alignment = TextAnchor.MiddleLeft;
 			buttonHoverStyle.onHover.background = SolidBlackTexture;
 			buttonHoverStyle.hover.textColor = Color.cyan;
+			buttonHoverStyle.richText = true;
 
 			Result SelectedResult = null;
 			if (!string.IsNullOrWhiteSpace (ResultsLabel)) {
@@ -345,14 +346,14 @@ namespace LaxityAssets {
 							if (oa != null) {
 								var parentObject = (oa is Component co) ? co.gameObject : oa;
 								if (parentObject == activeObject)
-									Results.Add (new Result { obj = component, propertyPath = pCall.propertyPath, text = $"{go.GetScenePath ()} {component.GetType ().Name}.{NicePropertyPath (sp)}" });
+									AddResult (component, pCall.propertyPath, NicePropertyPath (sp));
 							}
 							//Check if object is used as an argument
 							oa = pCall.FindPropertyRelative ("m_Arguments.m_ObjectArgument").objectReferenceValue;
 							if (oa != null) {
 								var parentObject = (oa is Component co) ? co.gameObject : oa;
 								if (parentObject == activeObject)
-									Results.Add (new Result { obj = component, propertyPath = pCall.propertyPath, text = $"{go.GetScenePath ()} {component.GetType ().Name}.{NicePropertyPath (sp)}" });
+									AddResult (component, pCall.propertyPath, NicePropertyPath (sp));
 							}
 						}
 						enterChildren = false;
@@ -361,7 +362,7 @@ namespace LaxityAssets {
 						var oa = sp.objectReferenceValue;
 						var parentObject = (oa is Component co) ? co.gameObject : oa;
 						if (parentObject == activeObject)
-							Results.Add (new Result { obj = component, propertyPath = sp.propertyPath, text = $"{go.GetScenePath ()} {component.GetType ().Name}.{NicePropertyPath (sp)}" });
+							AddResult (component, sp.propertyPath, NicePropertyPath (sp));
 					}
 				} while (sp.NextVisible (enterChildren));
 			}
@@ -384,7 +385,7 @@ namespace LaxityAssets {
 			foreach (var obj in allObjects) {
 				if (obj.scene.isLoaded && obj.layer == layerIndex) {
 					Results.Add (new Result { obj = obj, text = obj.GetScenePath () });
-				}
+			}
 			}
 			ResultsLabel = $"Found {Results.Count} GameObjects in {LayerMask.LayerToName (layerIndex)} layer.";
 		}
@@ -394,7 +395,7 @@ namespace LaxityAssets {
 			var allObjects = Resources.FindObjectsOfTypeAll (typeof (GameObject)) as GameObject [];
 			foreach (var obj in allObjects) {
 				if (obj.scene.isLoaded && obj.tag == tag) {
-					Results.Add (new Result { obj = obj, text = obj.GetScenePath () });
+					AddResult (obj);
 				}
 			}
 			ResultsLabel = $"Found {Results.Count} GameObjects with {tag} tag.";
@@ -421,12 +422,12 @@ namespace LaxityAssets {
 							var pCall = pCalls.GetArrayElementAtIndex (i);
 							var sv = pCall.FindPropertyRelative ("m_Arguments.m_StringArgument").stringValue;
 							if (sv.Replace ('\n', ' ').Contains (textString, StringComparison.InvariantCultureIgnoreCase))
-								Results.Add (new Result { obj = component, propertyPath = pCall.propertyPath, text = $"{component.gameObject.GetScenePath ()} {component.GetType ().Name}.{NicePropertyPath (sp)}" });
+								AddResult (component, pCall.propertyPath, NicePropertyPath (sp));
 						}
 						enterChildren = false;
 					} else if (sp.propertyType == SerializedPropertyType.String
 					 && sp.stringValue.Replace ('\n', ' ').Contains (textString, StringComparison.InvariantCultureIgnoreCase)) {
-						Results.Add (new Result { obj = component, propertyPath = sp.propertyPath, text = $"{component.gameObject.GetScenePath ()} {component.GetType ().Name}.{NicePropertyPath (sp)}" });
+						AddResult (component, sp.propertyPath, NicePropertyPath (sp));
 					}
 				} while (sp.NextVisible (enterChildren));
 			}
@@ -541,10 +542,18 @@ namespace LaxityAssets {
 				if ((classMatch != methodMatch && hasClassMatch && hasMethodMatch)
 				 || (classMatch == methodMatch && (hasClassMatch || hasMethodMatch))) {
 					var path = $"{fieldName}.m_PersistentCalls.m_Calls.Array.data[{k}]";
-					Results.Add (new Result { obj = component, propertyPath = path, text = $"{component.gameObject.GetScenePath ()} {component.GetType ().Name}.{fieldName} => {classPath}.{methodName}" });
+					AddResult (component, path, fieldName);
 					break;
 				}
 			}
+		}
+
+		static void AddResult (Component component, string PropertyPath, string FieldName, string Suffix = null) {
+			Results.Add (new Result { obj = component, propertyPath = PropertyPath, text = $"{(PrefabUtility.IsPartOfPrefabAsset (component) ? "[PREFAB] " : string.Empty)}{component.gameObject.GetScenePath ()} <color=#44ffcc>{component.GetType ().Name}</color>.<color=#ffffcc>{FieldName}</color>{Suffix ?? string.Empty}" });
+		}
+
+		static void AddResult (GameObject GameObject, string PropertyPath = null, string Suffix = null) {
+			Results.Add (new Result { obj = GameObject, propertyPath = PropertyPath, text = $"{(PrefabUtility.IsPartOfPrefabAsset (GameObject) ? "[PREFAB] " : string.Empty)}{GameObject.GetScenePath ()}{Suffix ?? string.Empty}" });
 		}
 
 		/// <summary>
@@ -610,7 +619,7 @@ namespace LaxityAssets {
 							}
 
 							if (sp.objectReferenceValue == null && sp.objectReferenceInstanceIDValue != 0) {
-								Results.Add (new Result { obj = component, text = (PrefabUtility.IsPartOfPrefabAsset (component) ? "[PREFAB] " : string.Empty) + go.GetScenePath () + " " + component.GetType () + "." + sp.propertyPath });
+								AddResult (component, sp.propertyPath, NicePropertyPath (sp));
 							}
 						}
 					}
