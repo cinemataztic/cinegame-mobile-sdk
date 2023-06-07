@@ -99,10 +99,10 @@ namespace LaxityAssets {
         protected override void SetupReorderableList (ReorderableList list) {
             base.SetupReorderableList (list);
 
+            m_ListenersArray = list.serializedProperty;
+
             if (!EditorPrefs.GetBool (OpdKey, true))
                 return;
-
-            m_ListenersArray = list.serializedProperty;
 
             //Squeeze elements a little tighter together compared to normal UnityEvents
             list.elementHeight = (EditorGUIUtility.singleLineHeight * 2 + EditorGUIUtility.standardVerticalSpacing);
@@ -211,12 +211,14 @@ namespace LaxityAssets {
         }
 
         protected override void DrawEvent (Rect rect, int index, bool isActive, bool isFocused) {
+            var pListener = m_ListenersArray.GetArrayElementAtIndex (index);
+            Highlighter.HighlightIdentifier (rect, $"{pListener.serializedObject.targetObject.GetInstanceID ()}.{pListener.propertyPath}");
+
             if (!EditorPrefs.GetBool (OpdKey, true)) {
                 base.DrawEvent (rect, index, isActive, isFocused);
                 return;
             }
 
-            var pListener = m_ListenersArray.GetArrayElementAtIndex (index);
             var mode = (PersistentListenerMode)pListener.FindPropertyRelative (kModePath).enumValueIndex;
 
             rect.y++;
@@ -225,8 +227,6 @@ namespace LaxityAssets {
             Rect functionRect = subRects [1];
             Rect goRect = subRects [2];
             Rect argRect = subRects [3];
-
-            Highlighter.HighlightIdentifier (rect, $"{pListener.serializedObject.targetObject.GetInstanceID ()}.{pListener.propertyPath}");
 
             // find the current event target...
             var callState = pListener.FindPropertyRelative (kCallStatePath);
