@@ -371,6 +371,9 @@ namespace LaxityAssets {
 			} else {
 				ResultsLabel = $"Found {Results.Count} references to {AssetDatabase.GetAssetPath (activeObject)}.";
 			}
+			if (Results.Count == 1) {
+				instance.ShowResult (Results [0]);
+			}
 			instance.Repaint ();
 		}
 
@@ -388,6 +391,8 @@ namespace LaxityAssets {
 			}
 			}
 			ResultsLabel = $"Found {Results.Count} GameObjects in {LayerMask.LayerToName (layerIndex)} layer.";
+			if (Results.Count == 1)
+				ShowResult (Results [0]);
 		}
 
 		void FindObjectsWithTag (string tag) {
@@ -399,6 +404,8 @@ namespace LaxityAssets {
 				}
 			}
 			ResultsLabel = $"Found {Results.Count} GameObjects with {tag} tag.";
+			if (Results.Count == 1)
+				ShowResult (Results [0]);
 		}
 
 		void FindString (string textString) {
@@ -432,6 +439,8 @@ namespace LaxityAssets {
 				} while (sp.NextVisible (enterChildren));
 			}
 			ResultsLabel = $"Found {Results.Count} instances of the string '{textString.Replace ('\n', ' ').Truncate (32)}'";
+			if (Results.Count == 1)
+				ShowResult (Results [0]);
 		}
 
 		/// <summary>
@@ -499,6 +508,8 @@ namespace LaxityAssets {
 				}
 			}
 			ResultsLabel = $"Found {Results.Count} event listeners matching '{partialMethodName}'";
+			if (Results.Count == 1)
+				ShowResult (Results [0]);
 		}
 
 		/// <summary>
@@ -572,6 +583,8 @@ namespace LaxityAssets {
 				}
 			}
 			ResultsLabel = $"Found {Results.Count} sprite textures with the packing tag '{packingTag}'";
+			if (Results.Count == 1)
+				ShowResult (Results [0]);
 		}
 
 		/*
@@ -626,6 +639,8 @@ namespace LaxityAssets {
 				}
 			}
 			ResultsLabel = $"Found {Results.Count} missing references in loaded scenes.";
+			if (Results.Count == 1)
+				ShowResult (Results [0]);
 		}
 	}
 
