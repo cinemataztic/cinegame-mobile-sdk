@@ -57,6 +57,7 @@ namespace LaxityAssets {
         public static void ToggleOpd () {
             var opp = EditorPrefs.GetBool (OpdKey, true);
             EditorPrefs.SetBool (OpdKey, !opp);
+            ActiveEditorTracker.sharedTracker.ForceRebuild ();
         }
 
         [MenuItem (OpdMenuName, true)]
