@@ -48,7 +48,7 @@ namespace CineGameEditor.MobileComponents {
 					tooltip = $"{PlayerSettings.productName} {Util.GetRegion ()}"
 				};
 			} else {
-				Debug.LogError ("No app icon textures!");
+				_appIconContent = GUIContent.none;
 			}
 			EditorApplication.RepaintHierarchyWindow ();
 		}
