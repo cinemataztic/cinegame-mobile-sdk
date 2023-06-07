@@ -47,6 +47,8 @@ namespace LaxityAssets {
 		Callback onSelect;
 
 		public static void Show (IEnumerable<string> values, Rect guiRect, Callback callback) {
+			if (values.Count () == 0)
+				return;
 			if (Instance == null) {
 				SolidTexture = new Texture2D (1, 1);
 				SolidTexture.SetPixel (0, 0, Color.gray);
@@ -73,7 +75,7 @@ namespace LaxityAssets {
 			Instance.onSelect = callback;
 			Instance.wantsMouseMove = Instance.wantsMouseEnterLeaveWindow = true;
 
-			CurrentIndex = -1;
+			CurrentIndex = 0;
 		}
 
 
