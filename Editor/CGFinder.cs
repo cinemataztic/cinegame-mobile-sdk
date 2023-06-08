@@ -40,8 +40,17 @@ namespace LaxityAssets {
 
 		static CGFinder instance;
 
-		readonly HashSet<string> ListInvokations = new ();
-		readonly HashSet<string> ListStrings = new ();
+		static readonly HashSet<string> ListInvokations = new ();
+		static readonly HashSet<string> ListStrings = new ();
+
+		/// <summary>
+		/// Do not look for strings inside these component types
+		/// </summary>
+		static readonly HashSet<Type> IgnoreTypesForStringSearch = new () {
+			typeof (ParticleSystem),
+			typeof (UnityEngine.UI.Button),
+			typeof (UnityEngine.UI.Slider),
+		};
 
 		readonly MethodInfo miEndEditingActiveTextField;
 		readonly Type InspectorWindowType, PropertyEditorType;
@@ -413,7 +422,7 @@ namespace LaxityAssets {
 			var allGOs = Resources.FindObjectsOfTypeAll (typeof (GameObject)) as GameObject [];
 			var allComponents = allGOs.Where (o => o.scene.isLoaded).SelectMany (o => o.GetComponents<Component> ());
 			foreach (var component in allComponents) {
-				if (component == null)
+				if (component == null || IgnoreTypesForStringSearch.Contains (component.GetType ()))
 					continue;
 				var so = new SerializedObject (component);
 				var sp = so.GetIterator ();
@@ -451,7 +460,7 @@ namespace LaxityAssets {
 			var allComponents = allGOs.Where (o => o.scene.isLoaded).SelectMany (o => o.GetComponents<Component> ());
 			ListStrings.Clear ();
 			foreach (var component in allComponents) {
-				if (component == null)
+				if (component == null || IgnoreTypesForStringSearch.Contains (component.GetType ()))
 					continue;
 				var so = new SerializedObject (component);
 				var sp = so.GetIterator ();
