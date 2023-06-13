@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Serialization;
+﻿using UnityEngine;
 
 namespace CineGame.MobileComponents {
     public abstract class BaseComponent : MonoBehaviour, IGameComponentIcon {
@@ -32,6 +28,8 @@ namespace CineGame.MobileComponents {
 				Debug.LogFormat (this, $"{gameObject.GetScenePath ()} " + format, args);
 			}
 		}
+
+    }
 
     public abstract class BaseEventComponent : BaseComponent {
         [HideInInspector]
