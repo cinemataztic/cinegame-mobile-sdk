@@ -696,6 +696,8 @@ namespace LaxityAssets {
 			return s.Substring (0, maxLength) + postfix;
 		}
 
+	}
+
 	[CustomPropertyDrawer (typeof (UnityEngine.Object), true)]
 	public class ObjectPropertyEditor : PropertyDrawer {
 		public override void OnGUI (Rect position, SerializedProperty property, GUIContent label) {
