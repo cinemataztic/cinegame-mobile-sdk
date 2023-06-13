@@ -22,7 +22,7 @@ namespace LaxityAssets {
 		//Vector2 buildReportScrollPosition = Vector2.zero;
 		private int LayerIndex;
 		private string MethodName;
-		private string TagName;
+		private string TagName = "Untagged";
 		private string TextString;
 		private int AtlasName;
 
