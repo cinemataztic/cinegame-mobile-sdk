@@ -166,8 +166,10 @@ namespace LaxityAssets {
 					ComboBoxPopup.Instance.Close ();
 				}
 			}
+			using (new EditorGUI.DisabledScope (string.IsNullOrEmpty (MethodName))) {
 			if (GUILayout.Button ("Find references", buttonMaxWidthOption)) {
 				FindInvokationsOfMethod (MethodName);
+			}
 			}
 			EditorGUILayout.EndHorizontal ();
 
@@ -216,8 +218,10 @@ namespace LaxityAssets {
 					ComboBoxPopup.Instance.Close ();
 				}
 			}
+			using (new EditorGUI.DisabledScope (string.IsNullOrEmpty (TextString))) {
 			if (GUILayout.Button ("Find string", buttonMaxWidthOption)) {
 				FindString (TextString);
+			}
 			}
 			EditorGUILayout.EndHorizontal ();
 
@@ -419,6 +423,8 @@ namespace LaxityAssets {
 
 		void FindString (string textString) {
 			Results.Clear ();
+			if (string.IsNullOrEmpty (textString))
+				return;
 			var allGOs = Resources.FindObjectsOfTypeAll (typeof (GameObject)) as GameObject [];
 			var allComponents = allGOs.Where (o => o.scene.isLoaded).SelectMany (o => o.GetComponents<Component> ());
 			foreach (var component in allComponents) {
@@ -489,7 +495,7 @@ namespace LaxityAssets {
 
 		void FindInvokationsOfMethod (string partialMethodName) {
 			Results.Clear ();
-			if (string.IsNullOrEmpty (partialMethodName))
+			if (string.IsNullOrWhiteSpace (partialMethodName))
 				return;
 			var lioDot = partialMethodName.LastIndexOf ('.');
 			string methodMatch, classMatch;
