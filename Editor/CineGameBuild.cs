@@ -35,18 +35,7 @@ namespace CineGameEditor.MobileComponents {
 
 		static int MarketIndex;
 		static int GameTypeIndex;
-		static string [] MarketIdsAvailable;
-		static string [] AppNamesAvailable;
 		static string [] GameTypesAvailable;
-		static int LoginRegionIndex;
-
-		static string [] LoginRegions = {
-			"CinemaTaztic",
-			"Egmont (Nordisk Film)",
-			"Wide Eye Media IE",
-			"ITV India",
-			"Staging",
-		};
 
 		/// <summary>
 		/// Market IDs from cloud
@@ -69,22 +58,49 @@ namespace CineGameEditor.MobileComponents {
 			public const string Cinemataztic_dev = "594be135e9678d3bb75fe7aa";
 		}
 
-		public static Dictionary<string, string> MarketDisplayNamesMap = new Dictionary<string, string> {
-			{ MarketID.BioSpil,         "BioSpil (DK)" },
-			{ MarketID.KinoSpill,       "KinoSpill (NO)" },
-			{ MarketID.CineGame,        "CineGame (EN)" },
-			{ MarketID.Leffapeli,       "Leffapeli (FI)" },
-			{ MarketID.CineGame_AUS,    "CineGame (AU)" },
-			{ MarketID.CineGame_IE,     "CineGame (IE)" },
-			{ MarketID.CineGame_IN,     "CineGame (IN)" },
-			{ MarketID.CineGame_NZ,     "CineGame (NZ)" },
-			{ MarketID.CineGame_UAE,    "CineGame (AE)" },
-			{ MarketID.REDyPLAY,        "REDyPLAY (DE)" },
-			{ MarketID.ForumFun,        "ForumFun (EE)" },
-			{ MarketID.CinesaFun,       "CinesaFun (ES)" },
-			{ MarketID.Baltoppen,       "Baltoppen (BioSpil)" },
-			{ MarketID.DEMO_CineGame,   "DEMO CineGame" },
-			{ MarketID.Cinemataztic_dev, "Cinemataztic-dev (CineGame)" },
+		static string [] MarketDisplayNames = new string [] {
+			"biospil-dk",
+			//"kinospill-no",
+			"cinegame-en",
+			"finnkino-fi",
+			//"cinegame-au",
+			"cinegame-ie",
+			"cinegame-in",
+			//"cinegame-nz",
+			//"cinegame-ae",
+			"redyplay-de",
+			//"forumfun-ee",
+			//"cinesafun-es",
+			//"Baltoppen (BioSpil)",
+			//"DEMO CineGame",
+			//"Cinemataztic-dev (CineGame)",
+		};
+
+		static string [] MarketIDs = new string [] {
+			MarketID.BioSpil,
+			//MarketID.KinoSpill,
+			MarketID.CineGame,
+			MarketID.Leffapeli,
+			//MarketID.CineGame_AUS,
+			MarketID.CineGame_IE,
+			MarketID.CineGame_IN,
+			//MarketID.CineGame_NZ,
+			//MarketID.CineGame_UAE,
+			MarketID.REDyPLAY,
+			//MarketID.ForumFun,
+			//MarketID.CinesaFun,
+			//MarketID.Baltoppen,
+			//MarketID.DEMO_CineGame,
+			//MarketID.Cinemataztic_dev,
+		};
+
+		public static Dictionary<string, string> MarketTokenUris = new Dictionary<string, string> {
+			{ MarketID.BioSpil,         "https://biospil.auth.iam.nordiskfilm.cinemataztic.com" },
+			{ MarketID.CineGame,        "https://cinegame.en.auth.iam.eu-1.cinemataztic.com" },
+			{ MarketID.Leffapeli,       "https://finnkino.fi.auth.iam.eu-1.cinemataztic.com" },
+			{ MarketID.CineGame_IE,     "https://wideeyemedia.ie.auth.iam.eu-2.cinemataztic.com" },
+			{ MarketID.CineGame_IN,     "https://itv.in.auth.iam.asia-1.cinemataztic.com" },
+			{ MarketID.REDyPLAY,        "https://weischer.de.auth.iam.eu-2.cinemataztic.com" },
 		};
 
 		static string AccessToken;
@@ -163,16 +179,16 @@ namespace CineGameEditor.MobileComponents {
 			centeredStyle.alignment = TextAnchor.UpperCenter;
 			centeredStyle.fontStyle = FontStyle.Bold;
 
-			var _loginRegionIndex = Mathf.Clamp (LoginRegionIndex, 0, LoginRegions.Length);
-			_loginRegionIndex = EditorGUILayout.Popup (new GUIContent ("Region:"), _loginRegionIndex, LoginRegions);
-			if (LoginRegionIndex != _loginRegionIndex) {
-				LoginRegionIndex = _loginRegionIndex;
+			var _marketIndex = Mathf.Clamp (MarketIndex, 0, MarketIDs.Length);
+			_marketIndex = EditorGUILayout.Popup (new GUIContent ("Market:"), _marketIndex, MarketDisplayNames);
+			if (MarketIndex != _marketIndex) {
+				MarketIndex = _marketIndex;
 				if (!string.IsNullOrWhiteSpace (Username) && !string.IsNullOrWhiteSpace (Password)) {
 					if (!GetAccessToken (out AccessToken)) {
 						EditorUtility.DisplayDialog (ProgressBarTitle, "Failed to login. Check username and password and that you are connected to the internet", "OK");
 						return;
 					}
-					EditorPrefs.SetString ("AssetMarketRegion", LoginRegions [LoginRegionIndex]);
+					EditorPrefs.SetString ("AssetMarketId", MarketIDs [_marketIndex]);
 				}
 			}
 
@@ -231,14 +247,6 @@ namespace CineGameEditor.MobileComponents {
 
 			if (gameTypeEntered && !string.IsNullOrWhiteSpace (GameType)) {
 				UpdateGameTypeInGameProxy ();
-			}
-
-			var _marketIndex = Mathf.Clamp (MarketIndex, 0, AppNamesAvailable.Length);
-			_marketIndex = EditorGUILayout.Popup (new GUIContent ("Market:"), _marketIndex, AppNamesAvailable);
-			if (MarketIndex != _marketIndex) {
-				MarketIndex = _marketIndex;
-				AppName = AppNamesAvailable [_marketIndex];
-				EditorPrefs.SetString ("AssetMarketId", MarketIdsAvailable [_marketIndex]);
 			}
 
 			var outputPath = GetOutputPathForCurrentScene ();
@@ -392,7 +400,21 @@ namespace CineGameEditor.MobileComponents {
 		}
 
 		void OnClickUpload () {
-			if (!EditorUtility.DisplayDialog (ProgressBarTitle, "Are you sure you want to upload " + GameType + " to live server?", "OK", "Cancel")) {
+            var relOutputPath = GetOutputPathForCurrentScene ();
+			var fiIOS = new FileInfo (relOutputPath + "/AssetBundles_iOS/" + GameType.ToLower ());
+            var fiAndroid = new FileInfo (relOutputPath + "/AssetBundles_Android/" + GameType.ToLower ());
+			var timeSinceIOSBuild = DateTime.Now - fiIOS.LastWriteTime;
+            var timeSinceAndroidBuild = DateTime.Now - fiAndroid.LastWriteTime;
+
+			var msg = "Are you sure you want to upload " + GameType + " to live server?\n";
+            if (timeSinceAndroidBuild.TotalHours >= 10.0) {
+				msg += $"\nAndroid build is more than {(int)timeSinceAndroidBuild.TotalHours} hours old.";
+			}
+            if (timeSinceIOSBuild.TotalHours >= 10.0) {
+                msg += $"\niOS build is more than {(int)timeSinceIOSBuild.TotalHours} hours old.";
+            }
+
+            if (!EditorUtility.DisplayDialog (ProgressBarTitle, msg, "OK", "Cancel")) {
 				return;
 			}
 
@@ -421,8 +443,11 @@ namespace CineGameEditor.MobileComponents {
 				titleContent = new GUIContent (ProgressBarTitle, texturePanel, "Create assetbundle from current scene and upload as game");
 			}
 
-			LoginRegionIndex = Mathf.Clamp (Array.IndexOf (LoginRegions, EditorPrefs.GetString ("AssetMarketRegion", LoginRegions [0])), 0, LoginRegions.Length - 1);
+			MarketIndex = Mathf.Clamp (Array.IndexOf (MarketIDs, EditorPrefs.GetString ("AssetMarketId", MarketIDs [0])), 0, MarketIDs.Length - 1);
+			EditorPrefs.SetString ("AssetMarketId", MarketIDs [MarketIndex]);
+
 			StayLoggedIn = EditorPrefs.GetBool ("CineGameStayLoggedIn");
+
 			if (CGSP () && Application.internetReachability != NetworkReachability.NotReachable) {
 				GetAccessToken (out AccessToken);
 				OnHierarchyChange ();
@@ -711,7 +736,7 @@ namespace CineGameEditor.MobileComponents {
 
 			var cancelUpload = false;
 			while (!cancelUpload) {
-				var request = UnityWebRequest.Post (new Uri (Util.GetRegionBaseUri (MarketIdsAvailable [MarketIndex]), $"asset/{gameCategory}").AbsoluteUri, form);
+				var request = UnityWebRequest.Post (new Uri (Util.GetRegionBaseUri (MarketIDs [MarketIndex]), $"asset/{gameCategory}").AbsoluteUri, form);
 				var enHeaders = headers.GetEnumerator ();
 				while (enHeaders.MoveNext ()) {
 					request.SetRequestHeader (enHeaders.Current.Key, enHeaders.Current.Value);
@@ -768,18 +793,7 @@ namespace CineGameEditor.MobileComponents {
 
 
 		public static Uri GetTokenUri () {
-			switch (LoginRegionIndex) {
-			case 0:	//CinemaTaztic
-				return new Uri ("https://auth.iam.eu-2.cinemataztic.com");
-			case 1:	//NordiskFilm
-				return new Uri ("https://biospil.auth.iam.nordiskfilm.cinemataztic.com");
-			case 2: //WideEyeMedia IE
-				return new Uri ("https://wideeyemedia.ie.auth.iam.eu-2.cinemataztic.com");
-			case 3: //ITV India
-				return new Uri ("https://itv.in.auth.iam.asia-1.cinemataztic.com");
-			default:
-				return new Uri ("https://auth.cloud.staging.cinemataztic.com");
-			}
+			return new Uri (MarketTokenUris [MarketIDs [MarketIndex]]);
 		}
 
 
@@ -793,7 +807,7 @@ namespace CineGameEditor.MobileComponents {
 							  GetTokenUri (),
 							  "POST",
 							  new DownloadHandlerBuffer (),
-							  new UploadHandlerRaw (System.Text.Encoding.UTF8.GetBytes (jsonReq))
+							  new UploadHandlerRaw (Encoding.UTF8.GetBytes (jsonReq))
 						  );
 			request.uploadHandler.contentType = "application/json; charset=utf-8";
 			request.SendWebRequest ();
@@ -824,16 +838,6 @@ namespace CineGameEditor.MobileComponents {
 				accessToken = response.access_token;
 				AccessTokenTime = DateTime.Now;
 
-				MarketIdsAvailable = response.markets;
-
-				AppNamesAvailable = MarketIdsAvailable.Select (id => MarketDisplayNamesMap [id]).ToArray ();
-
-				MarketIndex = Array.IndexOf (MarketIdsAvailable, EditorPrefs.GetString ("AssetMarketId", null));
-				if (MarketIndex < 0) {
-					MarketIndex = 0;
-				}
-				AppName = AppNamesAvailable [MarketIndex];
-
 				IsSuperAdmin = response.role.Contains ("super-admin");
 
 				//TODO there's a security issue here because login is across markets, but game-access list should be per market.
@@ -841,7 +845,7 @@ namespace CineGameEditor.MobileComponents {
 
 				instance.OnHierarchyChange ();
 
-				//Debug.Log ($"access_token={accessToken}");
+				Debug.Log ($"Logged into market {MarketDisplayNames [MarketIndex]}");
 			} catch (Exception e) {
 				Debug.LogErrorFormat ("Exception while parsing JSON {0}: {1}", request.downloadHandler.text, e.ToString ());
 				return false;
@@ -860,7 +864,7 @@ namespace CineGameEditor.MobileComponents {
 
 
 		static string GetOutputPathForCurrentScene () {
-			return string.Format ("../builds/AssetBundles/{0}/{1}", MarketIdsAvailable [MarketIndex], IsARGame ? "ARGameAssets" : (IsGamecenterGame ? "GameCenterAssets" : "GameAssets"));
+			return string.Format ("../builds/AssetBundles/{0}/{1}", MarketIDs [MarketIndex], IsARGame ? "ARGameAssets" : (IsGamecenterGame ? "GameCenterAssets" : "GameAssets"));
 		}
 
 
