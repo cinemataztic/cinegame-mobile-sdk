@@ -39,7 +39,7 @@ namespace LaxityAssets {
 
         private static readonly GUIContent s_MixedValueContent = EditorGUIUtility.TrTextContent ("\u2014", "Mixed Values");
 
-        SerializedProperty m_ListenersArray;
+        FieldInfo fiListenersArray;
         UnityEventBase m_DummyEvent;
 
         /// <summary>
@@ -99,8 +99,6 @@ namespace LaxityAssets {
         protected override void SetupReorderableList (ReorderableList list) {
             base.SetupReorderableList (list);
 
-            m_ListenersArray = list.serializedProperty;
-
             if (!EditorPrefs.GetBool (OpdKey, true))
                 return;
 
@@ -109,6 +107,8 @@ namespace LaxityAssets {
 
             var tUnityEventDrawer = typeof (UnityEventDrawer);
             miBuildPopupList = tUnityEventDrawer.GetMethod ("BuildPopupList", BindingFlags.NonPublic | BindingFlags.Static);
+
+            fiListenersArray = tUnityEventDrawer.GetField ("m_ListenersArray", BindingFlags.NonPublic | BindingFlags.Instance);
         }
 
         /// <summary>
@@ -211,7 +211,7 @@ namespace LaxityAssets {
         }
 
         protected override void DrawEvent (Rect rect, int index, bool isActive, bool isFocused) {
-            var pListener = m_ListenersArray.GetArrayElementAtIndex (index);
+            var pListener = ((SerializedProperty)fiListenersArray.GetValue (this)).GetArrayElementAtIndex (index);
             Highlighter.HighlightIdentifier (rect, $"{pListener.serializedObject.targetObject.GetInstanceID ()}.{pListener.propertyPath}");
 
             if (!EditorPrefs.GetBool (OpdKey, true)) {
