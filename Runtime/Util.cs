@@ -137,7 +137,7 @@ namespace CineGame.MobileComponents {
 		/// <summary>
 		/// Get API Base URI based on applicationIdentifier and whether app is in staging mode
 		/// </summary>
-		public static Uri GetRegionBaseUri (bool isStaging = false) {
+		public static Uri GetRegionBaseUri (bool isStaging = false, bool isDev = false) {
 			//return new Uri ("http://localhost:5000/api/");
 			if (isStaging) {
 				switch (GetRegion ()) {
@@ -145,6 +145,13 @@ namespace CineGame.MobileComponents {
 					return new Uri ("https://cinegame.cinegamecore.staging.cinemataztic.com/api/");
 				case APIRegion.FI:
 					return new Uri ("https://leffapeli.cinegamecore.staging.cinemataztic.com/api/");
+				}
+			} else if (isDev) {
+				switch (GetRegion ()) {
+				case APIRegion.EN:
+					return new Uri ("https://cinegame-en.cinegamecore.dev.cinemataztic.com/api/");
+				case APIRegion.FI:
+					return new Uri ("https://finnkino-fi.cinegamecore.dev.cinemataztic.com/api/");
 				}
 			}
 			return regionBaseUris [(int)GetRegion ()];
