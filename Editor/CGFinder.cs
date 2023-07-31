@@ -14,16 +14,15 @@ using UnityEditor.Sprites;
 
 using Unity.EditorCoroutines.Editor;
 using UnityEngine.UI;
-using UnityEditor.UI;
 
 namespace LaxityAssets {
 
 	public class CGFinder : EditorWindow {
 		//Vector2 buildReportScrollPosition = Vector2.zero;
 		private int LayerIndex;
-		private string MethodName;
+		private string MethodName = string.Empty;
 		private string TagName = "Untagged";
-		private string TextString;
+		private string TextString = string.Empty;
 		private int AtlasName;
 
 		[Serializable]
@@ -134,7 +133,7 @@ namespace LaxityAssets {
 			EditorGUILayout.PrefixLabel (new GUIContent ("Method:", "Whole or partial method and class name to find references to"));
 			GUI.SetNextControlName ("Method");
 			EditorGUI.BeginChangeCheck ();
-			MethodName = EditorGUILayout.TextField (MethodName, expandWidthOption);
+			MethodName = EditorGUILayout.TextField (MethodName, expandWidthOption).Trim ();
 			if (Event.current.type == EventType.Repaint) {
 				MethodRect = GUILayoutUtility.GetLastRect ();
 			}
@@ -166,10 +165,10 @@ namespace LaxityAssets {
 					ComboBoxPopup.Instance.Close ();
 				}
 			}
-			using (new EditorGUI.DisabledScope (string.IsNullOrEmpty (MethodName))) {
-			if (GUILayout.Button ("Find references", buttonMaxWidthOption)) {
-				FindInvokationsOfMethod (MethodName);
-			}
+			using (new EditorGUI.DisabledScope (string.IsNullOrWhiteSpace (MethodName))) {
+				if (GUILayout.Button ("Find references", buttonMaxWidthOption)) {
+					FindInvokationsOfMethod (MethodName);
+				}
 			}
 			EditorGUILayout.EndHorizontal ();
 
@@ -219,9 +218,9 @@ namespace LaxityAssets {
 				}
 			}
 			using (new EditorGUI.DisabledScope (string.IsNullOrEmpty (TextString))) {
-			if (GUILayout.Button ("Find string", buttonMaxWidthOption)) {
-				FindString (TextString);
-			}
+				if (GUILayout.Button ("Find string", buttonMaxWidthOption)) {
+					FindString (TextString);
+				}
 			}
 			EditorGUILayout.EndHorizontal ();
 
