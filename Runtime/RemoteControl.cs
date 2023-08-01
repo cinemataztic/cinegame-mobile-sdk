@@ -72,7 +72,7 @@ namespace CineGame.MobileComponents {
 		Vector2 cV2, startV2, destV2;
 		int	cInt, startInt, destInt;
 		float cFloat, startFloat, destFloat;
-		float startTime;
+		float startTime = float.MinValue;
 
 		internal override void OnObjectMessage (ISFSObject dataObj, int senderId) {
 			float[] floats;
