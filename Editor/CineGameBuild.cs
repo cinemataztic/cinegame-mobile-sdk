@@ -1031,7 +1031,7 @@ namespace CineGameEditor.MobileComponents {
 		/// <summary>
 		/// Map of original script guids in mobile sdk runtime. These should NEVER change.
 		/// </summary>
-		static Dictionary<string, string> GuidDict = new Dictionary<string, string> {
+		static readonly Dictionary<string, string> GuidDict = new Dictionary<string, string> {
 			{ "TimingComponent.cs", "a584f9c43c8364f49bb9fe2a0e8f84f5" },
 			{ "SendVariableEvent.cs", "330f0810a95a11d47a520951fbeb3146" },
 			{ "Supporter.cs", "4b77932d9977b483580fe3b666729bda" },
@@ -1079,6 +1079,9 @@ namespace CineGameEditor.MobileComponents {
 			{ "AnimationEventListener.cs", "13d77d1e33ee27f428f0d7175a2076b2" },
 			{ "AnimatorParameter.cs", "40fd1fe7494a34ddba76ed6c1897cd53" },
 			{ "TimerComponent.cs", "1a13d68ca6f1f4f209d3ffcd1b467e3b" },
+			{ "TextureReplace.cs", "7157e5e9b02ca4990a20978d0f769673" },
+			{ "MaterialReplace.cs", "957a6bc70ff794ee681b386e60222d42" },
+			{ "MaterialProperty.cs", "695b935104058422c99c25a86212e265" },
 		};
 
 		/// <summary>
