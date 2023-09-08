@@ -95,7 +95,7 @@ namespace CineGameEditor.MobileComponents {
 		};
 
 		public static Dictionary<string, string> MarketTokenUris = new Dictionary<string, string> {
-			{ MarketID.BioSpil,         "https://biospil.auth.iam.nordiskfilm.cinemataztic.com" },
+			{ MarketID.BioSpil,         "https://drf.dk.auth.iam.drf-1.cinemataztic.com/" },
 			{ MarketID.CineGame,        "https://cinemataztic.en.auth.iam.eu-1.cinemataztic.com" },
 			{ MarketID.Leffapeli,       "https://finnkino.fi.auth.iam.eu-1.cinemataztic.com" },
 			{ MarketID.CineGame_IE,     "https://wideeyemedia.ie.auth.iam.eu-2.cinemataztic.com" },
