@@ -9,8 +9,8 @@ namespace CineGame.MobileComponents {
 	/// <summary>
 	/// Replace textures (or invoke events) from host or locally with a pre-defined array of materials.
 	/// </summary>
-	[ComponentReference ("Invoke an event with a texture from the Textures array. Can be invoked remotely with texture name")]
-	public class TextureCycleComponent : ReplicatedComponent {
+	[ComponentReference ("Invoke an event with an entry from the Textures array. Can be invoked remotely with Key=Texture.name")]
+	public class TextureSelect : ReplicatedComponent {
 		[Tooltip("Key in the ObjectMessage from host, string specifying a name of a Texture in the array below")]
 		public string Key;
 
@@ -30,24 +30,24 @@ namespace CineGame.MobileComponents {
 		}
 
 		/// <summary>
-		/// Tries to locate the named texture in the array and invoke the OnChange event with it
+		/// Tries to locate the named texture in the array,set as current and invoke the OnChange event with it
 		/// </summary>
-		public void Set (string name) {
+		public void Change (string name) {
 			if (Dict.TryGetValue (name, out Texture2D texture)) {
 				Name = name;
-				Log ($"TextureCycleComponent Set={texture.name}\n{Util.GetEventPersistentListenersInfo (OnChange)}");
+				Log ($"TextureSelect Set={texture.name}\n{Util.GetEventPersistentListenersInfo (OnChange)}");
 				OnChange.Invoke (texture);
 			} else {
-				LogError ($"TextureCycleComponent: Texture.name={name} not found!");
+				LogError ($"TextureSelect: Texture.name={name} not found!");
 			}
 		}
 
 		/// <summary>
-		/// Invokes the OnSelect event with the last replacement texture and, if Key is defined, sends Key={texture.name} to host
+		/// Invokes the OnSelect event with the current texture and, if Key is defined, sends Key={texture.name} to host
 		/// </summary>
 		public void Select () {
 			var texture = Dict [Name];
-			Log ($"TextureCycleComponent Select={texture.name}\n{Util.GetEventPersistentListenersInfo (OnSelect)}");
+			Log ($"TextureSelect Select={texture.name}\n{Util.GetEventPersistentListenersInfo (OnSelect)}");
 			OnSelect.Invoke (texture);
 
 			if (!string.IsNullOrWhiteSpace (Key)) {
@@ -55,6 +55,9 @@ namespace CineGame.MobileComponents {
 			}
 		}
 
+		/// <summary>
+		/// Find current texture in array, set the previous one as current and invoke the OnChange event with it
+		/// </summary>
 		public void Previous () {
 			var texture = Textures [0];
 			for (int i = 0; i < Textures.Length; i++) {
@@ -65,10 +68,13 @@ namespace CineGame.MobileComponents {
 				}
 			}
 			Name = texture.name;
-			Log ($"TextureCycleComponent Previous={Name}\n{Util.GetEventPersistentListenersInfo (OnChange)}");
+			Log ($"TextureSelect Previous={Name}\n{Util.GetEventPersistentListenersInfo (OnChange)}");
 			OnChange.Invoke (texture);
 		}
 
+		/// <summary>
+		/// Find current texture in array, set the previous one as current and invoke the OnChange event with it
+		/// </summary>
 		public void Next () {
 			var texture = Textures [0];
 			for (int i = 0; i < Textures.Length; i++) {
@@ -79,18 +85,22 @@ namespace CineGame.MobileComponents {
 				}
 			}
 			Name = texture.name;
-			Log ($"TextureCycleComponent Next={Name}\n{Util.GetEventPersistentListenersInfo (OnChange)}");
+			Log ($"TextureSelect Next={Name}\n{Util.GetEventPersistentListenersInfo (OnChange)}");
 			OnChange.Invoke (texture);
 		}
 
+		/// <summary>
+		/// If 'Key' property present in payload, try to locate the material, set as current and invoke the OnChange event with it
+		/// </summary>
 		internal override void OnObjectMessage (ISFSObject dataObj, int senderId) {
 			if (dataObj.ContainsKey (Key)) {
-				var name = dataObj.GetUtfString (Key);
-				if (Dict.TryGetValue (name, out Texture2D texture)) {
-					Log ($"TextureCycleComponent Remote Set={texture.name}\n{Util.GetEventPersistentListenersInfo (OnChange)}");
+				var value = dataObj.GetUtfString (Key);
+				if (Dict.TryGetValue (value, out Texture2D texture)) {
+					Name = value;
+					Log ($"TextureSelect Remote Change={texture.name}\n{Util.GetEventPersistentListenersInfo (OnChange)}");
 					OnChange.Invoke (texture);
 				} else {
-					LogError ($"TextureCycleComponent Texture.name={name} from host not found!");
+					LogError ($"TextureSelect Remote Change={value} not found!");
 				}
 			}
         }
