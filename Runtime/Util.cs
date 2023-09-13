@@ -6,6 +6,7 @@ using UnityEngine.Events;
 using System;
 using System.Reflection;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace CineGame.MobileComponents {
 
@@ -29,21 +30,18 @@ namespace CineGame.MobileComponents {
 		};
 
 		private static Uri [] regionBaseUris = {
-			new Uri ("https://biospil.cinegamecore.drf-1.cinemataztic.com/api/"),		//DK
-			new Uri ("https://kinospill.cinegamecore.drf-1.cinemataztic.com/api/"),		//NO
-			new Uri ("https://cinegame.cinegamecore.eu-1.cinemataztic.com/api/"),		//EN
-			new Uri ("https://leffapeli.cinegamecore.eu-1.cinemataztic.com/api/"),		//FI
-			new Uri ("https://cinegame-au.cinegamecore.au-1.cinemataztic.com/api/"),	//AU
-			new Uri ("https://cinegame-ae.cinegamecore.au-1.cinemataztic.com/api/"),	//AE
-			new Uri ("https://redyplay.cinegamecore.eu-2.cinemataztic.com/api/"),		//DE
-			new Uri ("https://forumfun.cinegamecore.eu-1.cinemataztic.com/api/"),		//EE
-			new Uri ("https://cinesafun.cinegamecore.eu-2.cinemataztic.com/api/"),		//ES
-			new Uri ("https://cinegame-ie.cinegamecore.eu-2.cinemataztic.com/api/"),	//IE
-			new Uri ("https://cinegame-in.cinegamecore.asia-1.cinemataztic.com/api/"),	//IN
-			new Uri ("https://cinegame-nz.cinegamecore.au-1.cinemataztic.com/api/"),	//NZ
-			new Uri ("https://biospil.cinegamecore.drf-1.cinemataztic.com/api/"),		//Baltoppen
-			new Uri ("https://cinegame.cinegamecore.eu-1.cinemataztic.com/api/"),		//DEMO CineGame
-			new Uri ("https://cinegame.cinegamecore.eu-1.cinemataztic.com/api/"),		//cinemataztic-dev
+			new Uri ("https://drf-dk.cinegamecore.drf-1.cinemataztic.com/api/"),			//DK
+			new Uri ("https://mdn-no.cinegamecore.drf-1.cinemataztic.com/api/"),			//NO
+			new Uri ("https://cinemataztic-en.cinegamecore.eu-1.cinemataztic.com/api/"),	//EN
+			new Uri ("https://finnkino-fi.cinegamecore.eu-1.cinemataztic.com/api/"),		//FI
+			new Uri ("https://valmorgan-au.cinegamecore.au-1.cinemataztic.com/api/"),		//AU
+			new Uri ("https://cinemataztic-ae.cinegamecore.au-1.cinemataztic.com/api/"),	//AE
+			new Uri ("https://weischer-de.cinegamecore.eu-2.cinemataztic.com/api/"),		//DE
+			new Uri ("https://forumfun-ee.cinegamecore.eu-1.cinemataztic.com/api/"),		//EE
+			new Uri ("https://cinesafun-es.cinegamecore.eu-2.cinemataztic.com/api/"),		//ES
+			new Uri ("https://wideeyemedia-ie.cinegamecore.eu-2.cinemataztic.com/api/"),	//IE
+			new Uri ("https://itv-in.cinegamecore.asia-1.cinemataztic.com/api/"),			//IN
+			new Uri ("https://valmorgan-nz.cinegamecore.au-1.cinemataztic.com/api/"),		//NZ
 		};
 
 		public static string [] MarketIds = {
@@ -139,22 +137,11 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public static Uri GetRegionBaseUri (bool isStaging = false, bool isDev = false) {
 			//return new Uri ("http://localhost:5000/api/");
-			if (isStaging) {
-				switch (GetRegion ()) {
-				case APIRegion.EN:
-					return new Uri ("https://cinegame.cinegamecore.staging.cinemataztic.com/api/");
-				case APIRegion.FI:
-					return new Uri ("https://leffapeli.cinegamecore.staging.cinemataztic.com/api/");
-				}
-			} else if (isDev) {
-				switch (GetRegion ()) {
-				case APIRegion.EN:
-					return new Uri ("https://cinegame-en.cinegamecore.dev.cinemataztic.com/api/");
-				case APIRegion.FI:
-					return new Uri ("https://finnkino-fi.cinegamecore.dev.cinemataztic.com/api/");
-				}
+			var uri = regionBaseUris [(int)GetRegion ()];
+			if (isStaging || isDev) {
+				return new Uri (Regex.Replace (uri.AbsoluteUri, "(.+?)\\.[^.]+?\\.(cinemataztic\\.com.+)", isStaging ? "$1.staging.$2" : "$1.dev.$2"));
 			}
-			return regionBaseUris [(int)GetRegion ()];
+			return uri;
 		}
 
 
