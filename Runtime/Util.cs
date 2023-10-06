@@ -7,6 +7,7 @@ using System;
 using System.Reflection;
 using System.IO;
 using System.Text.RegularExpressions;
+using UnityEngine.Networking;
 
 namespace CineGame.MobileComponents {
 
@@ -87,6 +88,12 @@ namespace CineGame.MobileComponents {
 		/// App hooks up here so SDK can play custom vibration patterns
 		/// </summary>
 		public static event VibrationEvent OnPlayVibrationEffect;
+
+		public delegate UnityWebRequest AssetBundleEvent (string assetURL);
+		/// <summary>
+		/// App hooks up here so SDK can download hosted AssetBundles
+		/// </summary>
+		public static event AssetBundleEvent OnLoadAssetBundle;
 
 		/// <summary>
 		/// Determine API Region based on Application.identifier
@@ -271,6 +278,13 @@ namespace CineGame.MobileComponents {
 				}
 			}
 			return list.ToArray ();
+		}
+
+		/// <summary>
+		/// Download a hosted AssetBundle using the relative URL specified as argument
+		/// </summary>
+		public static UnityWebRequest DownloadAssetBundle (string relativeAssetURL) {
+			return OnLoadAssetBundle?.Invoke (relativeAssetURL);
 		}
 
 		private static AndroidJavaObject _androidVibrator;
