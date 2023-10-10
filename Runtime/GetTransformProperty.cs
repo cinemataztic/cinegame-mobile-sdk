@@ -9,8 +9,11 @@ namespace CineGame.MobileComponents {
 		public Transform Source;
 		[Tooltip ("Update interval in msecs. 0=One-shot")]
 		public float UpdateInterval = 0f;
+		[Tooltip ("Invoked with the world position of the transform")]
 		public UnityEvent<Vector3> OnUpdatePosition;
+		[Tooltip ("Invoked with the world rotation of the transform")]
 		public UnityEvent<Quaternion> OnUpdateRotation;
+		[Tooltip ("Invoked with the world speed of the transform (units per second)")]
 		public UnityEvent<float> OnUpdateSpeed;
 
 		float lastSetTime = float.MinValue;

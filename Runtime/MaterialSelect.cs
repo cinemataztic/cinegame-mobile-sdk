@@ -17,10 +17,10 @@ namespace CineGame.MobileComponents {
 		[Tooltip ("Array of materials, one of which will be passed to the listeners")]
 		public Material [] Materials;
 
-		//This will invoke with a material from the array to assign to a Model or UI Image
+		[Tooltip ("Invoked with a material from the array when Change, Next or Previous is called")]
 		public UnityEvent<Material> OnChange;
 
-		//This will invoke with a material from the array to assign to a Model or UI Image
+		[Tooltip ("Invoked with a material from the array when Select is called")]
 		public UnityEvent<Material> OnSelect;
 
 		Dictionary<string, Material> Dict;

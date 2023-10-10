@@ -1,9 +1,7 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.Events;
 using Sfs2X.Entities.Data;
 using System;
-using System.Collections.Generic;
 
 namespace CineGame.MobileComponents {
 
@@ -18,8 +16,9 @@ namespace CineGame.MobileComponents {
         [Tooltip("")]
         public Sprite[] Sprites;
 
-		//This will invoke with a Sprite from the array to replace in an UI Image or Sprite component
 		[Serializable] public class RemoteSpriteEvent : UnityEvent<Sprite> { }
+
+		[Tooltip ("Invoke with a Sprite from the array to replace in an UI Image or Sprite component")]
 		public RemoteSpriteEvent onReceive;
 
 		internal override void OnObjectMessage (ISFSObject dataObj, int senderId) {

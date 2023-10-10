@@ -26,8 +26,9 @@ namespace CineGame.MobileComponents {
         public float PitchTolerance = 130f;
         [Tooltip("How much can player sway from perfect roll before failing. Can be set by host")]
         public float RollTolerance = 40f;
-        //[Tooltip("Fired if player fails to level the gyro")]
+        [Tooltip("Invoked if player fails to level the gyro")]
         public UnityEvent onFail;
+        [Tooltip("Invoked if player succeeds to level the gyro")]
 		public UnityEvent onSuccess;
 
         [Header("Replication")]

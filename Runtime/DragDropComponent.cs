@@ -37,15 +37,23 @@ namespace CineGame.MobileComponents {
 		[SerializeField]
 		private int eventMask = 0;
 
+		[Tooltip("Event fired when user starts to drag the object")]
 		public UnityEvent OnDragBegin;
+		[Tooltip ("Event fired when user stops dragging the object")]
 		public UnityEvent OnDragEnd;
 
+		[Tooltip ("Event fired when the unit Vector2 changes")]
 		public UnityEvent<Vector2> OnDragVector2;
+		[Tooltip ("Event fired with a Vector3(X,Y,0) of the unit Vector2 when it changes")]
 		public UnityEvent<Vector3> OnDragVector3_XY;
+		[Tooltip ("Event fired with a Vector3(X,0,Y) of the unit Vector2 when it changes")]
 		public UnityEvent<Vector3> OnDragVector3_XZ;
+		[Tooltip ("Event fired with a Vector3(0,X,Y) of the unit Vector2 when it changes")]
 		public UnityEvent<Vector3> OnDragVector3_YZ;
 
+		[Tooltip ("Event fired when the distance between object and origin changes")]
 		public UnityEvent<float> OnSpeedChange;
+		[Tooltip ("Event fired when the angle between object-origin and origin up vector changes")]
 		public UnityEvent<Quaternion> OnAngleChange;
 
 		Vector2 currentNormalizedPosition = Vector2.zero;

@@ -12,6 +12,7 @@ namespace CineGame.MobileComponents {
         public class EventTrigger {
             [Tooltip ("Name of event in Animation")]
             public string EventName;
+            [Tooltip ("Event to trigger")]
             public UnityEvent<Transform> EventToTrigger;
         }
 

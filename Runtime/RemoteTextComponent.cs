@@ -35,6 +35,7 @@ namespace CineGame.MobileComponents {
 		[Tooltip ("The format string to invoke OnReceive with. If empty the format will be determined runtime from the listener")]
 		public string StringFormat;
 
+		[Tooltip ("Invoked with the formatted string, or the raw string value if no formatter is specified")]
 		public UnityEvent<string> OnReceive;
 
 		CustomStringFormatter customStringFormatter;

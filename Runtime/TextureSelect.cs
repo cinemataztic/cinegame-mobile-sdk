@@ -17,9 +17,10 @@ namespace CineGame.MobileComponents {
         [Tooltip("Array of textures which will be passed to the listeners")]
         public Texture2D[] Textures;
 
-		//This will invoke with a texture from the array to replace in a Material or Sprite
+		[Tooltip ("Invoked with a texture from the array when Change, Next or Previous is called")]
 		public UnityEvent<Texture2D> OnChange;
 
+		[Tooltip ("Invoked with a texture from the array when Select is called")]
 		public UnityEvent<Texture2D> OnSelect;
 
 		Dictionary<string, Texture2D> Dict;

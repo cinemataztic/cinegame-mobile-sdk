@@ -18,7 +18,9 @@ namespace CineGame.MobileComponents {
 		[Header("How fast to interpolate. Zero = snap")]
 		public float Speed = 0f;
 
+		[Tooltip ("Invoked when the interpolation is complete")]
 		public UnityEvent OnReachedTarget;
+		[Tooltip ("Invoked when the object's rotation starts to interpolate towards the target")]
 		public UnityEvent OnInterpolating;
 
 		private bool IsInterpolating;

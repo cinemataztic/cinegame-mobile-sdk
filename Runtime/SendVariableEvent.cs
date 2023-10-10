@@ -10,6 +10,8 @@ public class SendVariableEvent : MonoBehaviour
     public class SendVariable : UnityEvent<string, int> { }
 
     [SerializeField] string key;
+
+    [Tooltip ("Invoked with (key, value from SendEvent)")]
     [SerializeField] SendVariable sendEvent;
 
     public void SendEvent(int value)

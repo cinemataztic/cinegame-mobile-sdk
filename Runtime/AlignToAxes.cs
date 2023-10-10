@@ -25,6 +25,7 @@ namespace CineGame.MobileComponents {
 		[Tooltip ("This can be overridden by calling the specific Interpolate (float)")]
 		public float InterpTime = 0.3f;
 
+		[Tooltip ("Event fired when interpolation is finished and object is aligned")]
 		public UnityEvent OnAligned;
 
 		/// <summary>

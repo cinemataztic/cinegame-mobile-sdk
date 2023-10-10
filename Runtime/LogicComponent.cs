@@ -35,14 +35,18 @@ namespace CineGame.MobileComponents {
 		[FormerlySerializedAs ("Format")]
 		public string StringFormat = "{0:#}";
 
+		[Tooltip ("Invoked with a formatted string using StringFormat property")]
 		public UnityEvent<string> OnUpdateString;
 
 		[Space]
+		[Tooltip ("Invoked when the value is below the minimum thresholds")]
 		public UnityEvent<float> OnBelow;
 
-		[System.Serializable]
+		[Serializable]
 		public class Threshold : IComparable<Threshold> {
+			[Tooltip ("Threshold value")]
 			public float Value;
+			[Tooltip ("Invoked when the value is above the given threshold")]
 			public UnityEvent<float> OnAbove;
 
 			public int CompareTo (Threshold b) {

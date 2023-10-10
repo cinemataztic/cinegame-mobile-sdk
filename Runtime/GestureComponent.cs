@@ -26,10 +26,12 @@ namespace CineGame.MobileComponents {
 		[Tooltip("Amount of force to apply with the swipe")]
 		public float ForceScale = 1f;
 
+		[Tooltip ("Invoked when the user fails to perform the gesture")]
 		public UnityEvent onFail;
 
-		//This will invoke with a vector2 which can be used as an impulse on rigidbodies via eg SpawnComponent
 		[Serializable] public class GestureEvent : UnityEvent<Vector2> { }
+
+		[Tooltip("Invoked with a vector2 which can be used as an impulse on rigidbodies via eg SpawnComponent")]
 		public GestureEvent onSuccess;
 
 		struct GestureSample {
