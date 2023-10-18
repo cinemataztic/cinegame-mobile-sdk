@@ -155,9 +155,13 @@ namespace CineGame.MobileComponents {
 		/// <summary>
 		/// Get API Base URI based on Cloud marketId
 		/// </summary>
-		public static Uri GetRegionBaseUri (string marketId) {
+		public static Uri GetRegionBaseUri (string marketId, bool isStaging = false, bool isDev = false) {
 			var marketIndex = Array.IndexOf (MarketIds, marketId);
-			return regionBaseUris [marketIndex];
+			var uri = regionBaseUris [marketIndex];
+			if (isStaging || isDev) {
+				return new Uri (Regex.Replace (uri.AbsoluteUri, "(.+?)\\.[^.]+?\\.(cinemataztic\\.com.+)", isStaging ? "$1.staging.$2" : "$1.dev.$2"));
+			}
+			return uri;
 		}
 
 
