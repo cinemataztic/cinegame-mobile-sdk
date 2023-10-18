@@ -28,6 +28,7 @@ namespace CineGame.MobileComponents {
 			IE = 9,                                                 //CineGame IE (Ireland)
 			IN = 10,                                                //CineGame IN (India)
 			NZ = 11,                                                //CineGame NZ (New Zealand)
+			SE = 12,												//CineGame SE (Sweden)
 		};
 
 		private static Uri [] regionBaseUris = {
@@ -43,6 +44,7 @@ namespace CineGame.MobileComponents {
 			new Uri ("https://wideeyemedia-ie.cinegamecore.eu-2.cinemataztic.com/api/"),	//IE
 			new Uri ("https://itv-in.cinegamecore.asia-1.cinemataztic.com/api/"),			//IN
 			new Uri ("https://valmorgan-nz.cinegamecore.au-1.cinemataztic.com/api/"),		//NZ
+			new Uri ("https://filmstaden-se.cinegamecore.eu-1.cinemataztic.com/api/"),		//SE
 		};
 
 		public static string [] MarketIds = {
@@ -76,6 +78,7 @@ namespace CineGame.MobileComponents {
 			"en-IE",												//IE
 			"en-IN",												//IN
 			"en-NZ",                                                //NZ
+			"sv-SE",                                                //SE
 		};
 
 		public delegate void HapticEvent (HapticFeedbackConstants feedbackConstant);
@@ -99,33 +102,28 @@ namespace CineGame.MobileComponents {
 		/// Determine API Region based on Application.identifier
 		/// </summary>
 		public static APIRegion GetRegion () {
-			var appId = Application.identifier.Substring (Application.identifier.LastIndexOf ('.') + 1);
-			switch (appId) {
-			case "biospil":
+			switch (Application.identifier) {
+			case "com.oxmond.biospil":
+			case "air.com.oxmond.biospil":
 				return APIRegion.DK;
-			case "cinemagame":
+			case "com.cinemataztic.cinemagame":
 				return APIRegion.EN;
-			case "cinegameau":
+			case "com.cinemataztic.cinegameau":
+			case "com.cinegameau.cinegameau":
 				return APIRegion.AU;
-			case "cinegameger":
-			case "redyplay":
+			case "com.cinemataztic.cinegameger":
+			case "com.redyplay.redyplay":
 				return APIRegion.DE;
-			case "cinegameuae":
-				return APIRegion.AE;
-			case "cinegameest":
-				return APIRegion.EE;
-			case "cinesaplay":
-				return APIRegion.ES;
-			case "kinospill":
+			case "com.cinemataztic.kinospill":
 				return APIRegion.NO;
-			case "leffapeli":
+			case "com.cinemataztic.leffapeli":
 				return APIRegion.FI;
-			case "cinegameie":
+			case "com.wideeyemedia.cinegameie":
 				return APIRegion.IE;
-			case "cinegamenz":
+			case "com.valmorgan.cinegamenz":
 				return APIRegion.NZ;
-			case "cinegamein":
-				return APIRegion.IN;
+			case "com.filmstaden.cinegame":
+				return APIRegion.SE;
 			default:
 				Debug.LogErrorFormat ("Unexpected application identifier {0}. App will NOT work!", Application.identifier);
 				Debug.Break ();
