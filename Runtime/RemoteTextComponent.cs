@@ -60,7 +60,7 @@ namespace CineGame.MobileComponents {
 				}
 			}
 			if (c is Text textComponent) {
-				if (string.IsNullOrWhiteSpace (StringFormat)) {
+				if (IsFormattedString && string.IsNullOrWhiteSpace (StringFormat)) {
 					StringFormat = textComponent.text;
 					textComponent.enabled = false;
 				}
@@ -72,7 +72,7 @@ namespace CineGame.MobileComponents {
 				}
 			} else if (c is TextMesh textMesh) {
 				var renderer = textMesh.GetComponent<Renderer> ();
-				if (string.IsNullOrWhiteSpace (StringFormat)) {
+				if (IsFormattedString && string.IsNullOrWhiteSpace (StringFormat)) {
 					StringFormat = textMesh.text;
 					renderer.enabled = false;
 				}
@@ -84,7 +84,7 @@ namespace CineGame.MobileComponents {
 				}
 #if UNITY_2021_1_OR_NEWER
 			} else if (c is TMPro.TMP_Text tmp) {
-				if (string.IsNullOrWhiteSpace (StringFormat)) {
+				if (IsFormattedString && string.IsNullOrWhiteSpace (StringFormat)) {
 					StringFormat = tmp.text;
 					tmp.enabled = false;
 				}
