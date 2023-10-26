@@ -19,7 +19,7 @@ namespace CineGame.MobileComponents {
         public float UpdateInterval = .1f;
 
         float prevAngle = 0f;
-        float lastUpdateTime = 0f;
+        float lastUpdateTime = float.MinValue;
 
 		internal override void OnObjectMessage (ISFSObject dataObj, int senderId) {
 			if (dataObj.ContainsKey (VariableName)) {

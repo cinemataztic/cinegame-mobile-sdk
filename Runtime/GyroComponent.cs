@@ -53,7 +53,7 @@ namespace CineGame.MobileComponents {
 
         float remotePitchOffset = 0f;
         float remoteRollOffset = 0f;
-        float lastUpdateTime = 0f;
+        float lastUpdateTime = float.MinValue;
         float failTime = 0f;
 		float successTime = 0f;
         bool paused = false;

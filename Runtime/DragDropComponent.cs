@@ -58,7 +58,7 @@ namespace CineGame.MobileComponents {
 
 		Vector2 currentNormalizedPosition = Vector2.zero;
 		Vector2 prevSentPosition = Vector2.zero;
-        float lastUpdateTime = 0f;
+        float lastUpdateTime = float.MinValue;
 
         GameObject dragObject;
         Vector2 dragOffset;

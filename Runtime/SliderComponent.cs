@@ -16,7 +16,7 @@ namespace CineGame.MobileComponents {
 
         float currentPosition = 0f;
         float prevPosition = 0f;
-        float lastUpdateTime = 0f;
+        float lastUpdateTime = float.MinValue;
 
         void Update () {
             float t = Time.time;

@@ -24,7 +24,7 @@ namespace CineGame.MobileComponents {
 
 		Vector2 currentNormalizedPosition = Vector2.zero;
 		Vector2 prevNormalizedPosition = Vector2.zero;
-        float lastUpdateTime = 0f;
+		float lastUpdateTime = float.MinValue;
 
         Camera eventCamera;
 		int touchId;

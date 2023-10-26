@@ -11,7 +11,7 @@ namespace CineGame.MobileComponents {
         public float CooldownTime = .1f;
 
 		//bool State = false;
-        float lastUpdateTime = 0f;
+        float lastUpdateTime = float.MinValue;
 /*
 		public void OnClick () {
 			if (lastUpdateTime + CooldownTime <= Time.time) {

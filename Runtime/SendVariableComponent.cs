@@ -15,7 +15,7 @@ namespace CineGame.MobileComponents {
 		[Tooltip("How often should this be allowed to replicate.")]
 		public float CooldownTime = .1f;
 
-		float lastUpdateTime = 0f;
+		float lastUpdateTime = float.MinValue;
 
 		bool Cooldown () {
 			if (lastUpdateTime + CooldownTime <= Time.time) {
