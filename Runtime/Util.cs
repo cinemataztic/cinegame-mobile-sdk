@@ -8,6 +8,7 @@ using System.Reflection;
 using System.IO;
 using System.Text.RegularExpressions;
 using UnityEngine.Networking;
+using System.Linq;
 
 namespace CineGame.MobileComponents {
 
@@ -16,69 +17,45 @@ namespace CineGame.MobileComponents {
 
 		[Serializable]
 		public enum APIRegion {
-			DK = 0,                                                 //BioSpil
-			NO = 1,                                                 //KinoSpill
-			EN = 2,                                                 //CineGame (International)
-			FI = 3,                                                 //Leffapeli
-			AU = 4,                                                 //CineGame AU (Australia)
-			AE = 5,                                                 //CineGame AE (Arab Emirates)
-			DE = 6,                                                 //RedyPlay (Germany)
-			EE = 7,                                                 //ForumFun (Estonia)
-			ES = 8,                                                 //CinesaFun (Spain)
-			IE = 9,                                                 //CineGame IE (Ireland)
-			IN = 10,                                                //CineGame IN (India)
-			NZ = 11,                                                //CineGame NZ (New Zealand)
-			SE = 12,												//CineGame SE (Sweden)
+			DK = 0, //drf-dk
+			NO = 1, //mdn-no
+			EN = 2, //cinemataztic-en
+			FI = 3, //finnkino-fi
+			AU = 4, //valmorgan-au
+			AE = 5, //cinemataztic-ae
+			DE = 6, //weischer-de
+			EE = 7, //forumkino-ee
+			ES = 8, //cinesa-es
+			IE = 9, //wideeyemedia-ie
+			IN = 10,//itv-in
+			NZ = 11,//valmorgan-nz
+			SE = 12,//filmstaden-se
 		};
 
-		private static Uri [] regionBaseUris = {
-			new Uri ("https://drf-dk.cinegamecore.drf-1.cinemataztic.com/api/"),			//DK
-			new Uri ("https://mdn-no.cinegamecore.drf-1.cinemataztic.com/api/"),			//NO
-			new Uri ("https://cinemataztic-en.cinegamecore.eu-1.cinemataztic.com/api/"),	//EN
-			new Uri ("https://finnkino-fi.cinegamecore.eu-1.cinemataztic.com/api/"),		//FI
-			new Uri ("https://valmorgan-au.cinegamecore.au-1.cinemataztic.com/api/"),		//AU
-			new Uri ("https://cinemataztic-ae.cinegamecore.au-1.cinemataztic.com/api/"),	//AE
-			new Uri ("https://weischer-de.cinegamecore.eu-2.cinemataztic.com/api/"),		//DE
-			new Uri ("https://forumfun-ee.cinegamecore.eu-1.cinemataztic.com/api/"),		//EE
-			new Uri ("https://cinesafun-es.cinegamecore.eu-2.cinemataztic.com/api/"),		//ES
-			new Uri ("https://wideeyemedia-ie.cinegamecore.eu-2.cinemataztic.com/api/"),	//IE
-			new Uri ("https://itv-in.cinegamecore.asia-1.cinemataztic.com/api/"),			//IN
-			new Uri ("https://valmorgan-nz.cinegamecore.au-1.cinemataztic.com/api/"),		//NZ
-			new Uri ("https://filmstaden-se.cinegamecore.eu-1.cinemataztic.com/api/"),		//SE
-		};
+		public class Market {
+			public APIRegion Region;
+			public string MarketID;
+			public string Market_Slug;
+			public string Network;
+			public string Country;
+			public string Cluster;
+			public string DefaultLocale;
+		}
 
-		public static string [] MarketIds = {
-			"57ff5b54359bc3000f1e1303", //BioSpil
-			"57e79e40bb29b2000f22c704", //KinoSpill
-			"57e79e61bb29b2000f22c705", //CineGame (International)
-			"5829676efd5ab2000f4eb252", //Leffapeli
-			"5ba2a95eb81b02b3d8198f89", //CineGame AU
-			"5c12f1c58c2a1a5509cad589", //CineGame AE
-			"5c44f3ba8c2a1a5509df3f6b", //REDyPLAY
-			"5ced2b5a8c2a1a5509b0116b", //FORUMFUN
-			"5df786218c2a1a550974e19d", //CinesaFun
-			"618301a5be9b8d3befa0b589", //CineGame IE
-			"627049112c827460088db3fd", //CineGame IN
-			"62a741d8709ea7ac02336c29", //CineGame NZ
-			"58750bffb2928c000f2ff481", //Baltoppen
-			"5b841697b81b02b3d8381244", //DEMO CineGame
-			"594be135e9678d3bb75fe7aa", //cinemataztic-dev
-		};
-
-		private static readonly string [] regionDefaultLanguages = {
-			"da", 													//DK
-			"no", 													//NO
-			"en",													//EN
-			"fi",													//FI
-			"en-AU",												//AU
-			"en-US",                                                //AE
-			"de",                                                 	//DE
-			"et",                                                 	//EE
-			"es",                                                 	//ES
-			"en-IE",												//IE
-			"en-IN",												//IN
-			"en-NZ",                                                //NZ
-			"sv-SE",                                                //SE
+		public static readonly Dictionary<APIRegion, Market> Markets = new () {
+			{ APIRegion.DK, new Market { Region = APIRegion.DK, MarketID = "57ff5b54359bc3000f1e1303", Network = "drf", Country = "dk", Cluster = "drf-1", DefaultLocale = "da" } },
+			{ APIRegion.NO,	new Market { Region = APIRegion.NO, MarketID = "57e79e40bb29b2000f22c704", Network = "mdn",	Country = "no", Cluster = "drf-1",	DefaultLocale = "no" } },
+			{ APIRegion.EN, new Market { Region = APIRegion.EN, MarketID = "57e79e61bb29b2000f22c705", Network = "cinemataztic", Country = "en", Cluster = "eu-1", DefaultLocale = "en" } },
+			{ APIRegion.FI, new Market { Region = APIRegion.FI, MarketID = "5829676efd5ab2000f4eb252", Network = "finnkino", Country = "fi", Cluster = "eu-1", DefaultLocale = "fi" } },
+			{ APIRegion.AU, new Market { Region = APIRegion.AU, MarketID = "5ba2a95eb81b02b3d8198f89", Network = "valmorgan", Country = "au", Cluster = "au-1", DefaultLocale = "en-AU" } },
+			{ APIRegion.AE, new Market { Region = APIRegion.AE, MarketID = "5c12f1c58c2a1a5509cad589", Network = "cinemataztic", Country = "ae", Cluster = "au-1", DefaultLocale = "en-US" } },
+			{ APIRegion.DE, new Market { Region = APIRegion.DE, MarketID = "5c44f3ba8c2a1a5509df3f6b", Network = "weischer", Country = "de", Cluster = "eu-2", DefaultLocale = "de" } },
+			{ APIRegion.EE, new Market { Region = APIRegion.EE, MarketID = "5ced2b5a8c2a1a5509b0116b", Network = "forumkino", Country = "ee", Cluster = "eu-1", DefaultLocale = "et" } },
+			{ APIRegion.ES, new Market { Region = APIRegion.ES, MarketID = "5df786218c2a1a550974e19d", Network = "cinesa", Country = "es", Cluster = "eu-2", DefaultLocale = "es" } },
+			{ APIRegion.IE, new Market { Region = APIRegion.IE, MarketID = "618301a5be9b8d3befa0b589", Network = "wideeyemedia", Country = "ie", Cluster = "eu-2", DefaultLocale = "en-IE" } },
+			{ APIRegion.IN, new Market { Region = APIRegion.IN, MarketID = "627049112c827460088db3fd", Network = "itv", Country = "in", Cluster = "asia-1", DefaultLocale = "en-IN" } },
+			{ APIRegion.NZ, new Market { Region = APIRegion.NZ, MarketID = "62a741d8709ea7ac02336c29", Network = "valmorgan", Country = "nz", Cluster = "au-1", DefaultLocale = "en-NZ" } },
+			{ APIRegion.SE, new Market { Region = APIRegion.SE, MarketID = "653676850c50fc8ecda86b43", Network = "filmstaden", Country = "se", Cluster = "eu-1", DefaultLocale = "sv" } },
 		};
 
 		public delegate void HapticEvent (HapticFeedbackConstants feedbackConstant);
@@ -133,7 +110,7 @@ namespace CineGame.MobileComponents {
 
 
 		public static string GetRegionProfanityUrl () {
-			return $"https://profanity.cinemataztic.com/{MarketIds [(int)GetRegion ()]}/txt-file";
+			return $"https://profanity.cinemataztic.com/{Markets [GetRegion ()].MarketID}/txt-file";
 		}
 
 
@@ -142,7 +119,8 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public static Uri GetRegionBaseUri (bool isStaging = false, bool isDev = false) {
 			//return new Uri ("http://localhost:5000/api/");
-			var uri = regionBaseUris [(int)GetRegion ()];
+			var market = Markets [GetRegion ()];
+			var uri = new Uri ($"https://{market.Network}-{market.Country}.cinegamecore.{market.Cluster}.cinemataztic.com/api/");
 			if (isStaging || isDev) {
 				return new Uri (Regex.Replace (uri.AbsoluteUri, "(.+?)\\.[^.]+?\\.(cinemataztic\\.com.+)", isStaging ? "$1.staging.$2" : "$1.dev.$2"));
 			}
@@ -153,9 +131,9 @@ namespace CineGame.MobileComponents {
 		/// <summary>
 		/// Get API Base URI based on Cloud marketId
 		/// </summary>
-		public static Uri GetRegionBaseUri (string marketId, bool isStaging = false, bool isDev = false) {
-			var marketIndex = Array.IndexOf (MarketIds, marketId);
-			var uri = regionBaseUris [marketIndex];
+		public static Uri GetRegionBaseUri (APIRegion region, bool isStaging = false, bool isDev = false) {
+			var market = Markets [region];
+			var uri = new Uri ($"https://{market.Network}-{market.Country}.cinegamecore.{market.Cluster}.cinemataztic.com/api/");
 			if (isStaging || isDev) {
 				return new Uri (Regex.Replace (uri.AbsoluteUri, "(.+?)\\.[^.]+?\\.(cinemataztic\\.com.+)", isStaging ? "$1.staging.$2" : "$1.dev.$2"));
 			}
@@ -167,7 +145,7 @@ namespace CineGame.MobileComponents {
 		/// Get default language for region/market
 		/// </summary>
 		public static string GetRegionDefaultLanguage () {
-			return regionDefaultLanguages [(int)GetRegion ()];
+			return Markets [GetRegion ()].DefaultLocale;
 		}
 
 
