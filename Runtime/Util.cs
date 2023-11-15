@@ -100,6 +100,7 @@ namespace CineGame.MobileComponents {
 			case "com.valmorgan.cinegamenz":
 				return APIRegion.NZ;
 			case "com.se.filmstaden.cinegame":
+			case "com.se.filmstaden.cinegamese":
 				return APIRegion.SE;
 			default:
 				Debug.LogErrorFormat ("Unexpected application identifier {0}. App will NOT work!", Application.identifier);
