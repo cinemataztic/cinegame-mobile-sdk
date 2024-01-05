@@ -49,20 +49,24 @@ namespace CineGame.MobileComponents {
 					OnEndDrag (Input.mousePosition);
 				}
 			} else {
-				//Handle touch input, for when the app is running on the phone
-				Touch touch = Input.GetTouch (0);
-				switch (touch.phase) {
-				case TouchPhase.Began:
-					OnBeginDrag (touch.position);
-					break;
-				case TouchPhase.Moved:
-					OnDrag (touch.position, touch.deltaPosition);
-					break;
-				case TouchPhase.Ended:
-					OnEndDrag (touch.position);
-					break;
-				default:
-					break;
+				if (Input.touches.Length > 0) {
+					var touch = Input.GetTouch (0);
+					switch(touch.phase) {
+					case TouchPhase.Began:
+						OnBeginDrag (touch.position);
+						break;
+					case TouchPhase.Moved:
+						OnDrag (touch.position, touch.deltaPosition);
+						break;
+					case TouchPhase.Stationary:
+						OnHold (touch.position);
+						break;
+					case TouchPhase.Ended:
+						OnEndDrag (touch.position);
+						break;
+					default:
+						break;
+    				}
 				}
 			}
 
