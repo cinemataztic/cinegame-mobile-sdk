@@ -58,9 +58,6 @@ namespace CineGame.MobileComponents {
 					case TouchPhase.Moved:
 						OnDrag (touch.position, touch.deltaPosition);
 						break;
-					case TouchPhase.Stationary:
-						OnHold (touch.position);
-						break;
 					case TouchPhase.Ended:
 						OnEndDrag (touch.position);
 						break;
