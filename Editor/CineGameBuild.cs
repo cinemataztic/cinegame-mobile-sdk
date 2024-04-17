@@ -1024,6 +1024,7 @@ namespace CineGameEditor.MobileComponents {
 			{ "BroadcastMessage.cs", "7142418b7bd0f4de1b62fc28fbcc4c78" },
 			{ "ChoiceComponent.cs", "75ef6897842c3468ea6ec8e9cf6c8f08" },
 			{ "ChoicesComponent.cs", "5a0c36823542b4a3faf55597b502316c" },
+			{ "CodeScanner.cs", "5bbb8fbe68880405c96ff002fd702772" },
 			{ "Destroy.cs", "05255282a40314348a18c91f3f18ffc4" },
 			{ "DPadComponent.cs", "bc396f5091ed84c3591030cd477bbef9" },
 			{ "DragDropAnywhereComponent.cs", "36662550c2ffaa941b549c13cda4fec0" },
