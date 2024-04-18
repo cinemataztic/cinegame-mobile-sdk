@@ -183,6 +183,26 @@ namespace CineGame.MobileComponents {
 			return sb.ToString ();
 		}
 
+        /// <summary>
+        /// Draws a Debug line to the transform of each persistent event listener
+        /// </summary>
+        public static void DrawLinesToPersistentEventListeners (UnityEventBase e, Vector3 start, Color color) {
+            var numListeners = e.GetPersistentEventCount ();
+            for (int i = 0; i < numListeners; i++) {
+                var obj = e.GetPersistentTarget (i);
+				Vector3 end;
+				if (obj is GameObject go) {
+					end = go.transform.position;
+				} else {
+					var c = obj as Component;
+					end = c.transform.position;
+                }
+				if (start != end) {
+					Debug.DrawLine (start, end, color);
+				}
+            }
+        }
+
 		public static string ComputeMD5Hash (string s) {
 			return ComputeMD5Hash (Encoding.Default.GetBytes (s));
 		}
@@ -592,6 +612,18 @@ namespace CineGame.MobileComponents {
 			get {
 				return PlayerPrefs.GetInt ("Developer", 0) == 1;
 			}
+		}
+
+		static MethodInfo miFindObjectInstanceFromID;
+
+		/// <summary>
+		/// Find Object based on InstanceID
+		/// </summary>
+		public static UnityEngine.Object FindObjectFromInstanceID (int iid) {
+			if (miFindObjectInstanceFromID == null) {
+				miFindObjectInstanceFromID = typeof (UnityEngine.Object).GetMethod ("FindObjectFromInstanceID", BindingFlags.NonPublic | BindingFlags.Static);
+			}
+			return (UnityEngine.Object)miFindObjectInstanceFromID.Invoke (null, new object [] { iid });
 		}
 	}
 
