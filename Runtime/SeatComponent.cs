@@ -23,7 +23,7 @@ namespace CineGame.MobileComponents {
 		// This key prompts you to select a seat.
 		private const string seatSelectKey = "SeatSelect";
 
-		// This key contains the shape, rows and seats in the cinema hall (This is used not used for this version of the SeatComponent).
+		// This key contains the shape, rows and seats in the cinema hall (This is not used for this version of the SeatComponent).
 		private const string seatLayoutKey = "SeatLayout";
 
 		// This key contains the seats in the cinema hall.
