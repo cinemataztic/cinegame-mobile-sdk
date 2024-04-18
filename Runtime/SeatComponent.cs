@@ -8,14 +8,9 @@ using UnityEngine.UI;
 
 namespace CineGame.MobileComponents {
 
-	public class SeatInput : ReplicatedComponent {
-		public string StartSetupKey = "";
-		public string ClientSendKey = "";
-		public string ClientReceiveKey = "";
+	public class SeatComponent : ReplicatedComponent {
 		
-		public string SeatAcceptedValue = "Accepted";
-		public string SeatRejectedValue = "Rejected";
-		public string SeatTakenValue = "Taken";
+		
 		
 		public Dropdown RowDropdown;
 		public Dropdown SeatDropdown;
@@ -24,13 +19,28 @@ namespace CineGame.MobileComponents {
 		public UnityEvent SeatRejected;
 		public UnityEvent SeatTaken;
 		
-		private List<SeatRow> rowList = new List<SeatRow> ();
-		private List<Seat> seatList = new List<Seat> ();
+		// These keys are sent from/to CineGame Host:
+		// This key prompts you to select a seat.
+		private const string seatSelectKey = "SeatSelect";
 
-		public class SeatRow {
-			public string Row;
-			public List<object> Data;
-		}
+		// This key contains the shape, rows and seats in the cinema hall (This is not used for this version of the SeatComponent).
+		private const string seatLayoutKey = "SeatLayout";
+
+		// This key contains the seats in the cinema hall.
+		private const string seatSeatsKey = "SeatSeats";
+
+		// This key is sent to CineGame Host and contains information about which seat has been selected.
+		private const string seatInputKey = "SeatInput";
+
+		// This key contains response on whether the user got his/her seat or not.
+		private const string seatInputResponseKey = "SeatInputResponse";
+
+		// These are the different values ​​that seat response can contain.
+		private const string seatAcceptedValue = "Accepted";
+		private const string seatRejectedValue = "Rejected";
+		private const string seatTakenValue = "Taken";
+
+		private List<Seat> seatList = new List<Seat> ();
 
 		public class Seat {
 			public string Row;
@@ -41,29 +51,15 @@ namespace CineGame.MobileComponents {
 
 		public void Start () {
 			SendButton.onClick.AddListener (SendHostMessage);
+
 		}
 
-		public void Setup (byte [] seatData) {
+		public void Setup (ISFSObject seatData) {
 			gameObject.SetActive (true);
 			SendButton.interactable = false;
 
-			string seatDataString = Encoding.ASCII.GetString (seatData);
-			rowList = JsonConvert.DeserializeObject<List<SeatRow>> (seatDataString);
-
-			foreach (SeatRow row in rowList) {
-				foreach (object seat in row.Data) {
-					if (seat != null) {
-						Dictionary<string, object> seatInfo = JsonConvert.DeserializeObject<Dictionary<string, object>> (seat.ToString ());
-						Seat newSeat = new Seat ();
-						newSeat.Row = seatInfo ["row"].ToString ();
-						newSeat.Column = seatInfo ["col"].ToString ();
-						newSeat.SeatNumber = seatInfo ["seat"].ToString ();
-						newSeat.Metadata = JsonConvert.DeserializeObject<Dictionary<string, object>> (seatInfo ["metadata"].ToString ());
-
-						seatList.Add (newSeat);
-					}
-				}
-			}
+			string seatDataString = Encoding.ASCII.GetString (seatData.GetByteArray (seatSeatsKey).Bytes);
+			seatList = JsonConvert.DeserializeObject<List<Seat>> (seatDataString);
 
 			RowDropdown.ClearOptions ();
 			SeatDropdown.ClearOptions ();
@@ -111,16 +107,16 @@ namespace CineGame.MobileComponents {
 		}
 
 		internal override void OnObjectMessage (ISFSObject dataObj, int senderId) {
-			if (dataObj.ContainsKey (StartSetupKey)) {
-				Setup (dataObj.GetByteArray (StartSetupKey).Bytes);
+			if (dataObj.ContainsKey (seatSelectKey)) {
+				Setup (dataObj);
 			}
 
-			if (dataObj.ContainsKey (ClientReceiveKey)) {
-				string status = dataObj.GetUtfString (ClientReceiveKey);
+			if (dataObj.ContainsKey (seatInputResponseKey)) {
+				string status = dataObj.GetUtfString (seatInputResponseKey);
 				
-				if (status == SeatAcceptedValue) 		SeatAccepted.Invoke();
-				else if (status == SeatRejectedValue) 	SeatRejected.Invoke();
-				else if (status == SeatTakenValue) 		SeatTaken.Invoke();
+				if (status == seatAcceptedValue) 		SeatAccepted?.Invoke();
+				else if (status == seatRejectedValue) 	SeatRejected?.Invoke();
+				else if (status == seatTakenValue) 		SeatTaken?.Invoke();
 			}
 		}
 
@@ -130,7 +126,7 @@ namespace CineGame.MobileComponents {
 			if (Application.isEditor) {
 				Debug.LogFormat ("{0} SendSeatInputComponent: Sending host message '{1}'", gameObject.GetScenePath (), seatInput);
 			} else {
-				Send (ClientSendKey, seatInput);
+				Send (seatInputKey, seatInput);
 				SendButton.interactable = false;
 			}
 		}
