@@ -19,12 +19,23 @@ namespace CineGame.MobileComponents {
 		public UnityEvent SeatRejected;
 		public UnityEvent SeatTaken;
 		
-		private const string seatRequestKey = "SeatSelect";
+		// These keys are sent from/to CineGame Host:
+		// This key prompts you to select a seat.
+		private const string seatSelectKey = "SeatSelect";
+
+		// This key contains the shape, rows and seats in the cinema hall (This is used not used for this version of the SeatComponent).
 		private const string seatLayoutKey = "SeatLayout";
+
+		// This key contains the seats in the cinema hall.
 		private const string seatSeatsKey = "SeatSeats";
+
+		// This key is sent to CineGame Host and contains information about which seat has been selected.
 		private const string seatInputKey = "SeatInput";
+
+		// This key contains response on whether the user got his/her seat or not.
 		private const string seatInputResponseKey = "SeatInputResponse";
 
+		// These are the different values ​​that seat response can contain.
 		private const string seatAcceptedValue = "Accepted";
 		private const string seatRejectedValue = "Rejected";
 		private const string seatTakenValue = "Taken";
@@ -96,7 +107,7 @@ namespace CineGame.MobileComponents {
 		}
 
 		internal override void OnObjectMessage (ISFSObject dataObj, int senderId) {
-			if (dataObj.ContainsKey (seatRequestKey)) {
+			if (dataObj.ContainsKey (seatSelectKey)) {
 				Setup (dataObj);
 			}
 
