@@ -190,26 +190,28 @@ namespace CineGameEditor.MobileComponents {
 			}
 		}
 
+		/// <summary>
+		/// Reference pop-up, presented when user clicks the reference icon in a CineGame Mobile SDK Component
+		/// </summary>
 		private class ReferencePopup : PopupWindowContent {
-			private string Title;
-			private string Text;
+			private readonly GUIContent Title;
+			private readonly GUIContent Text;
 			private GUIStyle TitleStyle, Style;
 
+			private Vector2 size;
+
 			public ReferencePopup (string title, string text) {
-				Title = title;
-				Text = text;
+				Title = new GUIContent (title);
+				Text = new GUIContent (text);
 			}
 
 			public override Vector2 GetWindowSize () {
-				return new Vector2 (EditorGUIUtility.currentViewWidth, 150);
+				return size;
 			}
 
 			public override void OnGUI (Rect rect) {
 				EditorGUILayout.LabelField (Title, TitleStyle);
 				EditorGUILayout.LabelField (Text, Style, GUILayout.ExpandHeight (true));
-
-				//var rt = GUILayoutUtility.GetLastRect ();
-				//editorWindow.maxSize = new Vector2 (rt.width, rt.yMax);
 
 				var evt = Event.current;
 				if (evt.type == EventType.MouseDown || evt.type == EventType.ScrollWheel) {
@@ -220,13 +222,20 @@ namespace CineGameEditor.MobileComponents {
 			public override void OnOpen () {
 				Style = new GUIStyle (EditorStyles.label) {
 					wordWrap = true,
-					alignment = TextAnchor.UpperLeft
+					alignment = TextAnchor.UpperLeft,
+					stretchWidth = false,
+					stretchHeight = true,
 				};
 
 				TitleStyle = new GUIStyle (EditorStyles.label) {
 					alignment = TextAnchor.UpperCenter,
-					fontStyle = FontStyle.Bold
+					fontStyle = FontStyle.Bold,
 				};
+
+				var maxTextWidth = EditorGUIUtility.currentViewWidth - 10;
+				var titleSize = TitleStyle.CalcHeight (Title, maxTextWidth);
+				var textSize = Style.CalcHeight (Text, maxTextWidth);
+				size = new Vector2 (EditorGUIUtility.currentViewWidth, titleSize + textSize + EditorGUIUtility.singleLineHeight);
 			}
 		}
 	}
