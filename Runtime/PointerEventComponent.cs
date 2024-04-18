@@ -15,18 +15,17 @@ namespace CineGame.MobileComponents {
 		public Vector2Event onPointerEvent;
 
 		[Header("Replication")]
-        [Tooltip("Smartfox uservariable name for x coordinate")]
+        [Tooltip("Key for x coordinate")]
         public string VariableNameX = "x";
-        [Tooltip("Smartfox uservariable name for y coordinate")]
+        [Tooltip("Key for y coordinate")]
         public string VariableNameY = "y";
         [Tooltip("How often should coordinates be replicated")]
-        public float UpdateInterval = 0.033f;
+        public float UpdateInterval = .1f;
 
 		Vector2 currentNormalizedPosition = Vector2.zero;
 		Vector2 prevNormalizedPosition = Vector2.zero;
 		float lastUpdateTime = float.MinValue;
 
-        Camera eventCamera;
 		int touchId;
 
 		public void OnEvent (BaseEventData eventData) {
@@ -37,7 +36,10 @@ namespace CineGame.MobileComponents {
 				var rt = transform as RectTransform;
 				var rtrect = rt.rect;
 
-				RectTransformUtility.ScreenPointToLocalPointInRectangle (rt, localPos, eventCamera, out localPos);
+				var cam = pointerEventData.pressEventCamera;
+				if (cam == null) cam = pointerEventData.enterEventCamera;
+
+				RectTransformUtility.ScreenPointToLocalPointInRectangle (rt, localPos, cam, out localPos);
 				if (Circular) {
 					//Ignore event if outside inner circle/ellipse of parent rect
 					var lpProj = localPos - rtrect.center;
@@ -57,7 +59,6 @@ namespace CineGame.MobileComponents {
 
 				currentNormalizedPosition = new Vector2 ((localPos.x - rtrect.min.x) / rtrect.width, (localPos.y - rtrect.min.y) / rtrect.height);
 				if (currentNormalizedPosition != prevNormalizedPosition && (lastUpdateTime + UpdateInterval) <= Time.time) {
-					Log ($"PointerEventComponent Send {VariableNameX}={currentNormalizedPosition.x}, {VariableNameY}={currentNormalizedPosition.y}");
 					Send (VariableNameX, currentNormalizedPosition.x);
 					Send (VariableNameY, currentNormalizedPosition.y);
 					lastUpdateTime = Time.time;

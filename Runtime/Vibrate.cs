@@ -1,7 +1,5 @@
 ﻿using UnityEngine;
 ﻿using Sfs2X.Entities.Data;
-using System;
-using System.IO;
 using System.Collections;
 using Newtonsoft.Json.Linq;
 
@@ -28,16 +26,16 @@ namespace CineGame.MobileComponents {
 		[Space]
 		[Header ("Replication")]
 
-		[Tooltip ("If this property is received from host, play as an iOS AHAP file")]
+		[Tooltip ("Property from host containing an iOS AHAP file as string")]
 		public string iOSHapticKey = "iOSHaptic";
 
-		[Tooltip ("If this property is received from host, play as an Android VibrationEffect.Composition file")]
+		[Tooltip ("Property from host containing an Android VibrationEffect.Composition file as string")]
 		public string AndroidHapticKey = "AndroidHaptic";
 
-		[Tooltip ("If this property is received from host, set repeat interval in seconds (float)")]
+		[Tooltip ("Property from host defining the repeat interval in seconds (float)")]
 		public string RepeatIntervalKey = "HapticRepeatInterval";
 
-		[Tooltip ("If this property is received from host, set repeat count")]
+		[Tooltip ("Property from host defining the repeat count")]
 		public string RepeatCountKey = "HapticRepeatCount";
 
 		/// <summary>
@@ -108,6 +106,9 @@ namespace CineGame.MobileComponents {
 			}
 		}
 
+		/// <summary>
+		/// Play the referenced platform-dependent haptic file
+		/// </summary>
 		public void Play () {
 			if (Application.platform == RuntimePlatform.Android && AndroidHapticFile != null) {
 				PlayHapticPattern (AndroidHapticFile);
@@ -121,12 +122,11 @@ namespace CineGame.MobileComponents {
 
 		internal override void OnObjectMessage (ISFSObject dataObj, int senderId) {
 			if (dataObj.ContainsKey (RepeatIntervalKey)) {
-				RepeatInterval = dataObj.GetFloat (RepeatIntervalKey);
+				RepeatInterval = Mathf.Max (dataObj.GetFloat (RepeatIntervalKey), 0f);
 			}
 			if (dataObj.ContainsKey (RepeatCountKey)) {
-				RepeatCount = dataObj.GetInt (RepeatCountKey);
+				RepeatCount = Mathf.Max (dataObj.GetInt (RepeatCountKey), 1);
 			}
-			OnValidate ();
 			if (Application.platform == RuntimePlatform.IPhonePlayer && dataObj.ContainsKey (iOSHapticKey)) {
 				StopAllCoroutines ();
 				StartCoroutine (E_Play (dataObj.GetUtfString (iOSHapticKey)));

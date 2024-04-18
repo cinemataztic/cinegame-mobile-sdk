@@ -96,10 +96,16 @@ namespace CineGame.MobileComponents {
 			}
 		}
 
+		/// <summary>
+		/// Set 'AlignObject' property
+		/// </summary>
 		public void SetAlignObject (Transform t) {
 			AlignObject = t;
 		}
 
+		/// <summary>
+		/// Align with 'AlignObject' instantly-- and move to it if specified by 'Reposition'
+		/// </summary>
 		public void Snap () {
 			Log ("AlignToAxes.Snap");
 			DisablePhysicsIfPresent ();
@@ -109,19 +115,31 @@ namespace CineGame.MobileComponents {
 			}
 		}
 
+		/// <summary>
+		/// Set 'AlignObject' property and align with it instantly
+		/// </summary>
 		public void Snap (GameObject alignObject) {
 			AlignObject = alignObject.transform;
 			Snap ();
 		}
 
+		/// <summary>
+		/// Smoothly interpolates to align with the 'AlignObject' over the time constant specified
+		/// </summary>
 		public void Interpolate (float time) {
 			StartCoroutine (E_Interp (time));
 		}
 
+		/// <summary>
+		/// Smoothly interpolates to align with the 'AlignObject' over the time given by 'InterpTime' seconds
+		/// </summary>
 		public void Interpolate () {
 			Interpolate (InterpTime);
 		}
 
+		/// <summary>
+		/// Smoothly interpolates to align with the specified object over the time given by 'InterpTime' seconds
+		/// </summary>
 		public void Interpolate (GameObject alignObject) {
 			AlignObject = alignObject.transform;
 			Interpolate (InterpTime);

@@ -634,9 +634,22 @@ namespace CineGame.MobileComponents {
 	}
 
 	public static class StringHelpers {
+		/// <summary>
+		/// Cap string length and if capped, add a postfix (defaults to ellipsis character)
+		/// </summary>
 		public static string Truncate (this string s, int maxLength, string postfix = "…") {
 			if (s.Length <= maxLength) return s;
 			return s.Substring (0, maxLength) + postfix;
+		}
+
+		/// <summary>
+		/// Checks if string is a valid email address
+		/// </summary>
+		public static bool IsEmailAddress (this string s) {
+			if (s == null || string.IsNullOrWhiteSpace (s))
+				return false;
+			var v = s.Trim ().Split ('@');
+			return v.Length == 2 && v [0].Length > 0 && v [1].IndexOf ('.') > 0 && v [1].LastIndexOf ('.') < v [1].Length - 1;
 		}
 	}
 

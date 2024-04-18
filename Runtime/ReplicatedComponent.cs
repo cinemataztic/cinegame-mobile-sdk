@@ -22,6 +22,9 @@ namespace CineGame.MobileComponents {
 			onObjectMessage?.Invoke (obj, senderId);
 		}
 
+		/// <summary>
+		/// Initialize replication (and filtering) of data from host to client
+		/// </summary>
 		public virtual void InitReplication () {
 			onObjectMessage += OnObjectMessage;
 			onPrivateMessage += OnPrivateMessage;

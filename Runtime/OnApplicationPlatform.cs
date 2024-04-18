@@ -2,7 +2,6 @@ using System;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.SceneManagement;
 
 namespace CineGame.MobileComponents {
 
@@ -10,20 +9,22 @@ namespace CineGame.MobileComponents {
 	/// Simple component for invoking actions and settings based on platform
 	/// </summary>
 	[ComponentReference ("Trigger events when enabled based on App and OS specifics")]
-	public class OnApplicationPlatform : BaseComponent {
+	public class OnApplicationPlatform : BaseEventComponent {
 
+		[Tooltip ("Invoked when device is an iOS")]
 		[SerializeField] private UnityEvent OnIphone;
+		[Tooltip ("Invoked when device is an Android")]
 		[SerializeField] private UnityEvent OnAndroid;
-		[Header ("If Phone is newer Huawei (Post-Google) then this event will fire after OnAndroid")]
+		[Tooltip ("Invoked when device is a newer Huawei Android (Post-Google break up)")]
 		[SerializeField] private UnityEvent OnHuaweiHcm;
-		[Header ("Event that fires if Android SDK/Api is at or above")]
 		[SerializeField] private int MinimumAndroidSdk = 30;
+		[Tooltip ("Invoked when the device's Android SDK >= Minimum Android Sdk")]
 		[SerializeField] private UnityEvent OnMinimumAndroidSdk;
-		[Header ("Event that fires if iOS SDK is at or above")]
 		[SerializeField] private int MinimumIosSdk = 14;
+		[Tooltip ("Invoked when the device's iOS SDK >= Minimum Ios Sdk")]
 		[SerializeField] private UnityEvent OnMinimumIosSdk;
-		[Header("Event that fires if app version is at or above")]
 		[SerializeField] private string MinimumAppVersion;
+		[Tooltip ("Invoked when app version >= Minimum App Version")]
 		[SerializeField] private UnityEvent OnMinimumAppVersion;
 
 		void OnEnable () {

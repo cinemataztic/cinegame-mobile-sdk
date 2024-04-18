@@ -9,10 +9,10 @@ namespace CineGame.MobileComponents {
 	/// RemoteControl enables game host to control values or invoke methods on this client.
 	/// Values can either be set or (if not void or string) can be interpolated linearly over InterpTime duration.
 	/// </summary>
-	[ComponentReference ("Control unity objects and properties remotely from host")]
+	[ComponentReference ("Control unity objects and properties remotely from host. The property referenced by Key triggers the event with its value. Make sure to select the correct type (void if N/A)")]
 	public class RemoteControl : ReplicatedComponent {
 
-		[Header ("Property to listen for")]
+		[Header ("Property from host")]
 		public string Key;
 
 		public enum EventType {

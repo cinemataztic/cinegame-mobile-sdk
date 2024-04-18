@@ -8,9 +8,9 @@ namespace CineGame.MobileComponents {
 	/// <summary>
 	/// Remotely replace sprites (or invoke methods) with a pre-defined sprite array.
 	/// </summary>
-	[ComponentReference ("Replace a sprite with one from the Sprites array, according to received index")]
+	[ComponentReference ("Remotely replace sprites (or invoke methods) with a Sprite from a pre-defined array.")]
 	public class RemoteSpriteComponent : ReplicatedComponent {
-		[Tooltip("Key in the ObjectMessage from host - int index in Sprites array")]
+		[Tooltip("Key in the ObjectMessage from host - int index in Sprites array property")]
 		public string Key;
 
         [Tooltip("")]
@@ -24,9 +24,13 @@ namespace CineGame.MobileComponents {
 		internal override void OnObjectMessage (ISFSObject dataObj, int senderId) {
 			if (dataObj.ContainsKey (Key)) {
 				var idx = dataObj.GetInt (Key);
-				var sprite = Sprites [idx];
-				Log ($"RemoteSpriteComponent index={idx} Sprite={((sprite != null) ? sprite.name : string.Empty)}");
-				onReceive.Invoke (sprite);
+				if (idx < 0 || idx >= Sprites.Length) {
+					LogError ($"RemoteSpriteComponent received index {idx} which is outside boundaries of Sprite array [0..{Sprites.Length}[");
+				} else {
+					var sprite = Sprites [idx];
+					Log ($"RemoteSpriteComponent index={idx} Sprite={((sprite != null) ? sprite.name : string.Empty)}");
+					onReceive.Invoke (sprite);
+				}
 			}
         }
     }

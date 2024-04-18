@@ -39,7 +39,7 @@ namespace CineGame.MobileComponents {
 		public UnityEvent<string> OnUpdateString;
 
 		[Space]
-		[Tooltip ("Invoked when the value is below the minimum thresholds")]
+		[Tooltip ("Invoked when the value is below the minimum thresholds. If no thresholds are defined, this will always be invoked when Value changes.")]
 		public UnityEvent<float> OnBelow;
 
 		[Serializable]
@@ -63,42 +63,71 @@ namespace CineGame.MobileComponents {
 			UpdateString ();
 		}
 
+		/// <summary>
+		/// Update the current value to a constant. If a threshold is passed, trigger the appropriate event
+		/// </summary>
 		public void SetValue (float v) {
 			//Log ($"LogicComponent.SetValue ({v})");
 			Value = v;
 			FireEvent ();
 		}
 
+		/// <summary>
+		/// Set the 'Other' parameter which is used to compare relative position and line-of-sight
+		/// </summary>
 		public void SetOther (Transform t) {
 			Log ($"LogicComponent.SetOther ({t.gameObject.GetScenePath ()})");
 			Other = t;
 		}
 
+		/// <summary>
+		/// Add a constant to the current value. If a threshold is passed, trigger the appropriate event
+		/// </summary>
 		public void Add (float v) {
 			Log ($"LogicComponent.Add ({v})");
 			Value += v;
 			FireEvent ();
 		}
 
+		/// <summary>
+		/// Subtract a constant from the current value. If a threshold is passed, trigger the appropriate event
+		/// </summary>
 		public void Subtract (float v) {
 			Log ($"LogicComponent.Subtract ({v})");
 			Value -= v;
 			FireEvent ();
 		}
 
+		/// <summary>
+		/// Multiply the current value by a constant. If a threshold is passed, trigger the appropriate event
+		/// </summary>
 		public void Multiply (float v) {
 			Log ($"LogicComponent.Multiply ({v})");
 			Value *= v;
 			FireEvent ();
 		}
 
+		/// <summary>
+		/// Divide the current value by a constant. If a threshold is passed, trigger the appropriate event
+		/// </summary>
 		public void Divide (float v) {
 			Log ($"LogicComponent.Divide ({v})");
 			Value /= v;
 			FireEvent ();
 		}
 
-		void FireEvent () {
+		/// <summary>
+		/// Call to retrigger the current event (useful if non-continuous)
+		/// </summary>
+		public void RetriggerEvent () {
+			CurrentThresholdIndex = int.MinValue;
+			FireEvent ();
+		}
+
+		/// <summary>
+		/// Fire appropriate event acccording to the current value instantly
+		/// </summary>
+		public void FireEvent () {
 			UpdateString ();
 			int thresholdIndex = -1;
 			foreach (var threshold in Thresholds) {

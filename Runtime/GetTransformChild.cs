@@ -16,7 +16,7 @@ namespace CineGame.MobileComponents {
 		}
 		public SequenceMode Mode = SequenceMode.Random;
 
-		[Tooltip("Invoked with the selected child")]
+		[Tooltip("Invoked with the Source's selected child")]
 		public UnityEvent<Transform> OnUpdate;
 
 		float lastSetTime = float.MinValue;
