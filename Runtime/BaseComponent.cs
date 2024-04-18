@@ -29,11 +29,22 @@ namespace CineGame.MobileComponents {
 			}
 		}
 
+		protected void DrawLine (Vector3 start, Vector3 end, Color color) {
+			if (VerboseDebug) {
+				Debug.DrawLine (start, end, color);
+			}
+		}
+
+        protected void DrawListenersLines (UnityEngine.Events.UnityEventBase e, Color color) {
+            if (VerboseDebug) {
+                Util.DrawLinesToPersistentEventListeners (e, transform.position, color);
+            }
+        }
     }
 
     public abstract class BaseEventComponent : BaseComponent {
         [HideInInspector]
         [SerializeField]
         private int eventMask = 0;
-	}
+    }
 }

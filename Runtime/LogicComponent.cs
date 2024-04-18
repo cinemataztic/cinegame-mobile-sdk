@@ -9,7 +9,7 @@ namespace CineGame.MobileComponents {
 	/// <summary>
 	/// Choice component, to reside inside a ChoicesComponent container.
 	/// </summary>
-	[ComponentReference ("Compare values, distance, angles and trigger events/actions based on these. You can perform simple arithmetic operations and specify whether the events should fire continuously each frame or only when passing a threshold.")]
+	[ComponentReference ("Compare values, distance, line-of-sight or angles and trigger events/actions based on these. You can perform simple arithmetic operations (Add, Subtract, Multiply, Divide) and specify whether the events should fire continuously each frame or only when passing a threshold.")]
 	public class LogicComponent : BaseComponent {
 
 		public enum CompareFunction {
@@ -18,7 +18,9 @@ namespace CineGame.MobileComponents {
 			RightLeft,
 			UpDown,
 			FrontBack,
+			LineOfSight,
 		}
+
 		public CompareFunction Function = CompareFunction.Value;
 
 		[Header ("Compare distance or dotproduct relative to this transform")]
@@ -140,10 +142,12 @@ namespace CineGame.MobileComponents {
 				return;
 			if (thresholdIndex == -1) {
 				Log ($"LogicComponent.OnBelow Value={Value}\n{Util.GetEventPersistentListenersInfo (OnBelow)}");
-				OnBelow?.Invoke (Value);
+				//DrawListenersLines (OnBelow, Color.yellow);
+				OnBelow.Invoke (Value);
 			} else {
 				Log ($"LogicComponent.Thresholds [{thresholdIndex}].OnAbove Value={Value}\n{Util.GetEventPersistentListenersInfo (Thresholds [thresholdIndex].OnAbove)}");
-				Thresholds [thresholdIndex].OnAbove?.Invoke (Value);
+                //DrawListenersLines (Thresholds [thresholdIndex].OnAbove, Color.yellow);
+                Thresholds [thresholdIndex].OnAbove.Invoke (Value);
 			}
 			CurrentThresholdIndex = thresholdIndex;
 		}
@@ -160,6 +164,26 @@ namespace CineGame.MobileComponents {
 			}
 		}
 
+		/// <summary>
+		/// Returns 1f if a raycast from this transform's position to Other's position results in a hit on a Collider which contains Other's position.
+		/// Otherwise returns 0f.
+		/// </summary>
+		float Raycast () {
+			var thisPosition = transform.position;
+			var otherPosition = Other.position;
+			if (Physics.Raycast (new Ray (
+				thisPosition,
+				(otherPosition - thisPosition).normalized
+			), out RaycastHit hit, 100, -1)) {
+				if (Other == hit.collider.transform || Other.IsChildOf (hit.collider.transform)) {
+					DrawLine (thisPosition, hit.point, Color.green);
+					return 1f;
+				}
+                DrawLine (thisPosition, hit.point, Color.red);
+            }
+            return 0f;
+		}
+
 		void Update () {
 			if (Function != CompareFunction.Value && Other != null) {
 				switch (Function) {
@@ -174,6 +198,9 @@ namespace CineGame.MobileComponents {
 					break;
 				case CompareFunction.FrontBack:
 					Value = Vector3.Dot (transform.forward, (Other.position - transform.position).normalized);
+					break;
+				case CompareFunction.LineOfSight:
+					Value = Raycast ();
 					break;
 				}
 				FireEvent ();
