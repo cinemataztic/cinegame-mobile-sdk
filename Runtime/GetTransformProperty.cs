@@ -21,10 +21,14 @@ namespace CineGame.MobileComponents {
 		float speed;
 
 		private void OnEnable () {
+			if (Source == null && UpdateInterval > float.Epsilon) {
+				Source = transform;
+			}
 			if (Source != null) {
 				lastSourcePosition = Source.position;
 				speed = 0f;
-				UpdateNow ();
+				if (UpdateInterval > float.Epsilon)
+					UpdateNow ();
 			}
 		}
 
