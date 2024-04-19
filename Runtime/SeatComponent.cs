@@ -10,37 +10,60 @@ namespace CineGame.MobileComponents {
 
 	public class SeatComponent : ReplicatedComponent {
 		
-		
-		
 		public Dropdown RowDropdown;
 		public Dropdown SeatDropdown;
 		public Button SendButton;
+
+		[Tooltip("Invoked when the remote host accepts the input")]
 		public UnityEvent SeatAccepted;
+
+		[Tooltip("Invoked when the remote host responds that the seat is not available for some reason")]
 		public UnityEvent SeatRejected;
+
+		[Tooltip("Invoked when the remote host responds that the seat is already taken by another user")]
 		public UnityEvent SeatTaken;
 		
-		// These keys are sent from/to CineGame Host:
-		// This key prompts you to select a seat.
+		/// <summary>
+		/// This key activates the Seat chosing flow from remote host
+		/// </summary>
 		private const string seatSelectKey = "SeatSelect";
 
-		// This key contains the shape, rows and seats in the cinema hall (This is not used for this version of the SeatComponent).
+		/// <summary>
+		/// This is the key of the shape, rows and seats array from remote host 
+		/// </summary>
 		private const string seatLayoutKey = "SeatLayout";
 
-		// This key contains the seats in the cinema hall.
+		/// <summary>
+		/// This is the key of the seats array from remote host (an alternative format)
+		/// </summary>
 		private const string seatSeatsKey = "SeatSeats";
 
-		// This key is sent to CineGame Host and contains information about which seat has been selected.
+		/// <summary>
+		/// This key is used to send the selected seat to the host
+		/// </summary>
 		private const string seatInputKey = "SeatInput";
 
-		// This key contains response on whether the user got his/her seat or not.
+		/// <summary>
+		/// This is the key of the result of chosing the seat from remote host (whether it was succesful or collided with another input)
+		/// </summary>
 		private const string seatInputResponseKey = "SeatInputResponse";
 
-		// These are the different values ​​that seat response can contain.
+		/// <summary>
+		/// The response contained in the seatInputResponse property if the chosen seat was accepted
+		/// </summary>
 		private const string seatAcceptedValue = "Accepted";
+
+		/// <summary>
+		/// The response contained in the seatInputResponse property if the chosen seat was rejected for some reason other than being taken by another user
+		/// </summary>
 		private const string seatRejectedValue = "Rejected";
+
+		/// <summary>
+		/// The response contained in the seatInputResponse property if the chosen seat was chosen by another user already
+		/// </summary>
 		private const string seatTakenValue = "Taken";
 
-		private List<Seat> seatList = new List<Seat> ();
+		private List<Seat> SeatList = new List<Seat> ();
 
 		public class Seat {
 			public string Row;
@@ -51,30 +74,28 @@ namespace CineGame.MobileComponents {
 
 		public void Start () {
 			SendButton.onClick.AddListener (SendHostMessage);
-
 		}
 
-		public void Setup (ISFSObject seatData) {
+		public void Setup (string seatDataJson) {
+			SeatList = JsonConvert.DeserializeObject<List<Seat>> (seatDataJson);
+
 			gameObject.SetActive (true);
 			SendButton.interactable = false;
-
-			string seatDataString = Encoding.ASCII.GetString (seatData.GetByteArray (seatSeatsKey).Bytes);
-			seatList = JsonConvert.DeserializeObject<List<Seat>> (seatDataString);
 
 			RowDropdown.ClearOptions ();
 			SeatDropdown.ClearOptions ();
 
-			List<Dropdown.OptionData> rowOptions = new List<Dropdown.OptionData> ();
+			var rowOptions = new List<Dropdown.OptionData> ();
 
-			List<string> UsedRows = new List<string> ();
+			var usedRows = new List<string> ();
 
-			foreach (Seat seat in seatList) {
-				if (!UsedRows.Contains (seat.Row)) {
-					UsedRows.Add (seat.Row);
+			foreach (var seat in SeatList) {
+				if (!usedRows.Contains (seat.Row)) {
+					usedRows.Add (seat.Row);
 				}
 			}
 
-			foreach (string row in UsedRows) {
+			foreach (var row in usedRows) {
 				rowOptions.Add (new Dropdown.OptionData {
 					text = row
 				});
@@ -91,9 +112,9 @@ namespace CineGame.MobileComponents {
 
 		private void UpdateSeatDropdown () {
 			SeatDropdown.ClearOptions ();
-			List<Dropdown.OptionData> seatOptions = new List<Dropdown.OptionData> ();
+			var seatOptions = new List<Dropdown.OptionData> ();
 
-			foreach (Seat seat in seatList) {
+			foreach (Seat seat in SeatList) {
 				if (seat.Row == RowDropdown.options [RowDropdown.value].text) {
 					seatOptions.Add (new Dropdown.OptionData {
 						text = seat.SeatNumber
@@ -107,8 +128,9 @@ namespace CineGame.MobileComponents {
 		}
 
 		internal override void OnObjectMessage (ISFSObject dataObj, int senderId) {
-			if (dataObj.ContainsKey (seatSelectKey)) {
-				Setup (dataObj);
+			if (dataObj.ContainsKey (seatSeatsKey)) {
+				var seatDataJson = Encoding.ASCII.GetString (dataObj.GetByteArray (seatSeatsKey).Bytes);
+				Setup (seatDataJson);
 			}
 
 			if (dataObj.ContainsKey (seatInputResponseKey)) {
