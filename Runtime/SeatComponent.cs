@@ -1,7 +1,11 @@
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
+
 using Newtonsoft.Json;
+
 using Sfs2X.Entities.Data;
+
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -9,29 +13,19 @@ using UnityEngine.UI;
 namespace CineGame.MobileComponents {
 
 	public class SeatComponent : ReplicatedComponent {
-		
+
 		public Dropdown RowDropdown;
 		public Dropdown SeatDropdown;
 		public Button SendButton;
 
-		[Tooltip("Invoked when the remote host accepts the input")]
+		[Tooltip ("Invoked when the remote host accepts the input")]
 		public UnityEvent SeatAccepted;
 
-		[Tooltip("Invoked when the remote host responds that the seat is not available for some reason")]
+		[Tooltip ("Invoked when the remote host responds that the seat is not available for some reason")]
 		public UnityEvent SeatRejected;
 
-		[Tooltip("Invoked when the remote host responds that the seat is already taken by another user")]
+		[Tooltip ("Invoked when the remote host responds that the seat is already taken by another user")]
 		public UnityEvent SeatTaken;
-		
-		/// <summary>
-		/// This key activates the Seat chosing flow from remote host
-		/// </summary>
-		private const string seatSelectKey = "SeatSelect";
-
-		/// <summary>
-		/// This is the key of the shape, rows and seats array from remote host 
-		/// </summary>
-		private const string seatLayoutKey = "SeatLayout";
 
 		/// <summary>
 		/// This is the key of the seats array from remote host (an alternative format)
@@ -72,36 +66,27 @@ namespace CineGame.MobileComponents {
 			public Dictionary<string, object> Metadata;
 		}
 
-		public void Start () {
+		public override void InitReplication () {
+			base.InitReplication ();
 			SendButton.onClick.AddListener (SendHostMessage);
+			SendButton.interactable = false;
+			RowDropdown.interactable = false;
+			SeatDropdown.interactable = false;
 		}
 
-		public void Setup (string seatDataJson) {
+		void Setup (string seatDataJson) {
 			SeatList = JsonConvert.DeserializeObject<List<Seat>> (seatDataJson);
 
 			gameObject.SetActive (true);
-			SendButton.interactable = false;
+
+			var usedRows = SeatList.Select (seat => seat.Row).ToHashSet ();
 
 			RowDropdown.ClearOptions ();
-			SeatDropdown.ClearOptions ();
+			RowDropdown.AddOptions (usedRows.Select (row => new Dropdown.OptionData {
+				text = row,
+			}).ToList ());
 
-			var rowOptions = new List<Dropdown.OptionData> ();
-
-			var usedRows = new List<string> ();
-
-			foreach (var seat in SeatList) {
-				if (!usedRows.Contains (seat.Row)) {
-					usedRows.Add (seat.Row);
-				}
-			}
-
-			foreach (var row in usedRows) {
-				rowOptions.Add (new Dropdown.OptionData {
-					text = row
-				});
-			}
-
-			RowDropdown.AddOptions (rowOptions);
+			RowDropdown.interactable = true;
 
 			RowDropdown.onValueChanged.AddListener (delegate {
 				UpdateSeatDropdown ();
@@ -110,20 +95,15 @@ namespace CineGame.MobileComponents {
 			UpdateSeatDropdown ();
 		}
 
-		private void UpdateSeatDropdown () {
+		void UpdateSeatDropdown () {
 			SeatDropdown.ClearOptions ();
-			var seatOptions = new List<Dropdown.OptionData> ();
+			var selectedRow = RowDropdown.options [RowDropdown.value].text;
+			var seatOptions = SeatList.Where (seat => seat.Row == selectedRow).Select (seat => new Dropdown.OptionData {
+				text = seat.SeatNumber
+			});
+			SeatDropdown.AddOptions (seatOptions.ToList ());
 
-			foreach (Seat seat in SeatList) {
-				if (seat.Row == RowDropdown.options [RowDropdown.value].text) {
-					seatOptions.Add (new Dropdown.OptionData {
-						text = seat.SeatNumber
-					});
-				}
-			}
-
-			SeatDropdown.AddOptions (seatOptions);
-
+			SeatDropdown.interactable = true;
 			SendButton.interactable = true;
 		}
 
@@ -135,22 +115,20 @@ namespace CineGame.MobileComponents {
 
 			if (dataObj.ContainsKey (seatInputResponseKey)) {
 				string status = dataObj.GetUtfString (seatInputResponseKey);
-				
-				if (status == seatAcceptedValue) 		SeatAccepted?.Invoke();
-				else if (status == seatRejectedValue) 	SeatRejected?.Invoke();
-				else if (status == seatTakenValue) 		SeatTaken?.Invoke();
+
+				if (status == seatAcceptedValue) SeatAccepted?.Invoke ();
+				else if (status == seatRejectedValue) SeatRejected?.Invoke ();
+				else if (status == seatTakenValue) SeatTaken?.Invoke ();
+				else LogError ("Unknown SeatInputResponse from host: " + status);
 			}
 		}
 
 		void SendHostMessage () {
-			string seatInput = "R" + RowDropdown.options [RowDropdown.value].text + "S" + SeatDropdown.options [SeatDropdown.value].text;
+			var seatInput = $"R{RowDropdown.options [RowDropdown.value].text}S{SeatDropdown.options [SeatDropdown.value].text}";
 
-			if (Application.isEditor) {
-				Debug.LogFormat ("{0} SendSeatInputComponent: Sending host message '{1}'", gameObject.GetScenePath (), seatInput);
-			} else {
-				Send (seatInputKey, seatInput);
-				SendButton.interactable = false;
-			}
+			Log ($"SeatComponent sending input '{seatInput}'");
+			Send (seatInputKey, seatInput);
+			SendButton.interactable = false;
 		}
 	}
 
