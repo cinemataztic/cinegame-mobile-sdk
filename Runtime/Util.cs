@@ -35,27 +35,143 @@ namespace CineGame.MobileComponents {
 		public class Market {
 			public APIRegion Region;
 			public string MarketID;
-			public string Market_Slug;
 			public string Network;
 			public string Country;
 			public string Cluster;
 			public string DefaultLocale;
+			public string AppleTeamID;
+			public string GoogleProjectID;
+			public string iOSBundleID;
+			public string AndroidBundleID;
 		}
 
 		public static readonly Dictionary<APIRegion, Market> Markets = new () {
-			{ APIRegion.DK, new Market { Region = APIRegion.DK, MarketID = "57ff5b54359bc3000f1e1303", Network = "drf", Country = "dk", Cluster = "drf-1", DefaultLocale = "da" } },
-			{ APIRegion.NO,	new Market { Region = APIRegion.NO, MarketID = "57e79e40bb29b2000f22c704", Network = "mdn",	Country = "no", Cluster = "drf-1",	DefaultLocale = "no" } },
-			{ APIRegion.EN, new Market { Region = APIRegion.EN, MarketID = "57e79e61bb29b2000f22c705", Network = "cinemataztic", Country = "en", Cluster = "eu-1", DefaultLocale = "en" } },
-			{ APIRegion.FI, new Market { Region = APIRegion.FI, MarketID = "5829676efd5ab2000f4eb252", Network = "finnkino", Country = "fi", Cluster = "eu-1", DefaultLocale = "fi" } },
-			{ APIRegion.AU, new Market { Region = APIRegion.AU, MarketID = "5ba2a95eb81b02b3d8198f89", Network = "valmorgan", Country = "au", Cluster = "au-1", DefaultLocale = "en-AU" } },
-			{ APIRegion.AE, new Market { Region = APIRegion.AE, MarketID = "5c12f1c58c2a1a5509cad589", Network = "cinemataztic", Country = "ae", Cluster = "au-1", DefaultLocale = "en-US" } },
-			{ APIRegion.DE, new Market { Region = APIRegion.DE, MarketID = "5c44f3ba8c2a1a5509df3f6b", Network = "weischer", Country = "de", Cluster = "eu-2", DefaultLocale = "de" } },
-			{ APIRegion.EE, new Market { Region = APIRegion.EE, MarketID = "5ced2b5a8c2a1a5509b0116b", Network = "forumkino", Country = "ee", Cluster = "eu-1", DefaultLocale = "et" } },
-			{ APIRegion.ES, new Market { Region = APIRegion.ES, MarketID = "5df786218c2a1a550974e19d", Network = "cinesa", Country = "es", Cluster = "eu-2", DefaultLocale = "es" } },
-			{ APIRegion.IE, new Market { Region = APIRegion.IE, MarketID = "618301a5be9b8d3befa0b589", Network = "wideeyemedia", Country = "ie", Cluster = "eu-2", DefaultLocale = "en-IE" } },
-			{ APIRegion.IN, new Market { Region = APIRegion.IN, MarketID = "627049112c827460088db3fd", Network = "itv", Country = "in", Cluster = "asia-1", DefaultLocale = "en-IN" } },
-			{ APIRegion.NZ, new Market { Region = APIRegion.NZ, MarketID = "62a741d8709ea7ac02336c29", Network = "valmorgan", Country = "nz", Cluster = "au-1", DefaultLocale = "en-NZ" } },
-			{ APIRegion.SE, new Market { Region = APIRegion.SE, MarketID = "653676850c50fc8ecda86b43", Network = "filmstaden", Country = "se", Cluster = "eu-1", DefaultLocale = "sv" } },
+			{
+				APIRegion.DK,
+				new Market {
+					Region = APIRegion.DK,
+					MarketID = "57ff5b54359bc3000f1e1303",
+					Network = "drf", Country = "dk",
+					Cluster = "drf-1",
+					DefaultLocale = "da",
+					GoogleProjectID = "610570399119",
+					AppleTeamID = "U48582W842",
+					iOSBundleID = "com.oxmond.biospil",
+					AndroidBundleID = "air.com.oxmond.biospil",
+				}
+			},
+			{
+				APIRegion.NO,
+				new Market {
+					Region = APIRegion.NO,
+					MarketID = "57e79e40bb29b2000f22c704",
+					Network = "mdn", Country = "no",
+					Cluster = "drf-1",
+					DefaultLocale = "no",
+					GoogleProjectID = "643744015712",
+					AppleTeamID = "6TCLK4NZ92",
+					iOSBundleID = "com.cinemataztic.kinospill",
+					AndroidBundleID = "com.cinemataztic.kinospill",
+				}
+			},
+			{
+				APIRegion.EN,
+				new Market {
+					Region = APIRegion.EN,
+					MarketID = "57e79e61bb29b2000f22c705",
+					Network = "cinemataztic", Country = "en",
+					Cluster = "eu-1",
+					DefaultLocale = "en",
+					GoogleProjectID = "94261933586",
+					AppleTeamID = "6TCLK4NZ92",
+					iOSBundleID = "com.cinemataztic.cinemagame",
+					AndroidBundleID = "com.cinemataztic.cinemagame",
+				}
+			},
+			{
+				APIRegion.FI,
+				new Market {
+					Region = APIRegion.FI,
+					MarketID = "5829676efd5ab2000f4eb252",
+					Network = "finnkino", Country = "fi",
+					Cluster = "eu-1",
+					DefaultLocale = "fi",
+					GoogleProjectID = "964262829088",
+					AppleTeamID = "6TCLK4NZ92",
+					iOSBundleID = "com.cinemataztic.leffapeli",
+					AndroidBundleID = "com.cinemataztic.leffapeli",
+				}
+			},
+			{
+				APIRegion.AU,
+				new Market {
+					Region = APIRegion.AU,
+					MarketID = "5ba2a95eb81b02b3d8198f89",
+					Network = "valmorgan", Country = "au",
+					Cluster = "au-1",
+					DefaultLocale = "en-AU",
+					GoogleProjectID = "675637400113",
+					AppleTeamID = "6TCLK4NZ92",
+					iOSBundleID = "com.cinemataztic.cinegameau",
+					AndroidBundleID = "com.cinegameau.cinegameau",
+				}
+			},
+			{
+				APIRegion.DE,
+				new Market {
+					Region = APIRegion.DE,
+					MarketID = "5c44f3ba8c2a1a5509df3f6b",
+					Network = "weischer", Country = "de",
+					Cluster = "eu-2",
+					DefaultLocale = "de",
+					GoogleProjectID = "582638132572",
+					AppleTeamID = "6TCLK4NZ92",
+					iOSBundleID = "com.cinemataztic.cinegameger",
+					AndroidBundleID = "com.redyplay.redyplay",
+				}
+			},
+			{
+				APIRegion.IE,
+				new Market {
+					Region = APIRegion.IE,
+					MarketID = "618301a5be9b8d3befa0b589",
+					Network = "wideeyemedia", Country = "ie",
+					Cluster = "eu-2",
+					DefaultLocale = "en-IE",
+					GoogleProjectID = "87709878890",
+					AppleTeamID = "6TCLK4NZ92",
+					iOSBundleID = "com.wideeyemedia.cinegameie",
+					AndroidBundleID = "com.wideeyemedia.cinegameie",
+				}
+			},
+			{
+				APIRegion.NZ,
+				new Market {
+					Region = APIRegion.NZ,
+					MarketID = "62a741d8709ea7ac02336c29",
+					Network = "valmorgan", Country = "nz",
+					Cluster = "au-1",
+					DefaultLocale = "en-NZ",
+					GoogleProjectID = "96803814888",
+					AppleTeamID = "6TCLK4NZ92",
+					iOSBundleID = "com.valmorgan.cinegamenz",
+					AndroidBundleID = "com.valmorgan.cinegamenz",
+				}
+			},
+			{
+				APIRegion.SE,
+				new Market {
+					Region = APIRegion.SE,
+					MarketID = "653676850c50fc8ecda86b43",
+					Network = "filmstaden", Country = "se",
+					Cluster = "eu-1",
+					DefaultLocale = "sv",
+					GoogleProjectID = "717367223763",
+					AppleTeamID = "6TCLK4NZ92",
+					iOSBundleID = "com.se.filmstaden.cinegame",
+					AndroidBundleID = "com.se.filmstaden.cinegamese",
+				}
+			},
 		};
 
 		public delegate void HapticEvent (HapticFeedbackConstants feedbackConstant);

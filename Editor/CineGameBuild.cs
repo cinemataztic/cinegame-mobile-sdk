@@ -75,6 +75,12 @@ namespace CineGameEditor.MobileComponents {
 		public delegate bool BoolEvent ();
 		public static event BoolEvent onBeginBuild;
 
+		public delegate void SwitchMarket (Util.APIRegion region);
+		public static event SwitchMarket onSwitchMarket;
+
+		public delegate void SwitchEnvironment (bool isStaging, bool isDev);
+		public static event SwitchEnvironment onSwitchEnvironment;
+
 		static bool HasIosBuildSupport, HasAndroidBuildSupport;
 
 		static class ControlNames {
@@ -136,6 +142,7 @@ namespace CineGameEditor.MobileComponents {
 			_marketIndex = EditorGUILayout.Popup (new GUIContent ("Market:"), _marketIndex, MarketDisplayNames);
 			if (MarketIndex != _marketIndex) {
 				MarketIndex = _marketIndex;
+				onSwitchMarket.Invoke ((Util.APIRegion)_marketIndex);
 				if (!string.IsNullOrWhiteSpace (Username) && !string.IsNullOrWhiteSpace (Password)) {
 					if (!GetAccessToken (out AccessToken)) {
 						EditorUtility.DisplayDialog (ProgressBarTitle, "Failed to login. Check username and password and that you are connected to the internet", "OK");
@@ -150,6 +157,7 @@ namespace CineGameEditor.MobileComponents {
 				_environmentIndex = EditorGUILayout.Popup (new GUIContent ("Environment:"), _environmentIndex, BackendEnvironments, GUILayout.Width (250f));
 				if (EnvironmentIndex != _environmentIndex) {
 					EnvironmentIndex = _environmentIndex;
+					onSwitchEnvironment.Invoke (isStaging: _environmentIndex == 1, isDev: _environmentIndex == 2);
 					if (!string.IsNullOrWhiteSpace (Username) && !string.IsNullOrWhiteSpace (Password)) {
 						if (!GetAccessToken (out AccessToken)) {
 							EditorUtility.DisplayDialog (ProgressBarTitle, "Failed to login. Check username and password and that you are connected to the internet", "OK");
@@ -829,7 +837,7 @@ namespace CineGameEditor.MobileComponents {
 
 				instance.OnHierarchyChange ();
 
-				Debug.Log ($"Logged into market {MarketDisplayNames [MarketIndex]}");
+				Debug.Log ($"Logged into market {MarketDisplayNames [MarketIndex]} {BackendEnvironments [EnvironmentIndex]} environment");
 			} catch (Exception e) {
 				Debug.LogErrorFormat ("Exception while parsing JSON {0}: {1}", request.downloadHandler.text, e.ToString ());
 				return false;
