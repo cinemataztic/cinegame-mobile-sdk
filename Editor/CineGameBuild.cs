@@ -39,10 +39,12 @@ namespace CineGameEditor.MobileComponents {
 		static string [] GameTypesAvailable;
 
 		static string [] _marketDisplayNames;
+		static Util.APIRegion [] _regions;
 		static string [] MarketDisplayNames {
 			get {
 				if (_marketDisplayNames == null) {
 					_marketDisplayNames = Util.Markets.Select (m => $"{m.Value.Network}-{m.Value.Country}").ToArray ();
+					_regions = Util.Markets.Select (m => m.Key).ToArray ();
 				}
 				return _marketDisplayNames;
 			}
@@ -142,7 +144,7 @@ namespace CineGameEditor.MobileComponents {
 			_marketIndex = EditorGUILayout.Popup (new GUIContent ("Market:"), _marketIndex, MarketDisplayNames);
 			if (MarketIndex != _marketIndex) {
 				MarketIndex = _marketIndex;
-				onSwitchMarket.Invoke ((Util.APIRegion)_marketIndex);
+				onSwitchMarket.Invoke (_regions [MarketIndex]);
 				if (!string.IsNullOrWhiteSpace (Username) && !string.IsNullOrWhiteSpace (Password)) {
 					if (!GetAccessToken (out AccessToken)) {
 						EditorUtility.DisplayDialog (ProgressBarTitle, "Failed to login. Check username and password and that you are connected to the internet", "OK");
@@ -723,7 +725,7 @@ namespace CineGameEditor.MobileComponents {
 
 			var cancelUpload = false;
 			while (!cancelUpload) {
-				var request = UnityWebRequest.Post (new Uri (Util.GetRegionBaseUri ((Util.APIRegion)MarketIndex, EnvironmentIndex == 1, EnvironmentIndex == 2), $"asset/{gameCategory}").AbsoluteUri, form);
+				var request = UnityWebRequest.Post (new Uri (Util.GetRegionBaseUri (_regions [MarketIndex], EnvironmentIndex == 1, EnvironmentIndex == 2), $"asset/{gameCategory}").AbsoluteUri, form);
 				var enHeaders = headers.GetEnumerator ();
 				while (enHeaders.MoveNext ()) {
 					request.SetRequestHeader (enHeaders.Current.Key, enHeaders.Current.Value);
@@ -780,7 +782,7 @@ namespace CineGameEditor.MobileComponents {
 
 
 		public static Uri GetTokenUri () {
-			var market = Util.Markets [(Util.APIRegion)MarketIndex];
+			var market = Util.Markets [_regions [MarketIndex]];
 			var url = $"https://{market.Network}.{market.Country}.auth.iam.{market.Cluster}.cinemataztic.com";
 			if (EnvironmentIndex != 0) {
 				url = Regex.Replace (url, "(.+?)\\.[^.]+?\\.(cinemataztic\\.com)", EnvironmentIndex == 1 ? "$1.staging.$2" : "$1.dev.$2");
@@ -833,7 +835,7 @@ namespace CineGameEditor.MobileComponents {
 				IsSuperAdmin = response.role.Contains ("super-admin");
 
 				//TODO there's a security issue here because login is across markets, but game-access list should be per market.
-				GameTypesAvailable = (response.game_access != null) ? response.game_access : new string [0];
+				GameTypesAvailable = response.game_access ?? (new string [0]);
 
 				instance.OnHierarchyChange ();
 
@@ -856,7 +858,7 @@ namespace CineGameEditor.MobileComponents {
 
 
 		static string GetOutputPathForCurrentScene () {
-			return string.Format ("../builds/AssetBundles/{0}/{1}", Util.Markets [(Util.APIRegion)MarketIndex].MarketID, IsARGame ? "ARGameAssets" : (IsGamecenterGame ? "GameCenterAssets" : "GameAssets"));
+			return string.Format ("../builds/AssetBundles/{0}/{1}", Util.Markets [_regions [MarketIndex]].MarketID, IsARGame ? "ARGameAssets" : (IsGamecenterGame ? "GameCenterAssets" : "GameAssets"));
 		}
 
 
