@@ -233,6 +233,8 @@ namespace CineGame.MobileComponents {
 			case "com.se.filmstaden.cinegame":
 			case "com.se.filmstaden.cinegamese":
 				return APIRegion.SE;
+			case "com.pt.adline.cinegame":
+				return APIRegion.PT;
 			default:
 				Debug.LogErrorFormat ("Unexpected application identifier {0}. App will NOT work!", Application.identifier);
 				Debug.Break ();
