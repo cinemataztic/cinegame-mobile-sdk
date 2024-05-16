@@ -30,6 +30,7 @@ namespace CineGame.MobileComponents {
 			IN = 10,//itv-in
 			NZ = 11,//valmorgan-nz
 			SE = 12,//filmstaden-se
+			PT = 13,//adline-pt
 		};
 
 		public class Market {
@@ -170,6 +171,20 @@ namespace CineGame.MobileComponents {
 					AppleTeamID = "6TCLK4NZ92",
 					iOSBundleID = "com.se.filmstaden.cinegame",
 					AndroidBundleID = "com.se.filmstaden.cinegamese",
+				}
+			},
+			{
+				APIRegion.PT,
+				new Market {
+					Region = APIRegion.PT,
+					MarketID = "6642106e9f745c39d99a95e7",
+					Network = "adline", Country = "pt",
+					Cluster = "eu-2",
+					DefaultLocale = "pt",
+					GoogleProjectID = "150212816952",
+					AppleTeamID = "6TCLK4NZ92",
+					iOSBundleID = "com.pt.adline.cinegame",
+					AndroidBundleID = "com.pt.adline.cinegame",
 				}
 			},
 		};
