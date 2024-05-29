@@ -147,6 +147,18 @@ namespace CineGame.MobileComponents {
 			}
 		}
 
+		public void Action (Rect value) {
+			if (Cooldown ()) {
+				if (!string.IsNullOrEmpty (Key)) {
+					Log ($"SendVariableComponent {Key}=Rect({value.xMin:0.##},{value.yMin:0.##},{value.width:0.##},{value.height:0.##})");
+					Send (Key, new float [4] { value.xMin, value.yMin, value.width, value.height });
+				}
+				if (!string.IsNullOrEmpty (Message)) {
+					SendMessageWithArgument (value);
+				}
+			}
+		}
+
 		/// <summary>
 		/// Sending transform scene path (eg if something is collided with or selected via a raycast)
 		/// </summary>

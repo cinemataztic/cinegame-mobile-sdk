@@ -1056,6 +1056,7 @@ namespace CineGameEditor.MobileComponents {
 			{ "OnEnableDisable.cs", "3333ae0926977417092a70b35c7f8732" },
 			{ "OnLogin.cs", "580b8ede9eafe4579bc685643161d87d" },
 			{ "PhysicsConfig.cs", "63017d3eb48a54e138cb5be84c521fa1" },
+			{ "PinchZoomAndPan.cs", "4bb98b7706d204a0b8031f680d96308d" },
 			{ "PlaySound.cs", "091a2f98215b249199e701dd0bad8ed5" },
 			{ "PointerEventComponent.cs", "c89d64cb538764722870310bd54cf525" },
 			{ "RemoteTextComponent.cs", "f64f24ad31c70436abc2ec8635a056b4" },

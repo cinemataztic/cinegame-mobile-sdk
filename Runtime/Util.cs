@@ -370,6 +370,36 @@ namespace CineGame.MobileComponents {
 		}
 
 		/// <summary>
+		/// Crops texture to specified UV rect. If the texture is non-readable, blit to temp RenderTexture and copy from there
+		/// </summary>
+		public static void CropTexture (Texture2D texture, Rect uvRect, bool mipChain, bool readable, out Texture2D croppedTexture) {
+			var x = (int)(texture.width * uvRect.xMin);
+			var y = (int)(texture.width * uvRect.yMin);
+			var w = (int)(texture.width * uvRect.size.x);
+			var h = (int)(texture.height * uvRect.size.y);
+			croppedTexture = new Texture2D (w, h, texture.format, mipChain);
+			if (texture.isReadable) {
+				var pixels = texture.GetPixels (x, y, w, h, 0);
+				croppedTexture.SetPixels (pixels);
+				croppedTexture.Apply (mipChain, !readable);
+			} else {
+				// Create a temporary RenderTexture of the same size as the texture
+				var tmpRenderTexture = RenderTexture.GetTemporary (texture.width, texture.height, 0, RenderTextureFormat.Default, RenderTextureReadWrite.Linear);
+				Graphics.Blit (texture, tmpRenderTexture);
+				var prevRenderTexture = RenderTexture.active;
+				RenderTexture.active = tmpRenderTexture;
+
+				// Copy the pixels to the cropped texture
+				croppedTexture.ReadPixels (new Rect (x, y, w, h), 0, 0);
+				croppedTexture.Apply (mipChain, !readable);
+
+				//release RenderTexture
+				RenderTexture.active = prevRenderTexture;
+				RenderTexture.ReleaseTemporary (tmpRenderTexture);
+			}
+		}
+
+		/// <summary>
 		/// Blit non-readable texture to rendertexture and copy results to readable texture. Remember to release texture when done with it!
 		/// </summary>
 		public static Texture2D CreateReadableTexture2D (Texture2D texture) {
