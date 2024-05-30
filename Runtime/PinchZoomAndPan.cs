@@ -88,31 +88,22 @@ namespace CineGame.MobileComponents {
             var bounds = RectTransformUtility.CalculateRelativeRectTransformBounds (parentRT, content);
             var parentRect = parentRT.rect;
 
-            if (bounds.min.x > parentRect.xMin) {
-                if (bounds.max.x < parentRect.xMax) {
-                    var s = parentRect.width / bounds.size.x;
-                    content.localScale = new Vector3 (content.localScale.x * s, content.localScale.y * s);
-
-                    bounds = RectTransformUtility.CalculateRelativeRectTransformBounds (parentRT, content);
-                    parentRect = parentRT.rect;
-                }
-                content.localPosition -= new Vector3 (bounds.min.x - parentRect.xMin, 0f);
+            if (bounds.size.x < parentRect.width || bounds.size.y < parentRect.height) {
+                var s = Mathf.Max (parentRect.width / bounds.size.x, parentRect.height / bounds.size.y);
+                content.localScale = new Vector3 (content.localScale.x * s, content.localScale.y * s);
+                bounds = RectTransformUtility.CalculateRelativeRectTransformBounds (parentRT, content);
+                parentRect = parentRT.rect;
             }
-            if (bounds.max.x < parentRect.xMax) {
+
+            if (bounds.min.x > parentRect.xMin) {
+                content.localPosition -= new Vector3 (bounds.min.x - parentRect.xMin, 0f);
+            } else if (bounds.max.x < parentRect.xMax) {
                 content.localPosition -= new Vector3 (bounds.max.x - parentRect.xMax, 0f);
             }
 
             if (bounds.min.y > parentRect.yMin) {
-                if (bounds.max.y < parentRect.yMax) {
-                    var s = parentRect.height / bounds.size.y;
-                    content.localScale = new Vector3 (content.localScale.x * s, content.localScale.y * s);
-
-                    bounds = RectTransformUtility.CalculateRelativeRectTransformBounds (parentRT, content);
-                    parentRect = parentRT.rect;
-                }
                 content.localPosition -= new Vector3 (0f, bounds.min.y - parentRect.yMin);
-            }
-            if (bounds.max.y < parentRect.yMax) {
+            } else if (bounds.max.y < parentRect.yMax) {
                 content.localPosition -= new Vector3 (0f, bounds.max.y - parentRect.yMax);
             }
         }
