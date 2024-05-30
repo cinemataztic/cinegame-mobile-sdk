@@ -14,7 +14,7 @@ namespace CineGame.MobileComponents {
         bool _isPinching;
         bool _isPanning;
         float _lastPinchDist;
-        float _mouseWheelSensitivity = 2;
+		readonly float _mouseWheelSensitivity = 1f;
         RectTransform parentRT;
         Camera cam;
         Vector2 _pivotOffset;
@@ -52,7 +52,8 @@ namespace CineGame.MobileComponents {
                 if (tc > 1) {
                     var _pinchDist = Distance (pos1, pos2) * content.localScale.x;
                     if (_lastPinchDist > float.Epsilon) {
-                        content.localScale *= _pinchDist / _lastPinchDist;
+                        var s = Mathf.Clamp (content.localScale.x * _pinchDist / _lastPinchDist, _minZoom, _maxZoom);
+                        content.localScale = new Vector3 (s, s);
                     }
                     _lastPinchDist = _pinchDist;
                     _isPinching = true;
@@ -78,7 +79,8 @@ namespace CineGame.MobileComponents {
                 content.pivot += pivot;
                 content.localPosition += deltaPosition;
 
-                content.localScale *= Mathf.Max (.000001f, 1 + scrollWheelInput * _mouseWheelSensitivity);
+                var s = Mathf.Clamp (content.localScale.x * Mathf.Max (.000001f, 1 + scrollWheelInput * _mouseWheelSensitivity), _minZoom, _maxZoom);
+                content.localScale = new Vector3 (s, s);
             }
 #endif
             //Check bounds, limit zoom and pan to encapsulate parent
@@ -131,7 +133,7 @@ namespace CineGame.MobileComponents {
             var y = (parent.min.y - child.min.y) / child.size.y;
             var w = (parent.max.x - parent.min.x) / child.size.x;
             var h = (parent.max.y - parent.min.y) / child.size.y;
-            Log ($"Cropping coordinates: ({x:0.##},{y:0.##},{w:0.##},{h:0.##}");
+            Log ($"Cropping coordinates: {x:0.##},{y:0.##},{w:0.##},{h:0.##}");
             var uvRect = new Rect (x, y, w, h);
 
             OnCropUV.Invoke (uvRect);
@@ -149,7 +151,7 @@ namespace CineGame.MobileComponents {
                 }
                 if (texture != null) {
                     Util.CropTexture (texture, uvRect, mipChain: true, readable: true, out Texture2D croppedTexture);
-                    Log ($"Cropped texture dimensions: {croppedTexture.width}x{croppedTexture.height}");
+                    Log ($"Created cropped Texture2D with dimensions: {croppedTexture.width}x{croppedTexture.height}");
                     OnCropTexture.Invoke (croppedTexture);
                 }
             }
