@@ -374,7 +374,7 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public static void CropTexture (Texture2D texture, Rect uvRect, bool mipChain, bool readable, out Texture2D croppedTexture) {
 			var x = (int)(texture.width * uvRect.xMin);
-			var y = (int)(texture.width * uvRect.yMin);
+			var y = (int)(texture.height * uvRect.yMin);
 			var w = (int)(texture.width * uvRect.size.x);
 			var h = (int)(texture.height * uvRect.size.y);
 			croppedTexture = new Texture2D (w, h, texture.format, mipChain);
