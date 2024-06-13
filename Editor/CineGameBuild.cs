@@ -202,7 +202,15 @@ namespace CineGameEditor.MobileComponents {
 				GUI.backgroundColor = Color.magenta;
 				EditorGUILayout.LabelField ("AR Upload", centeredStyle);
 			} else if (!IsCanvasGame) {
-				EditorGUILayout.LabelField ("Please select a game scene!", centeredStyle);
+				EditorGUILayout.BeginHorizontal ();
+				EditorGUILayout.PrefixLabel (" ");
+				if (GUILayout.Button ("Log out")) {
+					AccessToken = null;
+					AccessTokenTime = DateTime.MinValue;
+					Password = string.Empty;
+					EditorPrefs.DeleteKey ("CGSP");
+				}
+				EditorGUILayout.EndHorizontal ();
 				return;
 			}
 
@@ -227,6 +235,11 @@ namespace CineGameEditor.MobileComponents {
 
 			if (gameTypeEntered && !string.IsNullOrWhiteSpace (GameType)) {
 				UpdateGameTypeInGameProxy ();
+			}
+
+			if (EditorApplication.isCompiling) {
+				EditorGUILayout.HelpBox ("Waiting for scripts to recompile ...", MessageType.Info);
+				return;
 			}
 
 			var outputPath = GetOutputPathForCurrentScene ();
@@ -273,9 +286,7 @@ namespace CineGameEditor.MobileComponents {
 				}
 			}
 
-			if (EditorApplication.isCompiling) {
-				EditorGUILayout.HelpBox ("Waiting for scripts to recompile ...", MessageType.Info);
-			} else if (!IsBuilding) {
+			if (!IsBuilding) {
 				var lastBuildReportPath = GetLastBuildReportPath ();
 				if (string.IsNullOrEmpty (LastBuildReportString) && File.Exists (lastBuildReportPath)) {
 					LastBuildReportString = File.ReadAllText (lastBuildReportPath);
@@ -316,10 +327,11 @@ namespace CineGameEditor.MobileComponents {
 					} catch (Exception) {
 					}
 				}
+				var sceneName = EditorSceneManager.GetActiveScene ().name;
 				var _gameProxy = FindObjectOfType<GameProxy> ();
 				var _isCanvasGame = _gameProxy != null;
 				if (IsCanvasGame != _isCanvasGame) {
-					IsCanvasGame = _isCanvasGame;
+					IsCanvasGame = _isCanvasGame && !sceneName.Equals ("MasterApp");
 					Repaint ();
 				}
 
@@ -327,7 +339,7 @@ namespace CineGameEditor.MobileComponents {
 					if (IsSuperAdmin) {
 						GameType = _gameProxy.GameType;
 						if (string.IsNullOrWhiteSpace (GameType)) {
-							GameType = EditorSceneManager.GetActiveScene ().name;
+							GameType = sceneName;
 							UpdateGameTypeInGameProxy ();
 						}
 					} else if (GameTypesAvailable.Length > 0) {
@@ -541,7 +553,7 @@ namespace CineGameEditor.MobileComponents {
 
 
 		static bool BuildBundles (IEnumerable<AssetBundleBuild> assetBundleBuilds, string outputPath, BuildTarget buildTarget) {
-			Debug.LogFormat ("Building AssetBundles for platform {0}", buildTarget);
+			Debug.Log ($"Building {assetBundleBuilds.Count ()} AssetBundles for {buildTarget}");
 			var relOutputPath = outputPath + "/AssetBundles_" + ((buildTarget == BuildTarget.Android) ? "Android" : "iOS");
 			var fullOutputPath = Path.GetFullPath (relOutputPath);
 			Directory.CreateDirectory (fullOutputPath);
@@ -595,7 +607,7 @@ namespace CineGameEditor.MobileComponents {
 			var targets = GetBuildTargets ();
 
 			buildProgress = 0f;
-			float dpct = 1f / (float)targets.Count;
+			float dpct = 1f / targets.Count;
 			foreach (var target in targets) {
 				var buildTarget = target;
 				/*
