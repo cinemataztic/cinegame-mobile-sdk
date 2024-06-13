@@ -155,6 +155,7 @@ namespace CineGameEditor.MobileComponents {
     /// </summary>
     public class EditorBase : Editor {
 		private string ReferenceText;
+		private bool ReferenceVisible;
 		private GUIContent ReferenceIcon;
 		private GUIStyle ReferenceButtonStyle;
 
@@ -183,60 +184,15 @@ namespace CineGameEditor.MobileComponents {
 				}
 
 				if (GUI.Button (rect, ReferenceIcon, ReferenceButtonStyle)) {
-					rect = GUILayoutUtility.GetLastRect ();
+					ReferenceVisible = !ReferenceVisible;
+					/*rect = GUILayoutUtility.GetLastRect ();
 					rect.y += 24;
-					PopupWindow.Show (rect, new ReferencePopup (target.GetType ().Name, ReferenceText));
+					PopupWindow.Show (rect, new ReferencePopup (target.GetType ().Name, ReferenceText));*/
 				}
+				if (ReferenceVisible) {
+					EditorGUILayout.HelpBox (ReferenceText, MessageType.Info);
 			}
 		}
-
-		/// <summary>
-		/// Reference pop-up, presented when user clicks the reference icon in a CineGame Mobile SDK Component
-		/// </summary>
-		private class ReferencePopup : PopupWindowContent {
-			private readonly GUIContent Title;
-			private readonly GUIContent Text;
-			private GUIStyle TitleStyle, Style;
-
-			private Vector2 size;
-
-			public ReferencePopup (string title, string text) {
-				Title = new GUIContent (title);
-				Text = new GUIContent (text);
-			}
-
-			public override Vector2 GetWindowSize () {
-				return size;
-			}
-
-			public override void OnGUI (Rect rect) {
-				EditorGUILayout.LabelField (Title, TitleStyle);
-				EditorGUILayout.LabelField (Text, Style, GUILayout.ExpandHeight (true));
-
-				var evt = Event.current;
-				if (evt.type == EventType.MouseDown || evt.type == EventType.ScrollWheel) {
-					editorWindow.Close ();
-				}
-			}
-
-			public override void OnOpen () {
-				Style = new GUIStyle (EditorStyles.label) {
-					wordWrap = true,
-					alignment = TextAnchor.UpperLeft,
-					stretchWidth = false,
-					stretchHeight = true,
-				};
-
-				TitleStyle = new GUIStyle (EditorStyles.label) {
-					alignment = TextAnchor.UpperCenter,
-					fontStyle = FontStyle.Bold,
-				};
-
-				var maxTextWidth = EditorGUIUtility.currentViewWidth - 10;
-				var titleSize = TitleStyle.CalcHeight (Title, maxTextWidth);
-				var textSize = Style.CalcHeight (Text, maxTextWidth);
-				size = new Vector2 (EditorGUIUtility.currentViewWidth, titleSize + textSize + EditorGUIUtility.singleLineHeight);
-			}
 		}
 	}
 
