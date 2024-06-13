@@ -144,7 +144,7 @@ namespace CineGameEditor.MobileComponents {
 			_marketIndex = EditorGUILayout.Popup (new GUIContent ("Market:"), _marketIndex, MarketDisplayNames);
 			if (MarketIndex != _marketIndex) {
 				MarketIndex = _marketIndex;
-				onSwitchMarket.Invoke (_regions [MarketIndex]);
+				onSwitchMarket?.Invoke (_regions [MarketIndex]);
 				if (!string.IsNullOrWhiteSpace (Username) && !string.IsNullOrWhiteSpace (Password)) {
 					if (!GetAccessToken (out AccessToken)) {
 						EditorUtility.DisplayDialog (ProgressBarTitle, "Failed to login. Check username and password and that you are connected to the internet", "OK");
@@ -159,7 +159,7 @@ namespace CineGameEditor.MobileComponents {
 				_environmentIndex = EditorGUILayout.Popup (new GUIContent ("Environment:"), _environmentIndex, BackendEnvironments, GUILayout.Width (250f));
 				if (EnvironmentIndex != _environmentIndex) {
 					EnvironmentIndex = _environmentIndex;
-					onSwitchEnvironment.Invoke (isStaging: _environmentIndex == 1, isDev: _environmentIndex == 2);
+					onSwitchEnvironment?.Invoke (isStaging: _environmentIndex == 1, isDev: _environmentIndex == 2);
 					if (!string.IsNullOrWhiteSpace (Username) && !string.IsNullOrWhiteSpace (Password)) {
 						if (!GetAccessToken (out AccessToken)) {
 							EditorUtility.DisplayDialog (ProgressBarTitle, "Failed to login. Check username and password and that you are connected to the internet", "OK");
