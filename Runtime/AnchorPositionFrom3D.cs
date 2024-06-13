@@ -30,8 +30,7 @@ namespace CineGame.MobileComponents {
 		RectTransform parentRectTransform;
 		Camera canvasCamera;
 		CanvasGroup canvasGroup;
-
-		Vector3 [] worldCorners = new Vector3 [4];
+		readonly Vector3 [] worldCorners = new Vector3 [4];
 
 		void Start () {
 			myRectTransform = GetComponent<RectTransform> ();

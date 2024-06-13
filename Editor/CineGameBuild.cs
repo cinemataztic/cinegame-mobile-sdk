@@ -1040,6 +1040,7 @@ namespace CineGameEditor.MobileComponents {
 		static readonly Dictionary<string, string> GuidDict = new Dictionary<string, string> {
 			{ "AlignToAxes.cs", "bcde88b88311a4a6e87eed4799886cde" },
 			{ "AnchorPositionFrom3D.cs", "29803c86459594ae388d0f536654bc6d" },
+			{ "AnchorRotationFrom3D.cs", "803c1b224286b417daa694e7d4cc4243" },
 			{ "AngularPointerComponent.cs", "7814844a3c70f4ceb88a8b90fd1833f2" },
 			{ "AnimationEventListener.cs", "13d77d1e33ee27f428f0d7175a2076b2" },
 			{ "AnimatorParameter.cs", "40fd1fe7494a34ddba76ed6c1897cd53" },
