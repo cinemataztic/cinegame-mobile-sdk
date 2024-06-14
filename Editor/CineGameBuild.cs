@@ -627,8 +627,10 @@ namespace CineGameEditor.MobileComponents {
 				yield return null;
 
 				var abb = new AssetBundleBuild { assetBundleName = GameType.ToLower (), assetNames = new [] { EditorSceneManager.GetActiveScene ().path } };
+				var assetLoaderAbBuilds = ProcessAssetLoaders (prepareBuild: true);
+				var abBuilds = new List<AssetBundleBuild> { abb }.Union (assetLoaderAbBuilds);
 
-				if (!BuildBundles (new [] { abb }, GetOutputPathForCurrentScene (), buildTarget)) {
+				if (!BuildBundles (abBuilds, GetOutputPathForCurrentScene (), buildTarget)) {
 					resultMessage = "CreateAssetBundles: Build failed. See log for details.";
 					Debug.LogError (resultMessage);
 					IsBuilding = false;
@@ -716,19 +718,36 @@ namespace CineGameEditor.MobileComponents {
 
 			//EditorUtility.RevealInFinder (fullOutputPath);
 			var form = new WWWForm ();
+			form.AddField ("gameType", GameType);
+			form.AddField ("sdkVersion", sdkVersion.ToString ());
+			form.AddField ("sdkBuildTime", sdkBuildTime.ToString ("u"));
+
 			form.AddBinaryData ("iosBundle",
-				File.ReadAllBytes (string.Format ("{0}/AssetBundles_iOS/{1}", outputPath, bundleName)),
+				File.ReadAllBytes (Path.Combine (outputPath, "AssetBundles_iOS", bundleName)),
 				bundleName,
 				MediaTypeNames.Application.Zip
 			);
 			form.AddBinaryData ("androidBundle",
-				File.ReadAllBytes (string.Format ("{0}/AssetBundles_Android/{1}", outputPath, bundleName)),
+				File.ReadAllBytes (Path.Combine (outputPath, "AssetBundles_Android", bundleName)),
 				bundleName,
 				MediaTypeNames.Application.Zip
 			);
-			form.AddField ("gameType", GameType);
-			form.AddField ("sdkVersion", sdkVersion.ToString ());
-			form.AddField ("sdkBuildTime", sdkBuildTime.ToString ("u"));
+
+			var abbs = ProcessAssetLoaders (prepareBuild: false);
+			var i = 1;
+			foreach (var abb in abbs) {
+				form.AddBinaryData ("iosBundle-" + i,
+					File.ReadAllBytes (Path.Combine (outputPath, "AssetBundles_iOS", abb.assetBundleName)),
+					abb.assetBundleName,
+					MediaTypeNames.Application.Zip
+				);
+				form.AddBinaryData ("androidBundle-" + i,
+					File.ReadAllBytes (Path.Combine (outputPath, "AssetBundles_Android", abb.assetBundleName)),
+					abb.assetBundleName,
+					MediaTypeNames.Application.Zip
+				);
+				i++;
+			}
 
 			var gameCategory = IsARGame ? "ar" : (IsGamecenterGame ? "gamecenter" : "canvas");
 
@@ -1035,6 +1054,64 @@ namespace CineGameEditor.MobileComponents {
 		}
 
 		/// <summary>
+		/// Build an enumeration of all assetbundles from AssetLoader Components in loaded scenes, and if prepareBuild=true then store the needed properties of the prefab in the serialized AssetLoader.
+		/// </summary>
+		static IEnumerable<AssetBundleBuild> ProcessAssetLoaders (bool prepareBuild) {
+			var assetBundleNames = new HashSet<string> ();
+			var assetLoaders = FindObjectsOfType<AssetLoader> ();
+
+			foreach (var assetLoader in assetLoaders) {
+				var scenePath = assetLoader.gameObject.GetScenePath ();
+				string assetPath = null;
+				if (assetLoader.transform.childCount == 1) {
+					var prefabInstance = assetLoader.transform.GetChild (0).gameObject;
+					assetPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot (prefabInstance);
+					if (!string.IsNullOrWhiteSpace (assetPath)) {
+						var assetImporter = AssetImporter.GetAtPath (assetPath);
+						if (string.IsNullOrWhiteSpace (assetImporter.assetBundleName)) {
+							Debug.LogError ($"No assetbundle name assigned to prefab: {assetPath}\nInstanced from AssetLoader at {scenePath}");
+						} else {
+							assetBundleNames.Add (assetImporter.assetBundleName);
+							if (prepareBuild) {
+								Debug.Log ($"AssetLoader bundleName={assetImporter.assetBundleName} bundleVariant={assetImporter.assetBundleVariant} path={assetPath} at {scenePath}");
+
+								//Set prefab instance tag to EditorOnly, so that the AssetLoader instance can async load and instantiate the prefab
+								var originalTag = prefabInstance.tag;
+								var so = new SerializedObject (prefabInstance);
+								so.FindProperty ("m_TagString").stringValue = "EditorOnly";
+								so.ApplyModifiedPropertiesWithoutUndo ();
+
+								//Store properties for runtime instantiation
+								var originalPosition = prefabInstance.transform.localPosition;
+								var originalRotation = prefabInstance.transform.localRotation;
+								var originalScale = prefabInstance.transform.localScale;
+								so = new SerializedObject (assetLoader);
+								so.FindProperty ("AssetName").stringValue = assetPath;
+								so.FindProperty ("AssetBundleURL").stringValue = $"{GameType}/{assetImporter.assetBundleName}"; //-{assetImporter.assetBundleVariant}";
+								so.FindProperty ("InstanceTag").stringValue = originalTag;
+								so.FindProperty ("InstanceLocalPosition").vector3Value = originalPosition;
+								so.FindProperty ("InstanceLocalRotation").quaternionValue = originalRotation;
+								so.FindProperty ("InstanceLocalScale").vector3Value = originalScale;
+								so.ApplyModifiedPropertiesWithoutUndo ();
+								//assetImporter.SetAssetBundleNameAndVariant (bundleName, string.Empty);
+								//AssetDatabase.GetAssetPathsFromAssetBundle (bundleName)
+							}
+						}
+					}
+				}
+				if (string.IsNullOrWhiteSpace (assetPath)) {
+					Debug.LogError ($"AssetLoader must have one child which is a prefab at {scenePath}");
+				}
+			}
+			Debug.Log ($"Processed {assetLoaders.Count ()} AssetLoaders-- async AssetBundles to build: {assetBundleNames.Count ()}");
+
+			return assetBundleNames.Select (abn => new AssetBundleBuild {
+				assetBundleName = abn,
+				assetNames = AssetDatabase.GetAssetPathsFromAssetBundle (abn),
+			});
+		}
+
+		/// <summary>
 		/// Map of original script guids in mobile sdk runtime. These should NEVER change.
 		/// </summary>
 		static readonly Dictionary<string, string> GuidDict = new Dictionary<string, string> {
@@ -1044,6 +1121,7 @@ namespace CineGameEditor.MobileComponents {
 			{ "AngularPointerComponent.cs", "7814844a3c70f4ceb88a8b90fd1833f2" },
 			{ "AnimationEventListener.cs", "13d77d1e33ee27f428f0d7175a2076b2" },
 			{ "AnimatorParameter.cs", "40fd1fe7494a34ddba76ed6c1897cd53" },
+			{ "AssetLoader.cs", "4ed6f7a1dd7ea423b9a061ff51a46565" },
 			{ "BroadcastMessage.cs", "7142418b7bd0f4de1b62fc28fbcc4c78" },
 			{ "ChoiceComponent.cs", "75ef6897842c3468ea6ec8e9cf6c8f08" },
 			{ "ChoicesComponent.cs", "5a0c36823542b4a3faf55597b502316c" },

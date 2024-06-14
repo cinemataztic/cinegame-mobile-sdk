@@ -102,6 +102,7 @@ namespace CineGame.MobileComponents {
 				Log ($"AssetLoader spawning {AssetName}");
 				var instance = Instantiate (prefab, transform);
 				instance.tag = InstanceTag;
+				instance.layer = gameObject.layer;
 				var t = instance.transform;
 				t.localPosition = InstanceLocalPosition;
 				t.localRotation = InstanceLocalRotation;
@@ -116,7 +117,11 @@ namespace CineGame.MobileComponents {
 			if (transform.childCount == 1) {
 				var prefabInstance = transform.GetChild (0).gameObject;
 				if (UnityEditor.PrefabUtility.IsAnyPrefabInstanceRoot (prefabInstance)) {
-					return;
+					if (prefabInstance.layer == gameObject.layer) {
+						return;
+					} else {
+						LogError ($"AssetLoader prefab instance must be in the same layer as parent");
+					}
 				}
 			}
 			LogError ($"AssetLoader must have one child which is a prefab");
