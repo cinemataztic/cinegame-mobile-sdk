@@ -164,8 +164,9 @@ namespace CineGameEditor.MobileComponents {
 			if (customAttributes.Length > 0) {
 				var myAttribute = customAttributes [0];
 				ReferenceText = myAttribute.Text;
-				ReferenceIcon = new GUIContent (EditorGUIUtility.IconContent ("P4_Conflicted"));
-				ReferenceIcon.tooltip = ReferenceText;
+				ReferenceIcon = new GUIContent (EditorGUIUtility.IconContent ("d_UnityEditor.InspectorWindow")) {
+					tooltip = ReferenceText
+				};
 			}
 		}
 
@@ -173,24 +174,22 @@ namespace CineGameEditor.MobileComponents {
 			if (ReferenceIcon != null) {
 				var rect = EditorGUILayout.GetControlRect (false, 0f);
 				rect.height = EditorGUIUtility.singleLineHeight;
-				rect.x = rect.xMax - 24f;
-				rect.y -= 2f;
+				rect.x = rect.xMax - 18f;
+				rect.y += 2f;
 				rect.width = 24f;
 
 				if (ReferenceButtonStyle == null) {
 					//For some reason EditorStyles cannot be accessed from OnEnable
-					ReferenceButtonStyle = new GUIStyle (EditorStyles.iconButton);
-					ReferenceButtonStyle.padding = new RectOffset (0, 0, 0, 0);
+					ReferenceButtonStyle = new GUIStyle (EditorStyles.iconButton) {
+						padding = new RectOffset (0, 0, 0, 0)
+					};
 				}
 
 				if (GUI.Button (rect, ReferenceIcon, ReferenceButtonStyle)) {
 					ReferenceVisible = !ReferenceVisible;
-					/*rect = GUILayoutUtility.GetLastRect ();
-					rect.y += 24;
-					PopupWindow.Show (rect, new ReferencePopup (target.GetType ().Name, ReferenceText));*/
 				}
 				if (ReferenceVisible) {
-					EditorGUILayout.HelpBox (ReferenceText, MessageType.Info);
+					EditorGUILayout.HelpBox (ReferenceText, MessageType.None);
 			}
 		}
 		}
