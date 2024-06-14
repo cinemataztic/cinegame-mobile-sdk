@@ -103,7 +103,7 @@ namespace CineGame.MobileComponents {
 				foreach (var img in ProfileImages) {
 					if (img != null) {
 						Debug.Log ($"GameProxy: Update profile image sprite {Util.GetObjectScenePath (img.gameObject)} ...");
-						img.overrideSprite = sprite;
+						img.sprite = sprite;
 					} else {
 						Debug.LogWarning ($"Image reference in GameProxy is null: {Util.GetObjectScenePath (gameObject)}");
 					}
