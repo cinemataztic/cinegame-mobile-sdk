@@ -3,7 +3,7 @@ using UnityEngine.Events;
 
 namespace CineGame.MobileComponents {
 
-	[ComponentReference ("Invoke methods with the Source Transform's position, rotation or speed. Continuous or one-shot. Useful for eg setting and updating a NavMeshAgent destination, or updating a speedometer. If no Source is specified, the GameObject's own Transform will be used.")]
+	[ComponentReference ("Invoke methods with the Source Transform's world position, rotation or speed. Continuous or one-shot. Useful for eg setting and updating a NavMeshAgent destination, or updating a speedometer. If no Source is specified, the GameObject's own Transform will be used.")]
 	public class GetTransformProperty : BaseEventComponent {
 
 		public Transform Source;

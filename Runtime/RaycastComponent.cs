@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.EventSystems;
-using UnityEngine.Serialization;
-using UnityEngine.UI;
 
 namespace CineGame.MobileComponents {
 
 	/// <summary>
-	/// Component to proxy parameters or IK values into a specific Animator
+	/// Raycast from screen position (mouse or single touch)
 	/// </summary>
 	[ComponentReference ("Raycast from screen position (mouse or touch)")]
 	public class RaycastComponent : BaseEventComponent {

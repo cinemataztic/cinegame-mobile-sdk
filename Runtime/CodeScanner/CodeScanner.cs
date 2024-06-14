@@ -20,20 +20,20 @@ namespace CineGame.MobileComponents {
         [Tooltip ("Call Scan() from OnEnable")]
         public bool ScanOnEnable;
 
+        [Tooltip ("Choose QR or barcode format")]
+        public BarcodeFormat ValidFormats = BarcodeFormat.QR_CODE;
+
         [Tooltip ("Fired when a QR Code is scanned and validated")]
         public UnityEvent<string> OnRead;
+
+        [Tooltip ("Optional regex validating the scanned code (eg url format, or four digit code)")]
+        public string ValidRegex;
 
         [Tooltip ("Fired when a QR Code is generated")]
         public UnityEvent<Texture> OnWrite;
 
         [Tooltip ("Will request full screen brightness when a code is generated. The brightness will be reset when the component is disabled")]
         public bool FullBrightnessOnWrite;
-
-        [Tooltip ("Optional regex validating the scanned code (eg url format, or four digit code)")]
-        public string ValidRegex;
-
-        [Tooltip ("Choose QR or barcode format")]
-        public BarcodeFormat ValidFormats = BarcodeFormat.QR_CODE;
 
         [Tooltip ("If true, a call to Generate() will result in a transparent texture with white foreground")]
         public bool Transparent;

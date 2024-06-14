@@ -11,7 +11,10 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace CineGame.MobileComponents {
-
+	/// <summary>
+	/// Ask the user to select the row and seat number in a cinema. The rows and seats configuration is received from remote host, and the selected row and seat number will be sent back to the remote host, which will respond with either an Accepted, Rejected or Taken status.")]
+	/// </summary>
+	[ComponentReference ("Ask the user to select the row and seat number in a cinema. The rows and seats configuration is received from remote host, and the selected row and seat number will be sent back to the remote host, which will respond with either an Accepted, Rejected or Taken status.")]
 	public class SeatComponent : ReplicatedComponent {
 
 		public Dropdown RowDropdown;

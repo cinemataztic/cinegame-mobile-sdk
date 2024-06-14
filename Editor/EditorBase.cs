@@ -14,10 +14,19 @@ namespace CineGameEditor.MobileComponents {
     [CanEditMultipleObjects]
 	public class EventEditorBase : EditorBase {
 		SerializedProperty EventMaskProperty;
-		List<GUIContent> EventTypes = new List<GUIContent> ();
+		readonly List<GUIContent> EventTypes = new ();
 
 		GUIContent IconToolbarMinus;
 		GUIContent AddButonContent;
+
+		//Persistent Listener Paths
+		//internal const string kInstancePath = "m_Target";
+		//internal const string kInstanceTypePath = "m_TargetAssemblyTypeName";
+		//internal const string kCallStatePath = "m_CallState";
+		//internal const string kArgumentsPath = "m_Arguments";
+		//internal const string kModePath = "m_Mode";
+		//internal const string kMethodNamePath = "m_MethodName";
+		internal const string kCallsPath = "m_PersistentCalls.m_Calls";
 
 		protected override void OnEnable () {
 			base.OnEnable ();
@@ -25,11 +34,12 @@ namespace CineGameEditor.MobileComponents {
             EventMaskProperty = serializedObject.FindProperty ("eventMask");
 			AddButonContent = new GUIContent ("Add New Event Type");
 			// Have to create a copy since otherwise the tooltip will be overwritten.
-			IconToolbarMinus = new GUIContent (EditorGUIUtility.IconContent ("Toolbar Minus"));
-			IconToolbarMinus.tooltip = "Remove all listeners on this event";
+			IconToolbarMinus = new GUIContent (EditorGUIUtility.IconContent ("Toolbar Minus")) {
+				tooltip = "Remove all listeners on this event"
+			};
 
-            // Find all event properties and make sure they are expanded if they have listeners
-            var eventMask = EventMaskProperty.intValue;
+			// Find all event properties and make sure they are expanded if they have listeners
+			var eventMask = EventMaskProperty.intValue;
 
 			var obj = serializedObject.GetIterator ();
 			if (obj.NextVisible (true)) {
@@ -38,7 +48,7 @@ namespace CineGameEditor.MobileComponents {
 					if (obj.propertyType == SerializedPropertyType.Generic && obj.FindPropertyRelative ("m_PersistentCalls") != null) {
 						EventTypes.Add (new GUIContent (obj.displayName));
 
-						if ((eventMask & 1 << idxOfEvent) == 0 && obj.FindPropertyRelative ("m_PersistentCalls").FindPropertyRelative ("m_Calls").arraySize != 0) {
+						if ((eventMask & 1 << idxOfEvent) == 0 && obj.FindPropertyRelative (kCallsPath).arraySize != 0) {
 							EventMaskProperty.intValue |= 1 << idxOfEvent;
 						}
 
@@ -76,16 +86,16 @@ namespace CineGameEditor.MobileComponents {
 							EditorGUILayout.PropertyField (obj);
 
                             Rect callbackRect = GUILayoutUtility.GetLastRect ();
-							Rect removeButtonPos = new Rect (callbackRect.xMax - removeButtonSize.x - 8, callbackRect.y + 1, removeButtonSize.x, removeButtonSize.y);
+							Rect removeButtonPos = new (callbackRect.xMax - removeButtonSize.x - 8, callbackRect.y + 1, removeButtonSize.x, removeButtonSize.y);
 							if (GUI.Button (removeButtonPos, IconToolbarMinus, GUIStyle.none)) {
 								EventMaskProperty.intValue ^= 1 << idxOfEvent;
-								obj.FindPropertyRelative ("m_PersistentCalls").FindPropertyRelative ("m_Calls").arraySize = 0;
+								obj.FindPropertyRelative (kCallsPath).arraySize = 0;
 							}
 						}
 						idxOfEvent++;
 					} else {
                         EditorGUILayout.PropertyField (obj, true);
-						Highlighter.HighlightIdentifier (GUILayoutUtility.GetLastRect (), $"{instanceID}.{obj.propertyPath}");
+						//Highlighter.HighlightIdentifier (GUILayoutUtility.GetLastRect (), $"{instanceID}.{obj.propertyPath}");
 					}
 				} while (obj.NextVisible (false));
 			}
@@ -94,7 +104,7 @@ namespace CineGameEditor.MobileComponents {
 				EditorGUILayout.Space ();
 				Rect btPosition = GUILayoutUtility.GetRect (AddButonContent, GUI.skin.button);
 				const float addButonWidth = 200f;
-				btPosition.x = btPosition.x + (btPosition.width - addButonWidth) / 2;
+				btPosition.x += (btPosition.width - addButonWidth) / 2;
 				btPosition.width = addButonWidth;
 				if (GUI.Button (btPosition, AddButonContent)) {
 					ShowAddTriggermenu ();
@@ -108,7 +118,7 @@ namespace CineGameEditor.MobileComponents {
 			var eventMask = EventMaskProperty.intValue;
 
 			// Now create the menu, add items and show it
-			GenericMenu menu = new GenericMenu ();
+			var menu = new GenericMenu ();
 			for (int i = 0; i < EventTypes.Count; ++i) {
 				bool active = true;
 
@@ -190,8 +200,8 @@ namespace CineGameEditor.MobileComponents {
 				}
 				if (ReferenceVisible) {
 					EditorGUILayout.HelpBox (ReferenceText, MessageType.None);
+				}
 			}
-		}
 		}
 	}
 
@@ -206,7 +216,7 @@ namespace CineGameEditor.MobileComponents {
 
 			DrawReferenceButton ();
 
-			var instanceID = serializedObject.targetObject.GetInstanceID ();
+			//var instanceID = serializedObject.targetObject.GetInstanceID ();
 
 			var obj = serializedObject.GetIterator ();
 			if (obj.NextVisible (true)) {
@@ -214,7 +224,7 @@ namespace CineGameEditor.MobileComponents {
 					if (obj.name == "m_Script")
 						continue;
 					EditorGUILayout.PropertyField (obj, true);
-					Highlighter.HighlightIdentifier (GUILayoutUtility.GetLastRect (), $"{instanceID}.{obj.propertyPath}");
+					//Highlighter.HighlightIdentifier (GUILayoutUtility.GetLastRect (), $"{instanceID}.{obj.propertyPath}");
 				} while (obj.NextVisible (false));
 			}
 
