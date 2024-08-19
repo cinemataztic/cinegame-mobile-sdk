@@ -23,17 +23,17 @@ namespace CineGame.MobileComponents {
 
 		public CompareFunction Function = CompareFunction.Value;
 
-		[Header ("Compare distance or dotproduct relative to this transform")]
+		[Tooltip ("Compare distance or dotproduct relative to this transform")]
 		public Transform Other;
 
-		[Header ("Value can be Set, Added, Subtracted, Multiplied or Divided")]
+		[Tooltip ("Value can be Set, Added, Subtracted, Multiplied or Divided")]
 		public float Value;
 
-		[Header ("Whether event should fire every update or only when crossing a threshold")]
+		[Tooltip ("Whether event should fire every update or only when crossing a threshold")]
 		public bool Continuous = false;
 
 		[Space]
-		[Header ("Format string to invoke OnUpdateString with")]
+		[Tooltip ("Format string to invoke OnUpdateString with")]
 		[FormerlySerializedAs ("Format")]
 		public string StringFormat = "{0:#}";
 
@@ -41,7 +41,7 @@ namespace CineGame.MobileComponents {
 		public UnityEvent<string> OnUpdateString;
 
 		[Space]
-		[Tooltip ("Invoked when the value is below the minimum thresholds. If no thresholds are defined, this will always be invoked when Value changes.")]
+		[Tooltip ("Invoked when the value is below the minimum threshold. If no thresholds are defined, this will always be invoked when Value changes.")]
 		public UnityEvent<float> OnBelow;
 
 		[Serializable]
@@ -75,6 +75,24 @@ namespace CineGame.MobileComponents {
 		}
 
 		/// <summary>
+		/// Update the current value to a constant. If a threshold is passed, trigger the appropriate event
+		/// </summary>
+		public void SetValue (int v) {
+			//Log ($"LogicComponent.SetValue ({v})");
+			Value = v;
+			FireEvent ();
+		}
+
+		/// <summary>
+		/// Update the current value to a constant (bool true=1, false=0). If a threshold is passed, trigger the appropriate event
+		/// </summary>
+		public void SetValue (bool v) {
+			//Log ($"LogicComponent.SetValue ({v})");
+			Value = v ? 1 : 0;
+			FireEvent ();
+		}
+
+		/// <summary>
 		/// Set the 'Other' parameter which is used to compare relative position and line-of-sight
 		/// </summary>
 		public void SetOther (Transform t) {
@@ -83,7 +101,7 @@ namespace CineGame.MobileComponents {
 		}
 
 		/// <summary>
-		/// Add a constant to the current value. If a threshold is passed, trigger the appropriate event
+		/// Add to the current value. If a threshold is passed, trigger the appropriate event
 		/// </summary>
 		public void Add (float v) {
 			Log ($"LogicComponent.Add ({v})");
@@ -92,7 +110,16 @@ namespace CineGame.MobileComponents {
 		}
 
 		/// <summary>
-		/// Subtract a constant from the current value. If a threshold is passed, trigger the appropriate event
+		/// Add an integer to the current value. If a threshold is passed, trigger the appropriate event
+		/// </summary>
+		public void Add (int v) {
+			Log ($"LogicComponent.Add ({v})");
+			Value += v;
+			FireEvent ();
+		}
+
+		/// <summary>
+		/// Subtract from the current value. If a threshold is passed, trigger the appropriate event
 		/// </summary>
 		public void Subtract (float v) {
 			Log ($"LogicComponent.Subtract ({v})");
@@ -101,7 +128,16 @@ namespace CineGame.MobileComponents {
 		}
 
 		/// <summary>
-		/// Multiply the current value by a constant. If a threshold is passed, trigger the appropriate event
+		/// Subtract an integer from the current value. If a threshold is passed, trigger the appropriate event
+		/// </summary>
+		public void Subtract (int v) {
+			Log ($"LogicComponent.Subtract ({v})");
+			Value -= v;
+			FireEvent ();
+		}
+
+		/// <summary>
+		/// Multiply the current value. If a threshold is passed, trigger the appropriate event
 		/// </summary>
 		public void Multiply (float v) {
 			Log ($"LogicComponent.Multiply ({v})");
@@ -110,11 +146,61 @@ namespace CineGame.MobileComponents {
 		}
 
 		/// <summary>
-		/// Divide the current value by a constant. If a threshold is passed, trigger the appropriate event
+		/// Multiply the current value by an integer. If a threshold is passed, trigger the appropriate event
+		/// </summary>
+		public void Multiply (int v) {
+			Log ($"LogicComponent.Multiply ({v})");
+			Value *= v;
+			FireEvent ();
+		}
+
+		/// <summary>
+		/// Divide the current value. If a threshold is passed, trigger the appropriate event
 		/// </summary>
 		public void Divide (float v) {
 			Log ($"LogicComponent.Divide ({v})");
 			Value /= v;
+			FireEvent ();
+		}
+
+		/// <summary>
+		/// Divide the current value by an integer. If a threshold is passed, trigger the appropriate event
+		/// </summary>
+		public void Divide (int v) {
+			Log ($"LogicComponent.Divide ({v})");
+			Value /= v;
+			FireEvent ();
+		}
+
+		/// <summary>
+		/// Logic AND the clamped value [0:1] with a constant bool. If a threshold is passed, trigger the appropriate event
+		/// </summary>
+		public void And (bool v) {
+			Log ($"LogicComponent.And ({v})");
+			if (Value < 0 || !v) Value = 0;
+			else if (Value > 1) Value = 1;
+			FireEvent ();
+		}
+
+		/// <summary>
+		/// Logic OR the clamped value [0:1] with a constant bool. If a threshold is passed, trigger the appropriate event
+		/// </summary>
+		public void Or (bool v) {
+			Log ($"LogicComponent.Or ({v})");
+			if (Value < 0) Value = 0;
+			if (v) Value += 1;
+			if (Value > 1) Value = 1;
+			FireEvent ();
+		}
+
+		/// <summary>
+		/// Logic XOR the clamped value [0:1] with a constant bool. If a threshold is passed, trigger the appropriate event
+		/// </summary>
+		public void Xor (bool v) {
+			Log ($"LogicComponent.Xor ({v})");
+			if (Value < 0) Value = 0;
+			if (v) Value += 1;
+			if (Value > 1) Value = 0;
 			FireEvent ();
 		}
 
