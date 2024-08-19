@@ -3,12 +3,16 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace CineGame.MobileComponents {
-    [ComponentReference ("Pinch zoom and pan a UI element. On non-multitouch platforms the mouse wheel is used for zooming.\n\nWhen Crop method is invoked, it will invoke the OnCrop event with the UV Rect of the parent (crop area) inside the child (content). This can be used for setting the uvRect on a RawImage.")]
+    [ComponentReference ("Pinch zoom and pan a child UI element inside a parent rect (crop area). On non-multitouch platforms the mouse wheel is used for zooming.\n\nWhen Crop method is invoked, it will invoke the OnCropUV event with the UV Rect of the crop area. This can be used for setting the uvRect on a RawImage. If the OnCropTexture event has any listeners, and the content is a UI Image or RawImage, a Texture2D cropped to the same area will be created and sent to these listeners")]
     public class PinchZoomAndPan : BaseComponent {
         [SerializeField] float _minZoom = .1f;
         [SerializeField] float _maxZoom = 10;
         [SerializeField] RectTransform content;
+
+        [Tooltip ("Invoked with the UV Rect of the crop area")]
         [SerializeField] UnityEvent<Rect> OnCropUV;
+
+        [Tooltip ("Invoked with a new Texture2D of the cropped area")]
         [SerializeField] UnityEvent<Texture2D> OnCropTexture;
 
         bool _isPinching;
