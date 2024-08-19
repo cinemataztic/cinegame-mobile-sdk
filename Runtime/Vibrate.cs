@@ -78,9 +78,9 @@ namespace CineGame.MobileComponents {
 		}
 
 		/// <summary>
-		/// Play a haptic transient feedback effect
+		/// Play a haptic transient feedback effect. If string is empty just plays a VIRTUAL_KEY
 		/// </summary>
-		public void PlayHapticTransient (Util.HapticFeedbackConstants feedbackConstant) {
+		public void PlayHapticTransient (string feedbackConstant) {
 			Log ("Vibrate.PlayHapticTransient " + feedbackConstant);
 			Util.PerformHapticFeedback (feedbackConstant);
 		}

@@ -601,6 +601,16 @@ namespace CineGame.MobileComponents {
 		}
 
 		/// <summary>
+		/// Play a haptic feedback effect (parse string)
+		/// </summary>
+		public static void PerformHapticFeedback (string feedbackConstant) {
+			if (!Enum.TryParse (feedbackConstant, out HapticFeedbackConstants fc)) {
+				fc = HapticFeedbackConstants.VIRTUAL_KEY;
+			}
+			OnPlayHapticFeedback?.Invoke (fc);
+		}
+
+		/// <summary>
 		/// Play a haptic feedback effect
 		/// </summary>
 		public static void PerformHapticFeedback (HapticFeedbackConstants feedbackConstant) {
