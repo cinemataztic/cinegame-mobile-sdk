@@ -34,6 +34,7 @@ namespace CineGameEditor.MobileComponents {
 					} else if (obj.name != "m_Script"
 						&& !(isValueFunction && obj.name == "Other")
 						&& !(!isValueFunction && obj.name == "Value")
+						&& !(function != LogicComponent.CompareFunction.LineOfSight && obj.name == "LayerMask")
 					) {
 						EditorGUILayout.PropertyField (obj, true);
 					}

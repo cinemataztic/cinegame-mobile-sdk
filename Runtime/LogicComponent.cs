@@ -24,6 +24,9 @@ namespace CineGame.MobileComponents {
 
 		public CompareFunction Function = CompareFunction.Value;
 
+		[Tooltip ("Layers to intersect with during LineOfSight check")]
+		public LayerMask LayerMask = -1;
+
 		[Tooltip ("Compare distance or dotproduct relative to this transform")]
 		public Transform Other;
 
@@ -261,7 +264,7 @@ namespace CineGame.MobileComponents {
 			if (Physics.Raycast (new Ray (
 				thisPosition,
 				(otherPosition - thisPosition).normalized
-			), out RaycastHit hit, 100, -1)) {
+			), out RaycastHit hit, l, LayerMask)) {
 				if (Other == hit.collider.transform || Other.IsChildOf (hit.collider.transform)) {
 					DrawLine (thisPosition, hit.point, Color.green);
 					return 1f;
