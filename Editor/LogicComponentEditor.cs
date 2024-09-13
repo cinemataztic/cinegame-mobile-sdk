@@ -36,15 +36,20 @@ namespace CineGameEditor.MobileComponents {
 						if (!isValueFunction)
 							continue;
 						if (EditorGUI.EndChangeCheck () || compTypes == null) {
+							Component comp = null;
 							if (obj.objectReferenceValue is GameObject go) {
 								go.GetComponents (compList);
 							} else if (obj.objectReferenceValue is Component c) {
 								c.GetComponents (compList);
+								comp = c;
 							}
 							compTypes = compList.Count != 0 ? compList.Select (c => c.GetType ().Name).ToArray () : null;
-							compTypeIndex = 0;
-							memberNames = compList.Count != 0 ? GetValueMemberNames (compList.ElementAt (0)) : null;
-							fieldIndex = 0;
+							compTypeIndex = comp != null ? Mathf.Max (0, ArrayUtility.IndexOf (compTypes, comp.GetType ().Name)) : 0;
+							memberNames = compList.Count != 0 ? GetValueMemberNames (compList.ElementAt (compTypeIndex)) : null;
+							if (memberNames != null) {
+								var fieldName = serializedObject.FindProperty ("SourceMemberName").stringValue;
+								fieldIndex = Mathf.Max (0, ArrayUtility.IndexOf (memberNames, fieldName));
+							}
 						}
 						if (compTypes != null) {
 							EditorGUILayout.BeginHorizontal ();
