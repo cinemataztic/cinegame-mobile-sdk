@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
@@ -27,11 +28,13 @@ namespace CineGame.MobileComponents {
 		[Tooltip ("Layers to intersect with during LineOfSight check")]
 		public LayerMask LayerMask = -1;
 
+		[Tooltip ("The source object to compare position, orientation or values from")]
+		public UnityEngine.Object SourceObject;
+		public string SourceMemberName;
+
 		[Tooltip ("Compare distance or dotproduct relative to this transform")]
 		public Transform Other;
 
-		[Tooltip ("Value can be Set, Added, Subtracted, Multiplied or Divided")]
-		public float Value;
 		[Tooltip ("How often to update. 0=every frame (can be expensive)")]
 		public float Interval;
 
@@ -66,6 +69,19 @@ namespace CineGame.MobileComponents {
 
 		int CurrentThresholdIndex = int.MinValue;
 
+		float _value;
+		Transform sourceTransform;
+
+		FieldInfo SourceFieldInfo;
+		PropertyInfo SourcePropertyInfo;
+		enum SourceType {
+			Void,
+			Boolean,
+			Integer,
+			Float,
+		};
+		SourceType sourceType;
+
 		float _nextUpdateTime;
 
 		public void Start () {
@@ -73,6 +89,45 @@ namespace CineGame.MobileComponents {
 
 			Thresholds.Sort ();
 			UpdateString ();
+
+			if (Function != CompareFunction.Value) {
+				sourceTransform = SourceObject != null ? SourceObject as Transform : transform;
+			}
+
+			if (SourceObject != null && !string.IsNullOrWhiteSpace (SourceMemberName)) {
+				string sourceTypeString;
+				SourceFieldInfo = SourceObject.GetType ().GetField (SourceMemberName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
+				if (SourceFieldInfo != null) {
+					sourceTypeString = SourceFieldInfo.FieldType.ToString ();
+				} else {
+					SourcePropertyInfo = SourceObject.GetType ().GetProperty (SourceMemberName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
+					sourceTypeString = SourcePropertyInfo.PropertyType.ToString ();
+				}
+				sourceType = sourceTypeString switch {
+					"System.Boolean" => SourceType.Boolean,
+					"System.Integer" => SourceType.Integer,
+					"System.Single" => SourceType.Float,
+					_ => SourceType.Void
+				};
+			}
+		}
+
+		/// <summary>
+		/// Set the 'Other' transform used to compare relative position, angles and line-of-sight
+		/// </summary>
+		public void SetOther (Component c) {
+			Log ($"LogicComponent.SetOther ({c.gameObject.GetScenePath ()})");
+			Other = c.transform;
+			FireEvent ();
+		}
+
+		/// <summary>
+		/// Set the 'Other' transform used to compare relative position, angles and line-of-sight
+		/// </summary>
+		public void SetOther (GameObject go) {
+			Log($"LogicComponent.SetOther ({go.GetScenePath ()})");
+			Other = go.transform;
+			FireEvent ();
 		}
 
 		/// <summary>
@@ -80,7 +135,7 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public void SetValue (float v) {
 			//Log ($"LogicComponent.SetValue ({v})");
-			Value = v;
+			_value = v;
 			FireEvent ();
 		}
 
@@ -89,7 +144,7 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public void SetValue (int v) {
 			//Log ($"LogicComponent.SetValue ({v})");
-			Value = v;
+			_value = v;
 			FireEvent ();
 		}
 
@@ -98,16 +153,8 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public void SetValue (bool v) {
 			//Log ($"LogicComponent.SetValue ({v})");
-			Value = v ? 1 : 0;
+			_value = v ? 1f : 0f;
 			FireEvent ();
-		}
-
-		/// <summary>
-		/// Set the 'Other' parameter which is used to compare relative position and line-of-sight
-		/// </summary>
-		public void SetOther (Transform t) {
-			Log ($"LogicComponent.SetOther ({t.gameObject.GetScenePath ()})");
-			Other = t;
 		}
 
 		/// <summary>
@@ -115,7 +162,7 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public void Add (float v) {
 			Log ($"LogicComponent.Add ({v})");
-			Value += v;
+			_value += v;
 			FireEvent ();
 		}
 
@@ -124,7 +171,7 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public void Add (int v) {
 			Log ($"LogicComponent.Add ({v})");
-			Value += v;
+			_value += v;
 			FireEvent ();
 		}
 
@@ -133,7 +180,7 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public void Subtract (float v) {
 			Log ($"LogicComponent.Subtract ({v})");
-			Value -= v;
+			_value -= v;
 			FireEvent ();
 		}
 
@@ -142,7 +189,7 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public void Subtract (int v) {
 			Log ($"LogicComponent.Subtract ({v})");
-			Value -= v;
+			_value -= v;
 			FireEvent ();
 		}
 
@@ -151,7 +198,7 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public void Multiply (float v) {
 			Log ($"LogicComponent.Multiply ({v})");
-			Value *= v;
+			_value *= v;
 			FireEvent ();
 		}
 
@@ -160,7 +207,7 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public void Multiply (int v) {
 			Log ($"LogicComponent.Multiply ({v})");
-			Value *= v;
+			_value *= v;
 			FireEvent ();
 		}
 
@@ -169,7 +216,7 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public void Divide (float v) {
 			Log ($"LogicComponent.Divide ({v})");
-			Value /= v;
+			_value /= v;
 			FireEvent ();
 		}
 
@@ -178,7 +225,7 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public void Divide (int v) {
 			Log ($"LogicComponent.Divide ({v})");
-			Value /= v;
+			_value /= v;
 			FireEvent ();
 		}
 
@@ -187,8 +234,8 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public void And (bool v) {
 			Log ($"LogicComponent.And ({v})");
-			if (Value < 0 || !v) Value = 0;
-			else if (Value > 1) Value = 1;
+			if (_value < 0 || !v) _value = 0;
+			else if (_value > 1) _value = 1;
 			FireEvent ();
 		}
 
@@ -197,9 +244,9 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public void Or (bool v) {
 			Log ($"LogicComponent.Or ({v})");
-			if (Value < 0) Value = 0;
-			if (v) Value += 1;
-			if (Value > 1) Value = 1;
+			if (_value < 0) _value = 0;
+			if (v) _value += 1;
+			if (_value > 1) _value = 1;
 			FireEvent ();
 		}
 
@@ -208,9 +255,9 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public void Xor (bool v) {
 			Log ($"LogicComponent.Xor ({v})");
-			if (Value < 0) Value = 0;
-			if (v) Value += 1;
-			if (Value > 1) Value = 0;
+			if (_value < 0) _value = 0;
+			if (v) _value += 1;
+			if (_value > 1) _value = 0;
 			FireEvent ();
 		}
 
@@ -229,7 +276,7 @@ namespace CineGame.MobileComponents {
 			UpdateString ();
 			int thresholdIndex = -1;
 			foreach (var threshold in Thresholds) {
-				if (Value < threshold.Value) {
+				if (_value < threshold.Value) {
 					break;
 				}
 				thresholdIndex++;
@@ -237,13 +284,13 @@ namespace CineGame.MobileComponents {
 			if (!Continuous && thresholdIndex == CurrentThresholdIndex)
 				return;
 			if (thresholdIndex == -1) {
-				Log ($"LogicComponent.OnBelow Value={Value}\n{Util.GetEventPersistentListenersInfo (OnBelow)}");
+				Log ($"LogicComponent.OnBelow Value={_value}\n{Util.GetEventPersistentListenersInfo (OnBelow)}");
 				//DrawListenersLines (OnBelow, Color.yellow);
-				OnBelow.Invoke (Value);
+				OnBelow.Invoke (_value);
 			} else {
-				Log ($"LogicComponent.Thresholds [{thresholdIndex}].OnAbove Value={Value}\n{Util.GetEventPersistentListenersInfo (Thresholds [thresholdIndex].OnAbove)}");
+				Log ($"LogicComponent.Thresholds [{thresholdIndex}].OnAbove Value={_value}\n{Util.GetEventPersistentListenersInfo (Thresholds [thresholdIndex].OnAbove)}");
                 //DrawListenersLines (Thresholds [thresholdIndex].OnAbove, Color.yellow);
-                Thresholds [thresholdIndex].OnAbove.Invoke (Value);
+                Thresholds [thresholdIndex].OnAbove.Invoke (_value);
 			}
 			CurrentThresholdIndex = thresholdIndex;
 		}
@@ -251,57 +298,79 @@ namespace CineGame.MobileComponents {
 		void UpdateString () {
 			if (!string.IsNullOrWhiteSpace (StringFormat)) {
 				var fmt = StringFormat;
-				if ((int)Value == 0 && fmt.Contains ("{0:#}", System.StringComparison.InvariantCultureIgnoreCase)) {
+				if ((int)_value == 0 && fmt.Contains ("{0:#}", StringComparison.InvariantCultureIgnoreCase)) {
 					fmt = fmt.Replace ("{0:#}", "0");
 				}
-				var str = string.Format (fmt, Value);
+				var str = string.Format (fmt, _value);
 				//Log ($"LogicComponent.OnUpdateString \"{str}\"\n{Util.GetEventPersistentListenersInfo (OnUpdateString)}");
 				OnUpdateString?.Invoke (str);
 			}
 		}
 
 		/// <summary>
-		/// Returns 1f if a raycast from this transform's position to Other's position results in a hit on a Collider which contains Other's position.
+		/// Returns 1f if a raycast from sourceTransform's position to Other's position results in a hit on a Collider which contains Other's position.
 		/// Otherwise returns 0f.
 		/// </summary>
 		float Raycast () {
-			var thisPosition = transform.position;
-			var otherPosition = Other.position;
+			var sourcePosition = sourceTransform.position;
+			var delta = Other.position - sourcePosition;
+			var l = delta.magnitude;
+			var dir = new Vector3 (delta.x / l, delta.y / l, delta.z / l);
 			if (Physics.Raycast (new Ray (
-				thisPosition,
-				(otherPosition - thisPosition).normalized
+				sourcePosition,
+				dir
 			), out RaycastHit hit, l, LayerMask)) {
 				if (Other == hit.collider.transform || Other.IsChildOf (hit.collider.transform)) {
-					DrawLine (thisPosition, hit.point, Color.green);
+					DrawLine (sourcePosition, hit.point, Color.green);
 					return 1f;
 				}
-                DrawLine (thisPosition, hit.point, Color.red);
+                DrawLine (sourcePosition, hit.point, Color.red);
             }
             return 0f;
 		}
 
 		void Update () {
-			if (Function != CompareFunction.Value && Other != null) {
 			var _time = Time.time;
 			if (_nextUpdateTime > _time)
 				return;
 			_nextUpdateTime = _time + Interval;
 
+			if (Function == CompareFunction.Value) {
+				if (SourceFieldInfo != null) {
+					var _v = SourceFieldInfo.GetValue (SourceObject);
+					_value = sourceType switch {
+						SourceType.Boolean => (bool)_v ? 1f : 0f,
+						SourceType.Integer => (int)_v,
+						SourceType.Float => (float)_v,
+						_ => 0
+					};
+					FireEvent ();
+				} else if (SourcePropertyInfo != null) {
+					var _v = SourcePropertyInfo.GetValue (SourceObject);
+					_value = sourceType switch {
+						SourceType.Boolean => (bool)_v ? 1f : 0f,
+						SourceType.Integer => (int)_v,
+						SourceType.Float => (float)_v,
+						_ => 0
+					};
+					FireEvent ();
+				}
+			} else if (Other != null) {
 				switch (Function) {
 				case CompareFunction.Distance:
-					Value = (Other.position - transform.position).magnitude;
+					_value = (Other.position - sourceTransform.position).magnitude;
 					break;
 				case CompareFunction.RightLeft:
-					Value = Vector3.Dot (transform.right, (Other.position - transform.position).normalized);
+					_value = Vector3.Dot (sourceTransform.right, (Other.position - sourceTransform.position).normalized);
 					break;
 				case CompareFunction.UpDown:
-					Value = Vector3.Dot (transform.up, (Other.position - transform.position).normalized);
+					_value = Vector3.Dot (sourceTransform.up, (Other.position - sourceTransform.position).normalized);
 					break;
 				case CompareFunction.FrontBack:
-					Value = Vector3.Dot (transform.forward, (Other.position - transform.position).normalized);
+					_value = Vector3.Dot (sourceTransform.forward, (Other.position - sourceTransform.position).normalized);
 					break;
 				case CompareFunction.LineOfSight:
-					Value = Raycast ();
+					_value = Raycast ();
 					break;
 				case CompareFunction.Angle:
 					_value = Vector3.Angle (sourceTransform.forward, Other.forward);
