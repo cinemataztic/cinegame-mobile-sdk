@@ -32,8 +32,10 @@ namespace CineGame.MobileComponents {
 
 		[Tooltip ("Value can be Set, Added, Subtracted, Multiplied or Divided")]
 		public float Value;
+		[Tooltip ("How often to update. 0=every frame (can be expensive)")]
+		public float Interval;
 
-		[Tooltip ("Whether event should fire every update or only when crossing a threshold")]
+		[Tooltip ("Whether event should fire every interval or only when crossing a threshold")]
 		public bool Continuous = false;
 
 		[Space]
@@ -45,7 +47,7 @@ namespace CineGame.MobileComponents {
 		public UnityEvent<string> OnUpdateString;
 
 		[Space]
-		[Tooltip ("Invoked when the value is below the minimum threshold. If no thresholds are defined, this will always be invoked when Value changes.")]
+		[Tooltip ("Invoked when the value is below the minimum thresholds. If no thresholds are defined, this will always be invoked when Value changes.")]
 		public UnityEvent<float> OnBelow;
 
 		[Serializable]
@@ -64,7 +66,11 @@ namespace CineGame.MobileComponents {
 
 		int CurrentThresholdIndex = int.MinValue;
 
+		float _nextUpdateTime;
+
 		public void Start () {
+			_nextUpdateTime = Time.time + UnityEngine.Random.Range(0f, Interval);
+
 			Thresholds.Sort ();
 			UpdateString ();
 		}
@@ -276,6 +282,11 @@ namespace CineGame.MobileComponents {
 
 		void Update () {
 			if (Function != CompareFunction.Value && Other != null) {
+			var _time = Time.time;
+			if (_nextUpdateTime > _time)
+				return;
+			_nextUpdateTime = _time + Interval;
+
 				switch (Function) {
 				case CompareFunction.Distance:
 					Value = (Other.position - transform.position).magnitude;
