@@ -7,9 +7,9 @@ using UnityEngine.Serialization;
 namespace CineGame.MobileComponents {
 
 	/// <summary>
-	/// Choice component, to reside inside a ChoicesComponent container.
+	/// Compare values, distance, dot products, line-of-sight or angles and trigger events/actions based on these. You can perform simple arithmetic operations (Add, Subtract, Multiply, Divide) and specify whether the events should fire continuously at intervals or only when passing a threshold. If SourceObject is not specified, then this objec'ts transform is used for spatial comparisons.
 	/// </summary>
-	[ComponentReference ("Compare values, distance, line-of-sight or angles and trigger events/actions based on these. You can perform simple arithmetic operations (Add, Subtract, Multiply, Divide) and specify whether the events should fire continuously each frame or only when passing a threshold.")]
+	[ComponentReference ("Compare values, distance, line-of-sight or angles and trigger events/actions based on these. You can perform simple arithmetic operations (Add, Subtract, Multiply, Divide) and specify whether the events should fire continuously at intervals or only when passing a threshold. If SourceObject is not specified, then this transform is used for spatial comparisons.")]
 	public class LogicComponent : BaseComponent {
 
 		public enum CompareFunction {
@@ -19,6 +19,7 @@ namespace CineGame.MobileComponents {
 			UpDown,
 			FrontBack,
 			LineOfSight,
+			Angle,
 		}
 
 		public CompareFunction Function = CompareFunction.Value;
@@ -287,6 +288,9 @@ namespace CineGame.MobileComponents {
 					break;
 				case CompareFunction.LineOfSight:
 					Value = Raycast ();
+					break;
+				case CompareFunction.Angle:
+					_value = Vector3.Angle (sourceTransform.forward, Other.forward);
 					break;
 				}
 				FireEvent ();
