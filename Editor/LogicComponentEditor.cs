@@ -14,9 +14,9 @@ namespace CineGameEditor.MobileComponents {
 
 		readonly List<Component> compList = new ();
 		string [] compTypes;
-		int compTypeIndex, fieldIndex;
 		string [] memberNames;
-		GUIContent sourceMemberContent = new GUIContent ("Source Member", "The field or property to get value from every Interval");
+        readonly GUIContent SourceMemberContent = new ("Source Property", "Property or field to get value from every Interval");
+        readonly GUIContent DropdownButtonContent = new ();
 
 		public override void OnInspectorGUI () {
 			// Update the serializedProperty - always do this in the beginning of OnInspectorGUI.
@@ -42,31 +42,29 @@ namespace CineGameEditor.MobileComponents {
 							} else if (obj.objectReferenceValue is Component c) {
 								c.GetComponents (compList);
 								comp = c;
+							} else {
+								compList.Clear ();
 							}
 							compTypes = compList.Count != 0 ? compList.Select (c => c.GetType ().Name).ToArray () : null;
-							compTypeIndex = comp != null ? Mathf.Max (0, ArrayUtility.IndexOf (compTypes, comp.GetType ().Name)) : 0;
+							var compTypeIndex = comp != null ? Mathf.Max (0, ArrayUtility.IndexOf (compTypes, comp.GetType ().Name)) : 0;
 							memberNames = compList.Count != 0 ? GetValueMemberNames (compList.ElementAt (compTypeIndex)) : null;
 							if (memberNames != null) {
 								var fieldName = serializedObject.FindProperty ("SourceMemberName").stringValue;
-								fieldIndex = Mathf.Max (0, ArrayUtility.IndexOf (memberNames, fieldName));
+								if (memberNames.Contains (fieldName)) {
+									DropdownButtonContent.text = compTypes [compTypeIndex] + "." + fieldName;
+								} else {
+									DropdownButtonContent.text = $"<Missing {fieldName}>";
+								}
+							} else {
+								DropdownButtonContent.text = "-";
 							}
 						}
 						if (compTypes != null) {
 							EditorGUILayout.BeginHorizontal ();
-							var cti = EditorGUILayout.Popup (sourceMemberContent, compTypeIndex, compTypes);
-							if (cti != compTypeIndex) {
-								compTypeIndex = cti;
-								var c = compList.ElementAt (compTypeIndex);
-								obj.objectReferenceValue = c;
-								memberNames = GetValueMemberNames (c);
-								fieldIndex = 0;
-							}
-							if (memberNames != null) {
-								var fi = EditorGUILayout.Popup (fieldIndex, memberNames);
-								if (fi != fieldIndex) {
-									fieldIndex = fi;
-									serializedObject.FindProperty ("SourceMemberName").stringValue = memberNames [fieldIndex];
-								}
+							EditorGUILayout.PrefixLabel (SourceMemberContent);
+							if (EditorGUILayout.DropdownButton (DropdownButtonContent, FocusType.Passive, EditorStyles.popup)) {
+								var menu = BuildMenu (compList);
+								menu.DropDown (GUILayoutUtility.GetLastRect ());
 							}
 							EditorGUILayout.EndHorizontal ();
 						}
@@ -95,26 +93,101 @@ namespace CineGameEditor.MobileComponents {
 			serializedObject.ApplyModifiedProperties ();
 		}
 
+		GenericMenu BuildMenu (List<Component> components) {
+			var menu = new GenericMenu ();
+			var _b = typeof (bool);
+			var _i = typeof (int);
+			var _f = typeof (float);
+			var _d = typeof (double);
+			foreach (var c in components) {
+				var cType = c.GetType ();
+				var cName = cType.Name;
+				var props = cType.GetProperties (BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
+				var fields = cType.GetFields (BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
+				var methods = cType.GetMethods (BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
+				for (int i = 0; i < props.Length; i++) {
+					var _type = props [i].PropertyType;
+					if (_type == _b || _type == _i || _type == _f || _type == _d) {
+						menu.AddItem (new GUIContent (cName + "/" + props [i].Name), false, SetMemberFunction, new MemberFunctionParams (c, props [i].Name));
+					}
+				}
+				for (int i = 0; i < fields.Length; i++) {
+					var _type = fields [i].FieldType;
+					if (_type == _b || _type == _i || _type == _f || _type == _d) {
+						menu.AddItem (new GUIContent (cName + "/" + fields [i].Name), false, SetMemberFunction, new MemberFunctionParams (c, fields [i].Name));
+					}
+				}
+				for (int i = 0; i < methods.Length; i++) {
+					var mi = methods [i];
+					if (mi.Name == "GetInstanceID" || mi.Name == "GetHashCode" || mi.GetParameters ().Length != 0)
+						continue;
+					var _type = mi.ReturnType;
+					if (_type == _b || _type == _i || _type == _f || _type == _d) {
+						menu.AddItem (new GUIContent (cName + "/" + mi.Name), false, SetMemberFunction, new MemberFunctionParams (c, mi.Name));
+					}
+				}
+			}
+			return menu;
+		}
+
 		/// <summary>
-        /// Use reflection to get an array of all public properties and fields of type bool, int or float
+        /// A member property or field was chosen. Update serialized properties and dropdown button text
         /// </summary>
+        /// <param name="data"></param>
+		void SetMemberFunction (object data) {
+			var uef = (MemberFunctionParams)data;
+			serializedObject.Update ();
+			serializedObject.FindProperty ("SourceObject").objectReferenceValue = uef.Component;
+			serializedObject.FindProperty ("SourceMemberName").stringValue = uef.MemberName;
+			serializedObject.ApplyModifiedProperties ();
+			var typeName = uef.Component.GetType ().Name;
+			DropdownButtonContent.text =
+				DropdownButtonContent.tooltip =
+				$"{typeName}.{uef.MemberName}";
+		}
+
+		struct MemberFunctionParams {
+			public readonly Component Component;
+			public readonly string MemberName;
+
+			public MemberFunctionParams (Component component, string memberName) {
+				Component = component;
+				MemberName = memberName;
+			}
+		}
+
+		/// <summary>
+		/// Use reflection to get an array of all public properties, fields and methods which return bool, int, float or double
+		/// </summary>
 		string [] GetValueMemberNames (Component c) {
 			var _b = typeof (bool);
 			var _i = typeof (int);
 			var _f = typeof (float);
-			var props = c.GetType ().GetProperties (BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
-			var fields = c.GetType ().GetFields (BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
-			var fn = new List<string> (props.Length + fields.Length);
+			var _d = typeof (double);
+			var cType = c.GetType ();
+			var props = cType.GetProperties (BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
+			var fields = cType.GetFields (BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
+			var methods = cType.GetMethods (BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
+			var fn = new List<string> (props.Length + fields.Length + methods.Length);
 			for (int i = 0; i < props.Length; i++) {
 				var _type = props [i].PropertyType;
-				if (_type == _b || _type == _i || _type == _f) {
+				if (_type == _b || _type == _i || _type == _f || _type == _d) {
 					fn.Add (props [i].Name);
 				}
 			}
 			for (int i = 0; i < fields.Length; i++) {
 				var _type = fields [i].FieldType;
-				if (_type == _b || _type == _i || _type == _f) {
+				if (_type == _b || _type == _i || _type == _f || _type == _d) {
 					fn.Add (fields [i].Name);
+				}
+			}
+			for (int i = 0; i < methods.Length; i++) {
+				var mi = methods [i];
+				if (mi.Name == "GetInstanceID" || mi.Name == "GetHashCode" || mi.GetParameters ().Length != 0)
+					continue;
+				var _type = mi.ReturnType;
+				if (_type == _b || _type == _i || _type == _f || _type == _d) {
+					fn.Add (mi.Name);
 				}
 			}
 			return fn.ToArray ();

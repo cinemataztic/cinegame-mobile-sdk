@@ -35,7 +35,7 @@ namespace CineGame.MobileComponents {
 		[Tooltip ("Compare distance or dotproduct relative to this transform")]
 		public Transform Other;
 
-		[Tooltip ("How often to update. 0=every frame (can be expensive)")]
+		[Tooltip ("How often to update. 0=every frame (can be expensive if using line-of-sight or source property)")]
 		public float Interval;
 
 		[Tooltip ("Whether event should fire every interval or only when crossing a threshold")]
@@ -67,6 +67,8 @@ namespace CineGame.MobileComponents {
 
 		public List<Threshold> Thresholds;
 
+		public float Value { get { return _value;  } }
+
 		int CurrentThresholdIndex = int.MinValue;
 
 		float _value;
@@ -74,17 +76,24 @@ namespace CineGame.MobileComponents {
 
 		FieldInfo SourceFieldInfo;
 		PropertyInfo SourcePropertyInfo;
+		MethodInfo SourceMethodInfo;
+		readonly object [] SourceMethodParams = new object [0];
+		/// <summary>
+        /// True if we should use reflection to update Value each Interval
+        /// </summary>
+		bool isValueDynamic;
 		enum SourceType {
 			Void,
 			Boolean,
 			Integer,
 			Float,
+			Double,
 		};
 		SourceType sourceType;
 
 		float _nextUpdateTime;
 
-		public void Start () {
+		void Start () {
 			_nextUpdateTime = Time.time + UnityEngine.Random.Range(0f, Interval);
 
 			Thresholds.Sort ();
@@ -95,18 +104,30 @@ namespace CineGame.MobileComponents {
 			}
 
 			if (SourceObject != null && !string.IsNullOrWhiteSpace (SourceMemberName)) {
-				string sourceTypeString;
+				isValueDynamic = true;
+				var sourceTypeString = string.Empty;
 				SourceFieldInfo = SourceObject.GetType ().GetField (SourceMemberName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
 				if (SourceFieldInfo != null) {
 					sourceTypeString = SourceFieldInfo.FieldType.ToString ();
 				} else {
 					SourcePropertyInfo = SourceObject.GetType ().GetProperty (SourceMemberName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
-					sourceTypeString = SourcePropertyInfo.PropertyType.ToString ();
+					if (SourcePropertyInfo != null) {
+						sourceTypeString = SourcePropertyInfo.PropertyType.ToString ();
+					} else {
+						SourceMethodInfo = SourceObject.GetType ().GetMethod (SourceMemberName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
+						if (SourceMethodInfo != null) {
+							sourceTypeString = SourceMethodInfo.ReturnType.ToString ();
+						} else {
+							LogError ($"{SourceObject.GetType ().FullName}.{SourceMemberName} not found!");
+							isValueDynamic = false;
+						}
+					}
 				}
 				sourceType = sourceTypeString switch {
 					"System.Boolean" => SourceType.Boolean,
 					"System.Integer" => SourceType.Integer,
 					"System.Single" => SourceType.Float,
+					"System.Double" => SourceType.Double,
 					_ => SourceType.Void
 				};
 			}
@@ -336,25 +357,24 @@ namespace CineGame.MobileComponents {
 			_nextUpdateTime = _time + Interval;
 
 			if (Function == CompareFunction.Value) {
+				if (!isValueDynamic)
+					return;
+				object _v;
 				if (SourceFieldInfo != null) {
-					var _v = SourceFieldInfo.GetValue (SourceObject);
-					_value = sourceType switch {
-						SourceType.Boolean => (bool)_v ? 1f : 0f,
-						SourceType.Integer => (int)_v,
-						SourceType.Float => (float)_v,
-						_ => 0
-					};
-					FireEvent ();
+					_v = SourceFieldInfo.GetValue (SourceObject);
 				} else if (SourcePropertyInfo != null) {
-					var _v = SourcePropertyInfo.GetValue (SourceObject);
-					_value = sourceType switch {
-						SourceType.Boolean => (bool)_v ? 1f : 0f,
-						SourceType.Integer => (int)_v,
-						SourceType.Float => (float)_v,
-						_ => 0
-					};
-					FireEvent ();
+					_v = SourcePropertyInfo.GetValue (SourceObject);
+				} else {
+					_v = SourceMethodInfo.Invoke (SourceObject, SourceMethodParams);
 				}
+				_value = sourceType switch {
+					SourceType.Boolean => (bool)_v ? 1f : 0f,
+					SourceType.Integer => (int)_v,
+					SourceType.Float => (float)_v,
+					SourceType.Double => (float)(double)_v,
+					_ => 0
+				};
+				FireEvent ();
 			} else if (Other != null) {
 				switch (Function) {
 				case CompareFunction.Distance:
