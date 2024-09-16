@@ -3,7 +3,7 @@ using UnityEngine.Events;
 
 namespace CineGame.MobileComponents {
 
-	[ComponentReference ("Invoke methods with the Source Transform's world position, rotation or speed. Continuous or one-shot. Useful for eg setting and updating a NavMeshAgent destination, or updating a speedometer. If no Source is specified, the GameObject's own Transform will be used.")]
+	[ComponentReference ("Invoke methods with the Source Transform's world position, rotation, linear speed or angular speed. Continuous or one-shot. Useful for eg setting and updating a NavMeshAgent destination, or updating a speedometer. If no Source is specified, the GameObject's own Transform will be used.")]
 	public class GetTransformProperty : BaseEventComponent {
 
 		public Transform Source;
@@ -15,10 +15,13 @@ namespace CineGame.MobileComponents {
 		public UnityEvent<Quaternion> OnUpdateRotation;
 		[Tooltip ("Invoked with the world speed of Source (units per second)")]
 		public UnityEvent<float> OnUpdateSpeed;
+		[Tooltip ("Invoked with the world angular speed of Source (degrees per second)")]
+		public UnityEvent<float> OnUpdateAngularSpeed;
 
 		float lastSetTime = float.MinValue;
 		Vector3 lastSourcePosition;
-		float speed;
+		Quaternion lastSourceRotation;
+		float speed, angularSpeed;
 
 		private void OnEnable () {
 			if (Source == null && UpdateInterval > float.Epsilon) {
@@ -26,7 +29,9 @@ namespace CineGame.MobileComponents {
 			}
 			if (Source != null) {
 				lastSourcePosition = Source.position;
+				lastSourceRotation = Source.rotation;
 				speed = 0f;
+				angularSpeed = 0f;
 				if (UpdateInterval > float.Epsilon)
 					UpdateNow ();
 			}
@@ -49,6 +54,7 @@ namespace CineGame.MobileComponents {
 			OnUpdatePosition?.Invoke (Source.position);
 			OnUpdateRotation?.Invoke (Source.rotation);
 			OnUpdateSpeed?.Invoke (speed);
+			OnUpdateAngularSpeed?.Invoke (angularSpeed);
 		}
 
 		private void Update () {
@@ -57,6 +63,11 @@ namespace CineGame.MobileComponents {
 					var position = Source.position;
 					speed = speed * .7f + .3f * (position - lastSourcePosition).magnitude / Time.deltaTime;
 					lastSourcePosition = position;
+				}
+				if (OnUpdateAngularSpeed.GetPersistentEventCount () != 0) {
+					var rotation = Source.rotation;
+					angularSpeed = angularSpeed * .7f + .3f * Quaternion.Angle (rotation, lastSourceRotation) / Time.deltaTime;
+					lastSourceRotation = rotation;
 				}
 
 				if (UpdateInterval > float.Epsilon && (lastSetTime + UpdateInterval) <= Time.time) {
