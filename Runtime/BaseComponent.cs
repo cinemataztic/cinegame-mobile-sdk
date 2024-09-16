@@ -45,6 +45,8 @@ namespace CineGame.MobileComponents {
     public abstract class BaseEventComponent : BaseComponent {
         [HideInInspector]
         [SerializeField]
-        private int eventMask = 0;
-    }
+#pragma warning disable 0414
+		private int eventMask = 0;
+#pragma warning restore
+	}
 }

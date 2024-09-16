@@ -35,8 +35,9 @@ namespace CineGame.MobileComponents {
 
 		[HideInInspector]
 		[SerializeField]
+#pragma warning disable 0414
 		private int eventMask = 0;
-
+#pragma warning restore
 		[Tooltip("Event fired when user starts to drag the object")]
 		public UnityEvent OnDragBegin;
 		[Tooltip ("Event fired when user stops dragging the object")]
