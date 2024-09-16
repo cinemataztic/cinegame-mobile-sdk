@@ -8,9 +8,9 @@ using UnityEngine.Serialization;
 namespace CineGame.MobileComponents {
 
 	/// <summary>
-	/// Compare values, distance, dot products, line-of-sight or angles and trigger events/actions based on these. You can perform simple arithmetic operations (Add, Subtract, Multiply, Divide) and specify whether the events should fire continuously at intervals or only when passing a threshold. If SourceObject is not specified, then this objec'ts transform is used for spatial comparisons.
+	/// Compare values, distance, dot products, line-of-sight or angles and invoke events based on these. You can perform simple arithmetic operations (Add, Subtract, Multiply, Divide), boolean (And, Or, Xor) and specify whether the events should fire continuously at intervals or only when passing a threshold. You can sample a property, field or method of a SourceObject at intervals. If SourceObject is not specified, then this transform is used for spatial comparisons.
 	/// </summary>
-	[ComponentReference ("Compare values, distance, line-of-sight or angles and trigger events/actions based on these. You can perform simple arithmetic operations (Add, Subtract, Multiply, Divide) and specify whether the events should fire continuously at intervals or only when passing a threshold. If SourceObject is not specified, then this transform is used for spatial comparisons.")]
+	[ComponentReference ("Compare values, distance, dot products, line-of-sight or angles and invoke events based on these. You can perform simple arithmetic operations (Add, Subtract, Multiply, Divide), boolean (And, Or, Xor) and specify whether the events should fire continuously at intervals or only when passing a threshold. You can sample a property, field or method of a SourceObject at intervals. If SourceObject is not specified, then this transform is used for spatial comparisons.")]
 	public class LogicComponent : BaseComponent {
 
 		public enum CompareFunction {

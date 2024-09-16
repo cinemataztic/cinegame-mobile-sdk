@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor;
@@ -17,6 +18,13 @@ namespace CineGameEditor.MobileComponents {
 		string [] memberNames;
         readonly GUIContent SourceMemberContent = new ("Source Property", "Property or field to get value from every Interval");
         readonly GUIContent DropdownButtonContent = new ();
+
+		readonly Type _b = typeof (bool);
+		readonly Type _i = typeof (int);
+		readonly Type _f = typeof (float);
+		readonly Type _d = typeof (double);
+		readonly Type _mbType = typeof (MonoBehaviour);
+		readonly Type _tType = typeof (Transform);
 
 		public override void OnInspectorGUI () {
 			// Update the serializedProperty - always do this in the beginning of OnInspectorGUI.
@@ -107,19 +115,19 @@ namespace CineGameEditor.MobileComponents {
 				var methods = cType.GetMethods (BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
 				for (int i = 0; i < props.Length; i++) {
 					var _type = props [i].PropertyType;
-					if (_type == _b || _type == _i || _type == _f || _type == _d) {
+					if (props [i].DeclaringType.IsSubclassOf (_mbType) && (_type == _b || _type == _i || _type == _f || _type == _d)) {
 						menu.AddItem (new GUIContent (cName + "/" + props [i].Name), false, SetMemberFunction, new MemberFunctionParams (c, props [i].Name));
 					}
 				}
 				for (int i = 0; i < fields.Length; i++) {
 					var _type = fields [i].FieldType;
-					if (_type == _b || _type == _i || _type == _f || _type == _d) {
+					if (fields [i].DeclaringType.IsSubclassOf (_mbType) && (_type == _b || _type == _i || _type == _f || _type == _d)) {
 						menu.AddItem (new GUIContent (cName + "/" + fields [i].Name), false, SetMemberFunction, new MemberFunctionParams (c, fields [i].Name));
 					}
 				}
 				for (int i = 0; i < methods.Length; i++) {
 					var mi = methods [i];
-					if (mi.Name == "GetInstanceID" || mi.Name == "GetHashCode" || mi.GetParameters ().Length != 0)
+					if ((mi.DeclaringType != _tType && !mi.DeclaringType.IsSubclassOf (_mbType)) || mi.GetParameters ().Length != 0 || mi.Name.StartsWith ("get_"))
 						continue;
 					var _type = mi.ReturnType;
 					if (_type == _b || _type == _i || _type == _f || _type == _d) {
@@ -160,10 +168,6 @@ namespace CineGameEditor.MobileComponents {
 		/// Use reflection to get an array of all public properties, fields and methods which return bool, int, float or double
 		/// </summary>
 		string [] GetValueMemberNames (Component c) {
-			var _b = typeof (bool);
-			var _i = typeof (int);
-			var _f = typeof (float);
-			var _d = typeof (double);
 			var cType = c.GetType ();
 			var props = cType.GetProperties (BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
 			var fields = cType.GetFields (BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
@@ -171,19 +175,20 @@ namespace CineGameEditor.MobileComponents {
 			var fn = new List<string> (props.Length + fields.Length + methods.Length);
 			for (int i = 0; i < props.Length; i++) {
 				var _type = props [i].PropertyType;
-				if (_type == _b || _type == _i || _type == _f || _type == _d) {
+				if (props [i].DeclaringType.IsSubclassOf (_mbType) && (_type == _b || _type == _i || _type == _f || _type == _d)) {
 					fn.Add (props [i].Name);
 				}
 			}
 			for (int i = 0; i < fields.Length; i++) {
 				var _type = fields [i].FieldType;
-				if (_type == _b || _type == _i || _type == _f || _type == _d) {
+				if (fields [i].DeclaringType.IsSubclassOf (_mbType) && (_type == _b || _type == _i || _type == _f || _type == _d)) {
 					fn.Add (fields [i].Name);
 				}
 			}
+
 			for (int i = 0; i < methods.Length; i++) {
 				var mi = methods [i];
-				if (mi.Name == "GetInstanceID" || mi.Name == "GetHashCode" || mi.GetParameters ().Length != 0)
+				if ((mi.DeclaringType != _tType && !mi.DeclaringType.IsSubclassOf (_mbType)) || mi.GetParameters ().Length != 0 || mi.Name.StartsWith ("get_"))
 					continue;
 				var _type = mi.ReturnType;
 				if (_type == _b || _type == _i || _type == _f || _type == _d) {
