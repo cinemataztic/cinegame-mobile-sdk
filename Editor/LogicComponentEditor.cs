@@ -26,6 +26,8 @@ namespace CineGameEditor.MobileComponents {
 		readonly Type _mbType = typeof (MonoBehaviour);
 		readonly Type _tType = typeof (Transform);
 
+		Rect DropDownRect;
+
 		public override void OnInspectorGUI () {
 			// Update the serializedProperty - always do this in the beginning of OnInspectorGUI.
 			serializedObject.Update ();
@@ -72,7 +74,10 @@ namespace CineGameEditor.MobileComponents {
 							EditorGUILayout.PrefixLabel (SourceMemberContent);
 							if (EditorGUILayout.DropdownButton (DropdownButtonContent, FocusType.Passive, EditorStyles.popup)) {
 								var menu = BuildMenu (compList);
-								menu.DropDown (GUILayoutUtility.GetLastRect ());
+								menu.DropDown (DropDownRect);
+							}
+							if (Event.current.type == EventType.Repaint) {
+								DropDownRect = GUILayoutUtility.GetLastRect ();
 							}
 							EditorGUILayout.EndHorizontal ();
 						}
