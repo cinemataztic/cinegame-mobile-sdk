@@ -4,10 +4,12 @@ using System;
 
 namespace CineGame.MobileComponents {
 
-	[ComponentReference ("Trigger events when this GameObject becomes enabled or disabled. Optionally delay events")]
+	[ComponentReference ("Trigger events when this GameObject becomes enabled or disabled. Optionally delay events, and optionally repeat the onEnable event (perform actions every n seconds) while GameObject is active")]
 	public class OnEnableDisable : BaseComponent {
 
 		public float OnEnableDelay = 0f;
+		[Tooltip ("If >= 0 then OnEnable will invoke every RepeatInterval seconds while the GameObject is active.")]
+		public float RepeatInterval = -1f;
 
 		[Serializable] public class OnEnableDisableEvent : UnityEvent { }
 
@@ -22,7 +24,9 @@ namespace CineGame.MobileComponents {
 		}
 
 		void OnEnable () {
-			if (OnEnableDelay > 0f) {
+			if (RepeatInterval >= 0f)
+				InvokeRepeating (nameof (OnEnableInvoke), OnEnableDelay, RepeatInterval);
+			else if (OnEnableDelay > 0f) {
 				Invoke (nameof(OnEnableInvoke), OnEnableDelay);
 			} else {
 				OnEnableInvoke ();
@@ -45,6 +49,8 @@ namespace CineGame.MobileComponents {
 
 		void OnValidate(){
 			OnEnableDelay = Math.Max (0f, OnEnableDelay);
+			if (RepeatInterval < 0f)
+				RepeatInterval = -1f;
 		}
 	}
 
