@@ -25,14 +25,18 @@ namespace CineGame.MobileComponents {
 
 		public CompareFunction Function = CompareFunction.Value;
 
+		[SerializeField]
+		[Tooltip ("Initial value")]
+		private float Value;
+
 		[Tooltip ("Layers to intersect with during LineOfSight check")]
 		public LayerMask LayerMask = -1;
 
-		[Tooltip ("The source object to compare position, orientation or values from")]
+		[Tooltip ("The source object to compare position, orientation or values from. If None then this GameObject's position and orientation will be used for spatial comparison")]
 		public UnityEngine.Object SourceObject;
 		public string SourceMemberName;
 
-		[Tooltip ("Compare distance or dotproduct relative to this transform")]
+		[Tooltip ("Compare distance, dotproduct, angle or line-of-sight with this transform")]
 		public Transform Other;
 
 		[Tooltip ("How often to update. 0=every frame (can be expensive if using line-of-sight or source property)")]
@@ -67,11 +71,8 @@ namespace CineGame.MobileComponents {
 
 		public List<Threshold> Thresholds;
 
-		public float Value { get { return _value;  } }
-
 		int CurrentThresholdIndex = int.MinValue;
 
-		float _value;
 		Transform sourceTransform;
 
 		FieldInfo SourceFieldInfo;
@@ -156,7 +157,7 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public void SetValue (float v) {
 			//Log ($"LogicComponent.SetValue ({v})");
-			_value = v;
+			Value = v;
 			FireEvent ();
 		}
 
@@ -165,7 +166,7 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public void SetValue (int v) {
 			//Log ($"LogicComponent.SetValue ({v})");
-			_value = v;
+			Value = v;
 			FireEvent ();
 		}
 
@@ -174,7 +175,7 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public void SetValue (bool v) {
 			//Log ($"LogicComponent.SetValue ({v})");
-			_value = v ? 1f : 0f;
+			Value = v ? 1f : 0f;
 			FireEvent ();
 		}
 
@@ -183,7 +184,7 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public void Add (float v) {
 			Log ($"LogicComponent.Add ({v})");
-			_value += v;
+			Value += v;
 			FireEvent ();
 		}
 
@@ -192,7 +193,7 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public void Add (int v) {
 			Log ($"LogicComponent.Add ({v})");
-			_value += v;
+			Value += v;
 			FireEvent ();
 		}
 
@@ -201,7 +202,7 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public void Subtract (float v) {
 			Log ($"LogicComponent.Subtract ({v})");
-			_value -= v;
+			Value -= v;
 			FireEvent ();
 		}
 
@@ -210,7 +211,7 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public void Subtract (int v) {
 			Log ($"LogicComponent.Subtract ({v})");
-			_value -= v;
+			Value -= v;
 			FireEvent ();
 		}
 
@@ -219,7 +220,7 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public void Multiply (float v) {
 			Log ($"LogicComponent.Multiply ({v})");
-			_value *= v;
+			Value *= v;
 			FireEvent ();
 		}
 
@@ -228,7 +229,7 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public void Multiply (int v) {
 			Log ($"LogicComponent.Multiply ({v})");
-			_value *= v;
+			Value *= v;
 			FireEvent ();
 		}
 
@@ -237,7 +238,7 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public void Divide (float v) {
 			Log ($"LogicComponent.Divide ({v})");
-			_value /= v;
+			Value /= v;
 			FireEvent ();
 		}
 
@@ -246,7 +247,7 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public void Divide (int v) {
 			Log ($"LogicComponent.Divide ({v})");
-			_value /= v;
+			Value /= v;
 			FireEvent ();
 		}
 
@@ -255,8 +256,8 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public void And (bool v) {
 			Log ($"LogicComponent.And ({v})");
-			if (_value < 0 || !v) _value = 0;
-			else if (_value > 1) _value = 1;
+			if (Value < 0 || !v) Value = 0;
+			else if (Value > 1) Value = 1;
 			FireEvent ();
 		}
 
@@ -265,9 +266,9 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public void Or (bool v) {
 			Log ($"LogicComponent.Or ({v})");
-			if (_value < 0) _value = 0;
-			if (v) _value += 1;
-			if (_value > 1) _value = 1;
+			if (Value < 0) Value = 0;
+			if (v) Value += 1;
+			if (Value > 1) Value = 1;
 			FireEvent ();
 		}
 
@@ -276,9 +277,9 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public void Xor (bool v) {
 			Log ($"LogicComponent.Xor ({v})");
-			if (_value < 0) _value = 0;
-			if (v) _value += 1;
-			if (_value > 1) _value = 0;
+			if (Value < 0) Value = 0;
+			if (v) Value += 1;
+			if (Value > 1) Value = 0;
 			FireEvent ();
 		}
 
@@ -297,7 +298,7 @@ namespace CineGame.MobileComponents {
 			UpdateString ();
 			int thresholdIndex = -1;
 			foreach (var threshold in Thresholds) {
-				if (_value < threshold.Value) {
+				if (Value < threshold.Value) {
 					break;
 				}
 				thresholdIndex++;
@@ -305,13 +306,13 @@ namespace CineGame.MobileComponents {
 			if (!Continuous && thresholdIndex == CurrentThresholdIndex)
 				return;
 			if (thresholdIndex == -1) {
-				Log ($"LogicComponent.OnBelow Value={_value}\n{Util.GetEventPersistentListenersInfo (OnBelow)}");
+				Log ($"LogicComponent.OnBelow Value={Value}\n{Util.GetEventPersistentListenersInfo (OnBelow)}");
 				//DrawListenersLines (OnBelow, Color.yellow);
-				OnBelow.Invoke (_value);
+				OnBelow.Invoke (Value);
 			} else {
-				Log ($"LogicComponent.Thresholds [{thresholdIndex}].OnAbove Value={_value}\n{Util.GetEventPersistentListenersInfo (Thresholds [thresholdIndex].OnAbove)}");
+				Log ($"LogicComponent.Thresholds [{thresholdIndex}].OnAbove Value={Value}\n{Util.GetEventPersistentListenersInfo (Thresholds [thresholdIndex].OnAbove)}");
                 //DrawListenersLines (Thresholds [thresholdIndex].OnAbove, Color.yellow);
-                Thresholds [thresholdIndex].OnAbove.Invoke (_value);
+                Thresholds [thresholdIndex].OnAbove.Invoke (Value);
 			}
 			CurrentThresholdIndex = thresholdIndex;
 		}
@@ -319,10 +320,10 @@ namespace CineGame.MobileComponents {
 		void UpdateString () {
 			if (!string.IsNullOrWhiteSpace (StringFormat)) {
 				var fmt = StringFormat;
-				if ((int)_value == 0 && fmt.Contains ("{0:#}", StringComparison.InvariantCultureIgnoreCase)) {
+				if ((int)Value == 0 && fmt.Contains ("{0:#}", StringComparison.InvariantCultureIgnoreCase)) {
 					fmt = fmt.Replace ("{0:#}", "0");
 				}
-				var str = string.Format (fmt, _value);
+				var str = string.Format (fmt, Value);
 				//Log ($"LogicComponent.OnUpdateString \"{str}\"\n{Util.GetEventPersistentListenersInfo (OnUpdateString)}");
 				OnUpdateString?.Invoke (str);
 			}
@@ -367,7 +368,7 @@ namespace CineGame.MobileComponents {
 				} else {
 					_v = SourceMethodInfo.Invoke (SourceObject, SourceMethodParams);
 				}
-				_value = sourceType switch {
+				Value = sourceType switch {
 					SourceType.Boolean => (bool)_v ? 1f : 0f,
 					SourceType.Integer => (int)_v,
 					SourceType.Float => (float)_v,
@@ -378,22 +379,22 @@ namespace CineGame.MobileComponents {
 			} else if (Other != null) {
 				switch (Function) {
 				case CompareFunction.Distance:
-					_value = (Other.position - sourceTransform.position).magnitude;
+					Value = (Other.position - sourceTransform.position).magnitude;
 					break;
 				case CompareFunction.RightLeft:
-					_value = Vector3.Dot (sourceTransform.right, (Other.position - sourceTransform.position).normalized);
+					Value = Vector3.Dot (sourceTransform.right, (Other.position - sourceTransform.position).normalized);
 					break;
 				case CompareFunction.UpDown:
-					_value = Vector3.Dot (sourceTransform.up, (Other.position - sourceTransform.position).normalized);
+					Value = Vector3.Dot (sourceTransform.up, (Other.position - sourceTransform.position).normalized);
 					break;
 				case CompareFunction.FrontBack:
-					_value = Vector3.Dot (sourceTransform.forward, (Other.position - sourceTransform.position).normalized);
+					Value = Vector3.Dot (sourceTransform.forward, (Other.position - sourceTransform.position).normalized);
 					break;
 				case CompareFunction.LineOfSight:
-					_value = Raycast ();
+					Value = Raycast ();
 					break;
 				case CompareFunction.Angle:
-					_value = Vector3.Angle (sourceTransform.forward, Other.forward);
+					Value = Vector3.Angle (sourceTransform.forward, Other.forward);
 					break;
 				}
 				FireEvent ();
