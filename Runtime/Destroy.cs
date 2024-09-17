@@ -51,9 +51,10 @@ namespace CineGame.MobileComponents {
 		/// <summary>
 		/// Destroy the child transforms now
 		/// </summary>
-		public void DestroyChildrenNow (Transform parent) {
+		public void DestroyChildrenNow (Component parent) {
+            var parentTransform = parent.transform;
             var i = 0;
-            foreach (Transform child in parent) {
+            foreach (Transform child in parentTransform) {
                 Destroy (child.gameObject);
                 i++;
             }
