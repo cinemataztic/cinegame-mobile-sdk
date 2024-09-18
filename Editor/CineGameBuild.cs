@@ -459,6 +459,7 @@ namespace CineGameEditor.MobileComponents {
 			EditorApplication.hierarchyChanged -= OnHierarchyChange;
 		}
 
+#if UNITY_IOS || UNITY_ANDROID
 		[MenuItem ("CinemaTaztic/Build And Upload")]
 		public static void Init () {
 			if (instance == null) {
@@ -466,6 +467,7 @@ namespace CineGameEditor.MobileComponents {
 			}
 			instance.Focus ();
 		}
+#endif
 
 		static void RepaintWindow () {
 			if (instance != null) {
@@ -482,7 +484,7 @@ namespace CineGameEditor.MobileComponents {
 			return targets;
 		}
 
-
+#if UNITY_IOS || UNITY_ANDROID
 		[MenuItem ("CinemaTaztic/Build All Scenes For Market")]
 		static void BuildAllScenesForAllPlatforms () {
 			if (EditorUtility.DisplayDialog (ProgressBarTitle, "Build all DLC scenes for region " + Util.GetRegion ().ToString () + "?", "OK", "Cancel")) {
@@ -490,6 +492,7 @@ namespace CineGameEditor.MobileComponents {
 				instance.StartCoroutine (instance.E_BuildAllScenesForAllPlatforms ());
 			}
 		}
+#endif
 
 		IEnumerator E_BuildAllScenesForAllPlatforms () {
 			var region = Util.GetRegion ().ToString ();
@@ -985,6 +988,7 @@ namespace CineGameEditor.MobileComponents {
 
 		// -------------------------------------------------
 
+#if UNITY_IOS || UNITY_ANDROID
 		/// <summary>
 		/// Pre-build method for Cloud Build which assigns the proper assetbundle names to all DLC
 		/// </summary>
@@ -1028,6 +1032,7 @@ namespace CineGameEditor.MobileComponents {
 				}
 			}
 		}
+#endif
 
 		static void AssignAssetBundleNames (string marketId, IEnumerable<string> assetPaths) {
 			Debug.Log ("Removing bundlenames for downloadable scenes ...");

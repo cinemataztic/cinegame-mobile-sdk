@@ -15,6 +15,7 @@ namespace CineGame.MobileComponents {
 	/// You can hook up a RawImage's texture property to the OnWrite event to show the generated code on screen.
     /// </summary>
     [ComponentReference ("Scans QR or bar codes from the platform default camera, or generates QR or bar codes from an ASCII string.\nYou can specify a regex to validate the code before firing the OnRead event.\nYou can hook up a RawImage's texture property to the OnWrite event to show the generated code on screen.")]
+    [RequireComponent (typeof(RawImage))]
     public class CodeScanner : BaseComponent {
 
         [Tooltip ("Call Scan() from OnEnable")]

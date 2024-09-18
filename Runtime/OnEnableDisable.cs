@@ -13,9 +13,9 @@ namespace CineGame.MobileComponents {
 
 		[Serializable] public class OnEnableDisableEvent : UnityEvent { }
 
-		[Header("When gameobject is activated")]
+		[Tooltip("Invoked when gameobject is activated or component is enabled")]
 		public OnEnableDisableEvent onEnable;
-		[Header("When gameobject is deactivated")]
+		[Tooltip("Invoked when gameobject is deactivated or component is disabled")]
 		public OnEnableDisableEvent onDisable;
 
 		public void CancelEnable () {
