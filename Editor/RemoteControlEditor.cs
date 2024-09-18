@@ -19,8 +19,7 @@ namespace CineGameEditor.MobileComponents {
 			(
 				typeName != "onReceiveVoid" &&
 				typeName != "onReceiveString" &&
-				typeName != "onReceiveBool" &&
-				typeName != "onReceiveLong"
+				typeName != "onReceiveBool"
 			);
 
 			var interpTime = serializedObject.FindProperty ("InterpTime").floatValue;

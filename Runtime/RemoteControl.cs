@@ -12,7 +12,7 @@ namespace CineGame.MobileComponents {
 	[ComponentReference ("Control unity objects and properties remotely from host. The property referenced by Key triggers the event with its value. Make sure to select the correct type (void if N/A)")]
 	public class RemoteControl : ReplicatedComponent {
 
-		[Header ("Property from host")]
+		[Tooltip ("Property from host to listen for")]
 		public string Key;
 
 		public enum EventType {
@@ -26,43 +26,27 @@ namespace CineGame.MobileComponents {
 			Vector3,
 			Color,
 			Quaternion,
+			Rect,
 		}
-		[Header ("Property type. Void if just triggering an action")]
+		[Tooltip ("Property type. Void if just triggering an action")]
 		public EventType Type = EventType.Void;
 
-		[Header ("Interpolation time (if applicable), 0=Snap")]
+		[Tooltip ("Interpolation time, 0=Snap")]
 		public float InterpTime = 0f;
 
 		public Interpolation.Type InterpType = Interpolation.Type.Linear;
 
 		public UnityEvent onReceiveVoid;
-
-		[Serializable] public class BoolEvent : UnityEvent<bool> { }
-		public BoolEvent onReceiveBool;
-
-		[Serializable] public class IntEvent : UnityEvent<int> { }
-		public IntEvent onReceiveInt;
-
-		[Serializable] public class FloatEvent : UnityEvent<float> { }
-		public FloatEvent onReceiveFloat;
-
-		[Serializable] public class LongEvent : UnityEvent<long> { }
-		public LongEvent onReceiveLong;
-
-		[Serializable] public class StringEvent : UnityEvent<string> { }
-		public StringEvent onReceiveString;
-
-		[Serializable] public class Vector2Event : UnityEvent<Vector2> { }
-		public Vector2Event onReceiveVector2;
-
-		[Serializable] public class Vector3Event : UnityEvent<Vector3> { }
-		public Vector3Event onReceiveVector3;
-
-		[Serializable] public class ColorEvent : UnityEvent<Color> { }
-		public ColorEvent onReceiveColor;
-
-		[Serializable] public class QuaternionEvent : UnityEvent<Quaternion> { }
-		public QuaternionEvent onReceiveQuaternion;
+		public UnityEvent<bool> onReceiveBool;
+		public UnityEvent<int> onReceiveInt;
+		public UnityEvent<float> onReceiveFloat;
+		public UnityEvent<long> onReceiveLong;
+		public UnityEvent<string> onReceiveString;
+		public UnityEvent<Vector2> onReceiveVector2;
+		public UnityEvent<Vector3> onReceiveVector3;
+		public UnityEvent<Color> onReceiveColor;
+		public UnityEvent<Quaternion> onReceiveQuaternion;
+		public UnityEvent<Rect> onReceiveRect;
 
 		//Interpolation variables
 		//
@@ -70,14 +54,15 @@ namespace CineGame.MobileComponents {
 		Color cColor, startColor, destColor;
 		Vector3 cV3, startV3, destV3;
 		Vector2 cV2, startV2, destV2;
+		Rect cRect, startRect, destRect;
 		int	cInt, startInt, destInt;
+		long cLong, startLong, destLong;
 		float cFloat, startFloat, destFloat;
 		float startTime = float.MinValue;
 
 		internal override void OnObjectMessage (ISFSObject dataObj, int senderId) {
 			float[] floats;
 			string s;
-			long l;
 			bool b;
 			//If key is present invoke onReceive
 			if (dataObj.ContainsKey (Key)) {
@@ -109,9 +94,14 @@ namespace CineGame.MobileComponents {
 					}
 					break;
 				case EventType.Long:
-					l = dataObj.GetLong (Key);
-					LogEvent (onReceiveLong, l);
-					onReceiveLong.Invoke(l);
+					destLong = dataObj.GetLong (Key);
+					LogEvent (onReceiveLong, destLong);
+					if (InterpTime == 0f) {
+						startLong = cLong = destLong;
+						onReceiveLong.Invoke (destLong);
+					} else {
+						startLong = cLong;
+					}
 					break;
 				case EventType.String:
 					s = dataObj.GetUtfString (Key);
@@ -162,6 +152,17 @@ namespace CineGame.MobileComponents {
 						startQuaternion = cQuaternion;
 					}
 					break;
+				case EventType.Rect:
+					floats = dataObj.GetFloatArray (Key);
+					destRect = new Rect (floats [0], floats [1], floats [2], floats [3]);
+					LogEvent (onReceiveRect, destRect);
+					if (InterpTime == 0f) {
+						startRect = cRect = destRect;
+						onReceiveRect.Invoke (destRect);
+					} else {
+						startRect = cRect;
+					}
+					break;
 				default:
 					LogEvent (onReceiveVoid, null);
 					onReceiveVoid.Invoke ();
@@ -195,6 +196,10 @@ namespace CineGame.MobileComponents {
 						cInt = (int)(.5f + Mathf.Lerp (startInt, destInt, ct));
 						onReceiveInt.Invoke (cInt);
 						break;
+					case EventType.Long:
+						cLong = (long)(.5f + Mathf.Lerp (startLong, destLong, ct));
+						onReceiveLong.Invoke (cLong);
+						break;
 					case EventType.Vector2:
 						cV2 = Vector2.Lerp (startV2, destV2, ct);
 						onReceiveVector2.Invoke (cV2);
@@ -210,6 +215,11 @@ namespace CineGame.MobileComponents {
 					case EventType.Quaternion:
 						cQuaternion = Quaternion.Slerp (startQuaternion, destQuaternion, ct);
 						onReceiveQuaternion.Invoke (cQuaternion);
+						break;
+					case EventType.Rect:
+						cRect.size = Vector2.LerpUnclamped (startRect.size, destRect.size, ct);
+						cRect.center = Vector2.LerpUnclamped (startRect.center, destRect.center, ct);
+						onReceiveRect.Invoke (cRect);
 						break;
 					default:
 						break;
