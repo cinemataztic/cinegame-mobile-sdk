@@ -26,13 +26,21 @@ namespace CineGame.MobileComponents {
                 .ToDictionary (t => t.EventName, t => t.EventToTrigger);
         }
 
-        public void TriggerEvent (string eventName) {
+        public void NewEvent (string eventName) {
             if (events.TryGetValue (eventName, out UnityEvent<Transform> e)) {
-                Log ($"AnimationEventListener.TriggerEvent (\"{eventName}\")");
+                Log ($"AnimationEventListener.NewEvent (\"{eventName}\")");
                 e.Invoke (transform);
             } else {
-				Debug.LogWarning ($"{gameObject.GetScenePath ()} AnimationEventListener.TriggerEvent (\"{eventName}\") not defined!", this);
-			}
+                Debug.LogWarning ($"{gameObject.GetScenePath ()} AnimationEventListener.NewEvent (\"{eventName}\") not defined!", this);
+            }
+        }
+
+        /// <summary>
+        /// Legacy method for invoking an event from an animation
+        /// </summary>
+        [System.Obsolete ("Use NewEvent (default name in UnityEditor)")]
+        public void TriggerEvent (string eventName) {
+            NewEvent (eventName);
 		}
     }
 }
