@@ -45,6 +45,10 @@ namespace CineGame.MobileComponents {
 		[Tooltip ("Whether event should fire every interval or only when crossing a threshold")]
 		public bool Continuous = false;
 
+		[Tooltip ("The tolerance of thresholds. Use this to dampen the events, eg if a distance value is \"flickering\" around a threshold, you may want a tolerance of +/- .1")]
+		[Range (0f, 10f)]
+		public float Tolerance = 0f;
+
 		[Space]
 		[Tooltip ("Format string to invoke OnUpdateString with")]
 		[FormerlySerializedAs ("Format")]
@@ -54,14 +58,14 @@ namespace CineGame.MobileComponents {
 		public UnityEvent<string> OnUpdateString;
 
 		[Space]
-		[Tooltip ("Invoked when the value is below the minimum thresholds. If no thresholds are defined, this will always be invoked when Value changes.")]
+		[Tooltip ("Invoked when the value is below the minimum threshold. If no thresholds are defined, this will always be invoked when Value changes.")]
 		public UnityEvent<float> OnBelow;
 
 		[Serializable]
 		public class Threshold : IComparable<Threshold> {
 			[Tooltip ("Threshold value")]
 			public float Value;
-			[Tooltip ("Invoked when the value is above the given threshold")]
+			[Tooltip ("Invoked when the value is at or above the given threshold")]
 			public UnityEvent<float> OnAbove;
 
 			public int CompareTo (Threshold b) {
@@ -298,9 +302,11 @@ namespace CineGame.MobileComponents {
 			UpdateString ();
 			int thresholdIndex = -1;
 			foreach (var threshold in Thresholds) {
-				if (Value < threshold.Value) {
+				if (CurrentThresholdIndex <= thresholdIndex) {
+					if (Value < threshold.Value + Tolerance)
+						break;
+				} else if (Value < threshold.Value - Tolerance)
 					break;
-				}
 				thresholdIndex++;
 			}
 			if (!Continuous && thresholdIndex == CurrentThresholdIndex)
