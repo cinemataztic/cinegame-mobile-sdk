@@ -40,7 +40,11 @@ namespace CineGame.MobileComponents {
 			var rb = GetComponent<Rigidbody> ();
 			if (lastThrowTime != 0f 
 				&& (lastThrowTime + ThrowMinimumTime) < Time.time
-				&& rb.velocity.sqrMagnitude < ThrowStoppedLinearThreshold 
+#if UNITY_6000_0_OR_NEWER
+				&& rb.linearVelocity.sqrMagnitude < ThrowStoppedLinearThreshold
+#else
+				&& rb.velocity.sqrMagnitude < ThrowStoppedLinearThreshold
+#endif
 				&& rb.angularVelocity.sqrMagnitude < ThrowStoppedAngularThreshold) {
 				//A minimum of n seconds has passed, and die is nearly still, let's count dots!
 				lastThrowTime = 0f;

@@ -53,7 +53,13 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public static void LoginChanged (LoginType loginType) {
 			CurrentLoginType = loginType;
-			foreach (var onLogin in FindObjectsOfType<OnLogin> (includeInactive: true)) {
+			var onLoginObjects =
+#if UNITY_2022_3_OR_NEWER
+				FindObjectsByType<OnLogin> (FindObjectsInactive.Include, FindObjectsSortMode.None);
+#else
+				FindObjectsOfType<OnLogin> (includeInactive: true);
+#endif
+			foreach (var onLogin in onLoginObjects) {
 				onLogin.PropagateLoginType ();
 			}
 		}

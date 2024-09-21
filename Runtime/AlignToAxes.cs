@@ -92,7 +92,12 @@ namespace CineGame.MobileComponents {
 				Log ("AlignToAxes Disable physics");
 				rb.isKinematic = true;
 				rb.angularVelocity =
-					rb.velocity = Vector3.zero;
+#if UNITY_6000_0_OR_NEWER
+					rb.linearVelocity =
+#else
+					rb.velocity =
+#endif
+					Vector3.zero;
 			}
 		}
 

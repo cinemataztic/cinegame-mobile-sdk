@@ -37,8 +37,11 @@ namespace CineGame.MobileComponents {
 			QualitySettings.shadowResolution = ShadowResolution;
 			QualitySettings.antiAliasing = (int)AntiAliasing;
 			RenderSettings.defaultReflectionMode = (CustomReflection != null)? DefaultReflectionMode.Custom : DefaultReflectionMode.Skybox;
+#if UNITY_6000_0_OR_NEWER
+			RenderSettings.customReflectionTexture = CustomReflection;
+#else
 			RenderSettings.customReflection = CustomReflection;
-
+#endif
 			RenderSettings.ambientMode = AmbientMode;
 			switch (AmbientMode) {
 			case AmbientMode.Skybox:

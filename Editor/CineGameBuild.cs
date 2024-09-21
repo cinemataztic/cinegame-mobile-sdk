@@ -328,7 +328,12 @@ namespace CineGameEditor.MobileComponents {
 					}
 				}
 				var sceneName = EditorSceneManager.GetActiveScene ().name;
-				var _gameProxy = FindObjectOfType<GameProxy> ();
+				var _gameProxy =
+#if UNITY_2022_3_OR_NEWER
+					FindAnyObjectByType<GameProxy> ();
+#else
+					FindObjectOfType<GameProxy> ();
+#endif
 				var _isCanvasGame = _gameProxy != null;
 				if (IsCanvasGame != _isCanvasGame) {
 					IsCanvasGame = _isCanvasGame && !sceneName.Equals ("MasterApp");
@@ -358,7 +363,12 @@ namespace CineGameEditor.MobileComponents {
 					Repaint ();
 				}
 
-				var _gcGameManager = FindObjectOfType<GC_GameManager> ();
+				var _gcGameManager =
+#if UNITY_2022_3_OR_NEWER
+					FindAnyObjectByType<GC_GameManager> ();
+#else
+					FindObjectOfType<GC_GameManager> ();
+#endif
 				var _isGcGame = _gcGameManager != null;
 				if (IsGamecenterGame != _isGcGame) {
 					IsGamecenterGame = _isGcGame;
@@ -372,7 +382,12 @@ namespace CineGameEditor.MobileComponents {
 		}
 
 		void UpdateGameTypeInGameProxy () {
-			var _gameProxy = FindObjectOfType<GameProxy> ();
+			var _gameProxy =
+#if UNITY_6000_0_OR_NEWER
+				FindAnyObjectByType<GameProxy> ();
+#else
+				FindObjectOfType<GameProxy> ();
+#endif
 			if (_gameProxy != null && GameType != _gameProxy.GameType) {
 				var so = new SerializedObject (_gameProxy);
 				so.FindProperty ("GameType").stringValue = GameType;
@@ -1063,8 +1078,12 @@ namespace CineGameEditor.MobileComponents {
 		/// </summary>
 		static IEnumerable<AssetBundleBuild> ProcessAssetLoaders (bool prepareBuild) {
 			var assetBundleNames = new HashSet<string> ();
-			var assetLoaders = FindObjectsOfType<AssetLoader> ();
-
+			var assetLoaders =
+#if UNITY_2022_3_OR_NEWER
+				FindObjectsByType<AssetLoader> (FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+#else
+				FindObjectsOfType<AssetLoader> ();
+#endif
 			foreach (var assetLoader in assetLoaders) {
 				var scenePath = assetLoader.gameObject.GetScenePath ();
 				string assetPath = null;
