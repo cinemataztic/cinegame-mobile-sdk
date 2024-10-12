@@ -51,6 +51,8 @@ namespace CineGame.MobileComponents {
 
         bool hasUserPermission, hasUserDenied;
 
+        Quaternion baseRotation;
+
 		void OnEnable () {
             if (FullBrightnessOnWrite) {
                 originalScreenBrightness = Screen.brightness;
@@ -58,6 +60,7 @@ namespace CineGame.MobileComponents {
             if (ScanOnEnable) {
                 Scan ();
             }
+            baseRotation = transform.rotation;
 		}
 
 		void OnDisable () {
@@ -69,6 +72,7 @@ namespace CineGame.MobileComponents {
                     webcamTexture.Stop ();
                 webcamTexture = null;
             }
+            transform.rotation = baseRotation;
         }
 
         /// <summary>
@@ -141,6 +145,12 @@ namespace CineGame.MobileComponents {
                 yield return null;
             }
             webcamTexture.Stop ();
+        }
+
+        void Update () {
+            if (webcamTexture != null && webcamTexture.isPlaying) {
+                transform.rotation = baseRotation * Quaternion.AngleAxis (webcamTexture.videoRotationAngle, Vector3.up);
+            }
         }
 
         /// <summary>
