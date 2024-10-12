@@ -5,6 +5,9 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
+#if UNITY_ANDROID
+using UnityEngine.Android;
+#endif
 
 using ZXing;
 
@@ -33,6 +36,9 @@ namespace CineGame.MobileComponents {
         [Tooltip ("Fired when a QR Code is generated")]
         public UnityEvent<Texture> OnWrite;
 
+        [Tooltip ("Fired when user has denied access to camera")]
+        public UnityEvent OnDenied;
+
         [Tooltip ("Will request full screen brightness when a code is generated. The brightness will be reset when the component is disabled")]
         public bool FullBrightnessOnWrite;
 
@@ -42,6 +48,8 @@ namespace CineGame.MobileComponents {
         WebCamTexture webcamTexture;
 
         float originalScreenBrightness;
+
+        bool hasUserPermission, hasUserDenied;
 
 		void OnEnable () {
             if (FullBrightnessOnWrite) {
@@ -56,8 +64,9 @@ namespace CineGame.MobileComponents {
             if (FullBrightnessOnWrite) {
                 Screen.brightness = originalScreenBrightness;
             }
-            if (webcamTexture != null && webcamTexture.isPlaying) {
-                webcamTexture.Stop ();
+            if (webcamTexture != null) {
+                if (webcamTexture.isPlaying)
+                    webcamTexture.Stop ();
                 webcamTexture = null;
             }
         }
@@ -66,16 +75,35 @@ namespace CineGame.MobileComponents {
         /// Start scanning for a code using the default camera
         /// </summary>
         public void Scan () {
-            var rawImage = GetComponent<RawImage> ();
-            webcamTexture = new WebCamTexture (512, 512, 30);
-            rawImage.texture = webcamTexture;
-            rawImage.enabled = false;
-            //renderer.material.mainTexture = webcamTexture;
             StartCoroutine (E_ScanQRCode ());
         }
 
         IEnumerator E_ScanQRCode () {
-            Log ($"Starting default camera (WebCamTexture)");
+            if (Application.platform == RuntimePlatform.Android) {
+#if UNITY_ANDROID
+                hasUserPermission = Permission.HasUserAuthorizedPermission (Permission.Camera);
+                if (!hasUserPermission) {
+                    Log ("Requesting permission to use Camera");
+                    var callbacks = new PermissionCallbacks ();
+                    callbacks.PermissionDenied += PermissionCallbacks_PermissionDenied;
+                    callbacks.PermissionGranted += PermissionCallbacks_PermissionGranted;
+                    callbacks.PermissionDeniedAndDontAskAgain += PermissionCallbacks_PermissionDeniedAndDontAskAgain;
+                    hasUserDenied = false;
+                    Permission.RequestUserPermission (Permission.Camera, callbacks);
+                    while (!hasUserPermission && !hasUserDenied)
+                        yield return null;
+                    if (hasUserDenied) {
+                        OnDenied.Invoke ();
+                        yield break;
+                    }
+                }
+#endif
+            }
+            var rawImage = GetComponent<RawImage> ();
+            webcamTexture = new WebCamTexture (512, 512, 30);
+            rawImage.texture = webcamTexture;
+            rawImage.enabled = false;
+            Log ("Starting default camera (WebCamTexture)");
             webcamTexture.Play ();
             while (webcamTexture.width <= 16)
                 yield return null;
@@ -84,7 +112,7 @@ namespace CineGame.MobileComponents {
             rt.sizeDelta = new Vector2 (rt.sizeDelta.x, webcamTexture.height * rt.sizeDelta.x / webcamTexture.width);
             var snap = new Texture2D (webcamTexture.width, webcamTexture.height, TextureFormat.ARGB32, false);
             var colors = new Color32 [webcamTexture.width * webcamTexture.height];
-            GetComponent<RawImage> ().enabled = true;
+            rawImage.enabled = true;
 
             IBarcodeReader barCodeReader = new BarcodeReader ();
             string qrCode = null;
@@ -141,5 +169,22 @@ namespace CineGame.MobileComponents {
                 Screen.brightness = 1f;
             }
         }
+
+#if UNITY_ANDROID
+        void PermissionCallbacks_PermissionGranted (string permissionName) {
+            hasUserPermission = true;
+            Log ($"CodeScanner {permissionName} granted");
+        }
+
+        void PermissionCallbacks_PermissionDeniedAndDontAskAgain (string permissionName) {
+            hasUserDenied = true;
+            Log ($"CodeScanner {permissionName} denied and do not ask again");
+        }
+
+        void PermissionCallbacks_PermissionDenied (string permissionName) {
+            hasUserDenied = true;
+            Log ($"CodeScanner {permissionName} denied");
+        }
+#endif
     }
 }
