@@ -39,6 +39,9 @@ namespace CineGame.MobileComponents {
             }
         }
 
+		/// <summary>
+        /// Update Pointer.eulerAngles to point towards the eventdata position
+        /// </summary>
         public void UpdateAngle (BaseEventData data) {
             PointerEventData d = (PointerEventData)data;
             Vector2 dir = d.position - new Vector2(Pointer.position.x, Pointer.position.y);
@@ -51,6 +54,9 @@ namespace CineGame.MobileComponents {
 			Pointer.eulerAngles = angles;
         }
 
+		/// <summary>
+        /// Set Pointer.eulerAngles to a specific angle
+        /// </summary>
 		public void SetAngle (float angle) {
 			Log ($"AngularPointerComponent.SetAngle {angle}");
 			var angles = Pointer.eulerAngles;
