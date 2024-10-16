@@ -24,11 +24,14 @@ namespace CineGame.MobileComponents {
         [Tooltip ("Choose QR or barcode format")]
         public BarcodeFormat ValidFormats = BarcodeFormat.QR_CODE;
 
+        [Tooltip ("Optional regex validating the scanned code (eg url format, or four digit code)")]
+        public string ValidRegex;
+
         [Tooltip ("Fired when a QR Code is scanned and validated")]
         public UnityEvent<string> OnRead;
 
-        [Tooltip ("Optional regex validating the scanned code (eg url format, or four digit code)")]
-        public string ValidRegex;
+        [Tooltip ("Fired when a QR Code is scanned but doesn't validate")]
+        public UnityEvent<string> OnInvalidCode;
 
         [Tooltip ("Fired when a QR Code is generated")]
         public UnityEvent<Texture> OnWrite;
@@ -129,7 +132,8 @@ namespace CineGame.MobileComponents {
                             OnRead.Invoke (newQrCode);
                             break;
                         } else if (qrCode != newQrCode) {
-                            Log ($"Text from scanned code not validated: '{newQrCode}'");
+                            Log ($"Text from scanned code did not validate: '{newQrCode}' regex: {validRegex}");
+                            OnInvalidCode.Invoke (newQrCode);
                         }
                         qrCode = newQrCode;
                     }
