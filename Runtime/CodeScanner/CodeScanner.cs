@@ -95,11 +95,19 @@ namespace CineGame.MobileComponents {
             while (webcamTexture.width <= 16)
                 yield return null;
             Log ($"WebCamTexture dim = {webcamTexture.width} x {webcamTexture.height}, fps = {webcamTexture.requestedFPS}");
-            var rt = GetComponent<RectTransform> ();
-            rt.sizeDelta = new Vector2 (rt.sizeDelta.x, webcamTexture.height * rt.sizeDelta.x / webcamTexture.width);
             var snap = new Texture2D (webcamTexture.width, webcamTexture.height, TextureFormat.ARGB32, false);
             var colors = new Color32 [webcamTexture.width * webcamTexture.height];
+            rawImage.texture = webcamTexture;
             rawImage.enabled = true;
+            Rect r;
+            if (webcamTexture.width > webcamTexture.height) {
+                var s = .25f * webcamTexture.height / webcamTexture.width;
+                r = new (.5f - s, 0f, .5f + s, 1f);
+            } else {
+                var s = .25f * webcamTexture.width / webcamTexture.height;
+                r = new (0f, .5f - s, 1f, .5f + s);
+            }
+            rawImage.uvRect = r;
 
             IBarcodeReader barCodeReader = new BarcodeReader ();
             string qrCode = null;
