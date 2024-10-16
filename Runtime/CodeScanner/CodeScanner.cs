@@ -88,8 +88,7 @@ namespace CineGame.MobileComponents {
                 }
             }
             var rawImage = GetComponent<RawImage> ();
-            webcamTexture = new WebCamTexture (512, 512, 30);
-            rawImage.texture = webcamTexture;
+            webcamTexture = new WebCamTexture (1024, 1024, 30);
             rawImage.enabled = false;
             Log ("Starting default camera (WebCamTexture)");
             webcamTexture.Play ();
