@@ -47,6 +47,8 @@ namespace CineGame.MobileComponents {
         float originalScreenBrightness;
 
         Quaternion baseRotation = Quaternion.identity;
+        Vector3 baseScale = Vector3.one;
+        Vector3 flipScale = new (1f, -1f, 1f);
 
 		void OnEnable () {
             if (FullBrightnessOnWrite) {
@@ -56,6 +58,8 @@ namespace CineGame.MobileComponents {
                 Scan ();
             }
             baseRotation = transform.rotation;
+            baseScale = transform.localScale;
+            flipScale = new Vector3 (baseScale.x, -baseScale.y, baseScale.z);
 		}
 
 		void OnDisable () {
@@ -140,6 +144,7 @@ namespace CineGame.MobileComponents {
 
         void Update () {
             if (webcamTexture != null && webcamTexture.isPlaying) {
+                transform.localScale = webcamTexture.videoVerticallyMirrored ? flipScale : baseScale;
                 var angle = webcamTexture.videoRotationAngle;
                 if (angle != 0) {
                     transform.rotation = baseRotation * Quaternion.AngleAxis(-webcamTexture.videoRotationAngle, Vector3.forward);
