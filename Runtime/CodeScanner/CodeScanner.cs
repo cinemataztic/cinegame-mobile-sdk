@@ -5,9 +5,6 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
-#if UNITY_ANDROID
-using UnityEngine.Android;
-#endif
 
 using ZXing;
 
@@ -49,9 +46,7 @@ namespace CineGame.MobileComponents {
 
         float originalScreenBrightness;
 
-        bool hasUserPermission, hasUserDenied;
-
-        Quaternion baseRotation;
+        Quaternion baseRotation = Quaternion.identity;
 
 		void OnEnable () {
             if (FullBrightnessOnWrite) {
@@ -83,25 +78,14 @@ namespace CineGame.MobileComponents {
         }
 
         IEnumerator E_ScanQRCode () {
-            if (Application.platform == RuntimePlatform.Android) {
-#if UNITY_ANDROID
-                hasUserPermission = Permission.HasUserAuthorizedPermission (Permission.Camera);
-                if (!hasUserPermission) {
-                    Log ("Requesting permission to use Camera");
-                    var callbacks = new PermissionCallbacks ();
-                    callbacks.PermissionDenied += PermissionCallbacks_PermissionDenied;
-                    callbacks.PermissionGranted += PermissionCallbacks_PermissionGranted;
-                    callbacks.PermissionDeniedAndDontAskAgain += PermissionCallbacks_PermissionDeniedAndDontAskAgain;
-                    hasUserDenied = false;
-                    Permission.RequestUserPermission (Permission.Camera, callbacks);
-                    while (!hasUserPermission && !hasUserDenied)
-                        yield return null;
-                    if (hasUserDenied) {
-                        OnDenied.Invoke ();
-                        yield break;
-                    }
+            if (!Application.HasUserAuthorization(UserAuthorization.WebCam)) {
+                Log("Requesting permission to use Camera");
+                yield return Application.RequestUserAuthorization(UserAuthorization.Microphone);
+                if (!Application.HasUserAuthorization(UserAuthorization.Microphone)) {
+                    Log("User denied permission to use Camera");
+                    OnDenied.Invoke();
+                    yield break;
                 }
-#endif
             }
             var rawImage = GetComponent<RawImage> ();
             webcamTexture = new WebCamTexture (512, 512, 30);
@@ -179,22 +163,5 @@ namespace CineGame.MobileComponents {
                 Screen.brightness = 1f;
             }
         }
-
-#if UNITY_ANDROID
-        void PermissionCallbacks_PermissionGranted (string permissionName) {
-            hasUserPermission = true;
-            Log ($"CodeScanner {permissionName} granted");
-        }
-
-        void PermissionCallbacks_PermissionDeniedAndDontAskAgain (string permissionName) {
-            hasUserDenied = true;
-            Log ($"CodeScanner {permissionName} denied and do not ask again");
-        }
-
-        void PermissionCallbacks_PermissionDenied (string permissionName) {
-            hasUserDenied = true;
-            Log ($"CodeScanner {permissionName} denied");
-        }
-#endif
     }
 }
