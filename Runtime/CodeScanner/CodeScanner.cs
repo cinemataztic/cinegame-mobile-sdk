@@ -133,7 +133,10 @@ namespace CineGame.MobileComponents {
 
         void Update () {
             if (webcamTexture != null && webcamTexture.isPlaying) {
-                transform.rotation = baseRotation * Quaternion.AngleAxis (webcamTexture.videoRotationAngle, Vector3.up);
+                var angle = webcamTexture.videoRotationAngle;
+                if (angle != 0) {
+                    transform.rotation = baseRotation * Quaternion.AngleAxis(webcamTexture.videoRotationAngle, Vector3.forward);
+                }
             }
         }
 
