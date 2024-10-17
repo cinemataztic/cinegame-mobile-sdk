@@ -33,6 +33,9 @@ namespace CineGame.MobileComponents {
         [Tooltip ("If true, a call to Generate() will result in a transparent texture with white foreground")]
         public bool Transparent;
 
+        [Tooltip ("This overlay will be activated, positioned and sized when a code is detected")]
+        public RectTransform CodeOverlay;
+
         [Tooltip ("Fired when a QR Code is scanned and validated")]
         public UnityEvent<string> OnRead;
 
@@ -53,6 +56,8 @@ namespace CineGame.MobileComponents {
         Vector3 baseScale = Vector3.one;
         Vector3 flipScale = new (1f, -1f, 1f);
 
+        Vector2 minCodeSize = new (128f, 128f);
+
 		void OnEnable () {
             if (FullBrightnessOnWrite) {
                 originalScreenBrightness = Screen.brightness;
@@ -63,6 +68,13 @@ namespace CineGame.MobileComponents {
             baseRotation = transform.rotation;
             baseScale = transform.localScale;
             flipScale = new Vector3 (baseScale.x, -baseScale.y, baseScale.z);
+
+            if (CodeOverlay != null) {
+                minCodeSize = CodeOverlay.rect.size;
+                CodeOverlay.gameObject.SetActive (false);
+                CodeOverlay.anchorMin = CodeOverlay.anchorMax = Vector2.zero;
+                CodeOverlay.localScale = Vector3.one;
+            }
 		}
 
 		void OnDisable () {
@@ -106,13 +118,22 @@ namespace CineGame.MobileComponents {
             var colors = new Color32 [webcamTexture.width * webcamTexture.height];
             rawImage.texture = webcamTexture;
             rawImage.enabled = true;
+
             Rect r;
+            var offset = Vector3.zero;
+            var scale = GetComponent<RectTransform> ().rect.size;
             if (webcamTexture.width > webcamTexture.height) {
                 var s = (float)webcamTexture.height / webcamTexture.width;
                 r = new (.5f - .5f * s, 0f, s, 1f);
+                offset.x = webcamTexture.width * r.min.x;
+                scale.x /= webcamTexture.width * r.size.x;
+                scale.y /= webcamTexture.height;
             } else {
                 var s = (float)webcamTexture.width / webcamTexture.height;
                 r = new (0f, .5f - .5f * s, 1f, s);
+                offset.y = webcamTexture.height * r.min.y;
+                scale.x /= webcamTexture.width;
+                scale.y /= webcamTexture.height * r.size.y;
             }
             rawImage.uvRect = r;
 
@@ -126,6 +147,16 @@ namespace CineGame.MobileComponents {
                     snap.SetPixels32 (colors);
                     var result = barCodeReader.Decode (snap.GetRawTextureData (), snap.width, snap.height, RGBLuminanceSource.BitmapFormat.ARGB32);
                     if (result != null && (result.BarcodeFormat & ValidFormats) != 0) {
+                        if (CodeOverlay != null) {
+                            var rp = result.ResultPoints;
+                            var b = new Bounds (new Vector3 (rp [0].X, rp [0].Y), Vector3.zero);
+                            for (int i = 1; i < rp.Length; i++)
+                                b.Encapsulate (new Vector3 (rp [i].X, rp [i].Y, 0f));
+                            b.extents *= 1.4f;
+                            CodeOverlay.anchoredPosition = (b.min - offset) * scale;
+                            CodeOverlay.sizeDelta = Vector2.Max (b.size * scale, minCodeSize);
+                            CodeOverlay.gameObject.EnsureActive ();
+                        }
                         var newQrCode = result.Text;
                         if (!string.IsNullOrEmpty (newQrCode) && (validRegex == null || validRegex.IsMatch (newQrCode))) {
                             Log ($"Validated text from scanned code: '{newQrCode}'");
@@ -136,6 +167,10 @@ namespace CineGame.MobileComponents {
                             OnInvalidCode.Invoke (newQrCode);
                         }
                         qrCode = newQrCode;
+                    } else {
+                        if (CodeOverlay != null) {
+                            CodeOverlay.gameObject.SetActive (false);
+                        }
                     }
                 } catch (Exception ex) {
                     LogError (ex.Message);
