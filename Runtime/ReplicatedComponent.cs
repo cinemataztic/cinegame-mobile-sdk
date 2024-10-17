@@ -29,7 +29,7 @@ namespace CineGame.MobileComponents {
 			onObjectMessage += OnObjectMessage;
 			onPrivateMessage += OnPrivateMessage;
 			if (Util.IsDevModeActive) {
-				Debug.Log ($"{GetType ()} InitReplication {Util.GetObjectScenePath (gameObject)}");
+				Debug.Log ($"{GetType ()} InitReplication {Util.GetObjectScenePath (gameObject)}", this);
 			}
 		}
 
