@@ -19,13 +19,19 @@ namespace CineGame.MobileComponents {
     public class CodeScanner : BaseComponent {
 
         [Tooltip ("Call Scan() from OnEnable")]
-        public bool ScanOnEnable;
+        public bool ScanOnEnable = true;
 
         [Tooltip ("Choose QR or barcode format")]
         public BarcodeFormat ValidFormats = BarcodeFormat.QR_CODE;
 
         [Tooltip ("Optional regex validating the scanned code (eg url format, or four digit code)")]
         public string ValidRegex;
+
+        [Tooltip ("Will request full screen brightness when a code is generated. The brightness will be reset when the component is disabled")]
+        public bool FullBrightnessOnWrite = true;
+
+        [Tooltip ("If true, a call to Generate() will result in a transparent texture with white foreground")]
+        public bool Transparent;
 
         [Tooltip ("Fired when a QR Code is scanned and validated")]
         public UnityEvent<string> OnRead;
@@ -38,12 +44,6 @@ namespace CineGame.MobileComponents {
 
         [Tooltip ("Fired when user has denied access to camera")]
         public UnityEvent OnDenied;
-
-        [Tooltip ("Will request full screen brightness when a code is generated. The brightness will be reset when the component is disabled")]
-        public bool FullBrightnessOnWrite;
-
-        [Tooltip ("If true, a call to Generate() will result in a transparent texture with white foreground")]
-        public bool Transparent;
 
         WebCamTexture webcamTexture;
 
@@ -108,11 +108,11 @@ namespace CineGame.MobileComponents {
             rawImage.enabled = true;
             Rect r;
             if (webcamTexture.width > webcamTexture.height) {
-                var s = .25f * webcamTexture.height / webcamTexture.width;
-                r = new (.5f - s, 0f, .5f + s, 1f);
+                var s = (float)webcamTexture.height / webcamTexture.width;
+                r = new (.5f - .5f * s, 0f, s, 1f);
             } else {
-                var s = .25f * webcamTexture.width / webcamTexture.height;
-                r = new (0f, .5f - s, 1f, .5f + s);
+                var s = (float)webcamTexture.width / webcamTexture.height;
+                r = new (0f, .5f - .5f * s, 1f, s);
             }
             rawImage.uvRect = r;
 
