@@ -159,11 +159,11 @@ namespace CineGame.MobileComponents {
                         }
                         var newQrCode = result.Text;
                         if (!string.IsNullOrEmpty (newQrCode) && (validRegex == null || validRegex.IsMatch (newQrCode))) {
-                            Log ($"Validated text from scanned code: '{newQrCode}'");
+                            Log ($"Validated text from scanned {result.BarcodeFormat}: '{newQrCode}'");
                             OnRead.Invoke (newQrCode);
                             break;
                         } else if (qrCode != newQrCode) {
-                            Log ($"Text from scanned code did not validate: '{newQrCode}' regex: {validRegex}");
+                            Log ($"Text from scanned {result.BarcodeFormat} did not validate: '{newQrCode}' regex: {validRegex}");
                             OnInvalidCode.Invoke (newQrCode);
                         }
                         qrCode = newQrCode;
@@ -195,10 +195,23 @@ namespace CineGame.MobileComponents {
         /// Generate a texture from the input using the ValidFormats code
         /// </summary>
         public void Generate (string text) {
+            var foundFormat = false;
+            for (int i = 0; i < 32; i++) {
+                if (((int)ValidFormats & (1 << i)) != 0) {
+                    if (foundFormat) {
+                        LogError ("CodeScanner could not generate code, more than one code format selected!");
+                        return;
+                    }
+                    foundFormat = true;
+                }
+            }
+
+            Log ($"CodeScanner Generate {ValidFormats} {text}");
+
             var barcodeWriter = new BarcodeWriterPixelData {
                 Format = ValidFormats,
                 Options = new ZXing.Common.EncodingOptions {
-                    Width = 128,
+                    Width = (ValidFormats & BarcodeFormat.QR_CODE) != 0 ? 128 : 512,
                     Height = 128,
                     Margin = 2,
                 },
