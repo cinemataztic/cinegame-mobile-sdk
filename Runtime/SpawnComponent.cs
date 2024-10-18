@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Events;
 
 namespace CineGame.MobileComponents {
-	[ComponentReference ("Spawn a prefab as a child of this Transform, with same position and orientation. An optional impulse can be applied by triggering the Impulse methods. A maximum amount of spawns can be set (and a reload method can be invoked).\n\nYou can spawn objects from the game host by sending Key='suffix', the suffix being some arbitrary string that will be appended to the GameObject's name (or if null or empty, no suffix will be appended).\nIf the suffix from host parses as an integer, the transform will be insert-sorted by suffix with its siblings (treated as an ordered list).")]
+	[ComponentReference ("Spawn a prefab as a child of this Transform, with same position and orientation. An optional impulse can be applied by triggering the Impulse methods. A maximum amount of spawns can be set (and a reload method can be invoked).\n\nYou can spawn objects from the game host by sending Key='suffix', the suffix being some arbitrary string that will be appended to the GameObject's name (or if null or empty, no suffix will be appended).\nIf the suffix from host parses as an integer, the transform will be insert-sorted by suffix with its siblings (treated as an ordered list).\nYou can set properties on instances remotely by using special keys '_spawn' and '_instance' to route by SpawnComponent and instance name.")]
 	public class SpawnComponent : ReplicatedComponent {
 
 		public GameObject Prefab;
@@ -34,6 +34,11 @@ namespace CineGame.MobileComponents {
 		/// Remember to test for null in case an instance has already been destroyed!
 		/// </summary>
 		readonly List<GameObject> Instances = new ();
+
+		/// <summary>
+        /// Transient buffer for replicating object messages in children
+        /// </summary>
+		readonly List<ReplicatedComponent> replicatedComponents = new ();
 
 		void Respawn () {
 			Invoke (nameof(Spawn), RespawnDelay);
@@ -137,11 +142,28 @@ namespace CineGame.MobileComponents {
 					Log ($"Spawned from host: {go.GetScenePath ()}");
 				}
 
-				foreach (var rc in go.transform.GetComponentsInChildren<ReplicatedComponent> (includeInactive: true)) {
+				go.transform.GetComponentsInChildren (includeInactive: true, replicatedComponents);
+				foreach (var rc in replicatedComponents) {
 					//Init replication for ReplicatedComponent instance
 					rc.InitReplication ();
-					//Replicate the message, enabling host to spawn and populate an instance in one message
-					rc.OnObjectMessage (dataObj, senderId);
+				}
+			}
+
+			if (dataObj.ContainsKey ("_instance")) {
+				var instance = dataObj.GetSFSObject ("_instance");
+				var instanceName = instance.GetUtfString ("_name");
+				var t = transform.Find (instanceName);
+				if (t == null) {
+					LogError ($"SpawnComponent instance not found: " + instanceName);
+				} else {
+					instance.RemoveElement ("_name");
+					if (Util.IsDevModeActive) {
+						Log ($"Routing instance properties to {t.gameObject.GetScenePath ()} : {instance.GetDump ()}");
+					}
+					t.GetComponentsInChildren (includeInactive: true, replicatedComponents);
+					foreach (var rc in replicatedComponents) {
+						rc.OnObjectMessage (instance, senderId);
+					}
 				}
 			}
 		}

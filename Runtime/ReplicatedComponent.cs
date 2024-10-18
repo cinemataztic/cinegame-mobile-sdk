@@ -12,20 +12,33 @@ namespace CineGame.MobileComponents {
 		public static event PrivateMessageDelegate onPrivateMessage;
 
 		public static ISFSObject objectMessageToHost = new SFSObject ();
-		public static List<string> messagesToHost = new List<string> ();
+		public static List<string> messagesToHost = new ();
+
+		static readonly Dictionary<string, SpawnComponent> SpawnComponents = new ();
 
 		public static void InvokePrivateMessage (string message, int senderId) {
 			onPrivateMessage?.Invoke (message, senderId);
 		}
 
 		public static void InvokeObjectMessage (ISFSObject obj, int senderId) {
-			onObjectMessage?.Invoke (obj, senderId);
+			if (obj.ContainsKey ("_spawn")) {
+				var key = obj.GetUtfString ("_spawn");
+				if (Util.IsDevModeActive) {
+					Debug.Log ($"Routine SFSObject only to SpawnComponent with key={key} : {obj.GetDump ()}");
+				}
+				SpawnComponents [key].OnObjectMessage (obj, senderId);
+			} else {
+				onObjectMessage?.Invoke (obj, senderId);
+			}
 		}
 
 		/// <summary>
 		/// Initialize replication (and filtering) of data from host to client
 		/// </summary>
 		public virtual void InitReplication () {
+			if (this is SpawnComponent sc) {
+				SpawnComponents [sc.Key] = sc;
+			}
 			onObjectMessage += OnObjectMessage;
 			onPrivateMessage += OnPrivateMessage;
 			if (Util.IsDevModeActive) {
@@ -34,6 +47,9 @@ namespace CineGame.MobileComponents {
 		}
 
 		void OnDestroy () {
+			if (this is SpawnComponent sc) {
+				SpawnComponents.Remove (sc.Key);
+			}
 			onObjectMessage -= OnObjectMessage;
 			onPrivateMessage -= OnPrivateMessage;
 			if (Util.IsDevModeActive) {
