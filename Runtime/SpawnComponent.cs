@@ -8,7 +8,7 @@ namespace CineGame.MobileComponents {
 	public class SpawnComponent : ReplicatedComponent {
 
 		public GameObject Prefab;
-		public float RespawnDelay = 0.3f;
+
 		[Tooltip("How many spawns (0=infinite)")]
 		public int Capacity = 0;
 
@@ -40,35 +40,59 @@ namespace CineGame.MobileComponents {
         /// </summary>
 		readonly List<ReplicatedComponent> replicatedComponents = new ();
 
-		void Respawn () {
-			Invoke (nameof(Spawn), RespawnDelay);
-		}
-
+		/// <summary>
+        /// Spawn an instance at this position and rotation
+        /// </summary>
 		public void Spawn () {
 			Log ($"Spawn {Prefab.name}");
-			Spawn (transform.position);
+			Spawn (transform.position, transform.rotation);
 		}
 
+		/// <summary>
+        /// Spawn an instance at the position and rotation of the specified transform
+        /// </summary>
+		public void SpawnAt (Transform sourceTransform) {
+			Log ($"SpawnAt {Prefab.name} {sourceTransform.position} {sourceTransform.eulerAngles}");
+			Spawn (sourceTransform.position, sourceTransform.rotation);
+
+			var rbSrc = sourceTransform.GetComponentInParent<Rigidbody> ();
+			if (rbSrc != null) {
+				var rbDst = Current.GetComponentInChildren<Rigidbody> ();
+				if (rbDst != null) {
+#if UNITY_6000_0_OR_NEWER
+					rbDst.linearVelocity = rbSrc.linearVelocity;
+#else
+					rbDst.velocity = rbSrc.velocity;
+#endif
+				}
+			}
+		}
+
+		/// <summary>
+        /// Spawn an instance at a specific world position
+        /// </summary>
 		public void SpawnAt (Vector3 worldPosition) {
 			Log ($"SpawnAt {Prefab.name} {worldPosition}");
-			Spawn (worldPosition);
+			Spawn (worldPosition, transform.rotation);
 		}
 
-		private GameObject Spawn (Vector3 worldPosition) {
+		private GameObject Spawn (Vector3 worldPosition, Quaternion worldRotation) {
 			if (Capacity != 0 && numSpawns >= Capacity) {
 				OnEmpty.Invoke ();
 				return null;
 			} else {
 				Log ($"SpawnAt {Prefab.name} {worldPosition}");
 				Current = Instantiate (Prefab, transform);
-				Current.transform.position = worldPosition;
-				Current.transform.localRotation = Quaternion.identity;
+				Current.transform.SetPositionAndRotation (worldPosition, worldRotation);
 				OnSpawn.Invoke (Current);
 				numSpawns++;
 				return Current;
 			}
 		}
 
+		/// <summary>
+        /// Destroy all spawned instances
+        /// </summary>
 		public void DestroyInstances () {
 			var i = 0;
 			foreach (var go in Instances) {
@@ -81,33 +105,43 @@ namespace CineGame.MobileComponents {
 			Log ($"DestroyInstances destroyed {i} instances");
 		}
 
+		/// <summary>
+        /// Reload to full capacity
+        /// </summary>
 		public void Reload () {
 			Log ("SpawnComponent.Reload");
 			numSpawns = 0;
 		}
 
+		/// <summary>
+        /// Set "magazine" capacity to specific number
+        /// </summary>
 		public void SetCapacity (int newCapacity) {
 			Log ($"SpawnComponent.SetCapacity ({newCapacity})");
 			Capacity = newCapacity;
 		}
 
+		/// <summary>
+        /// Apply a 2D impulse to the physics object of the last spawned instance. If the object is not 2D, the impulse is aligned with the X and Y axis of this object.
+        /// </summary>
 		public void Impulse (Vector2 force) {
-			var t = (ImpulseAlign != null)? ImpulseAlign : this.transform;
 			if (Current.TryGetComponent<Rigidbody2D>(out var rb2d)) {
 				Log ($"SpawnComponent.Impulse 2D ({force})");
 				rb2d.AddForce (force, ForceMode2D.Impulse);
-				Respawn ();
 			} else {
+				var t = (ImpulseAlign != null) ? ImpulseAlign : transform;
 				Impulse (force.x * t.right + force.y * t.up);
 			}
 		}
 
+		/// <summary>
+		/// Apply a physics 3D impulse to last spawned instance
+		/// </summary>
 		public void Impulse (Vector3 force) {
 			var t = (ImpulseAlign != null)? ImpulseAlign : this.transform;
 			var pos = t.position + Random.insideUnitSphere * RandomImpulsePosition;
 			Log ($"SpawnComponent.Impulse ({force}) at position ({pos})");
 			Current.GetComponent<Rigidbody> ().AddForceAtPosition (force, pos, ForceMode.Impulse);
-			Respawn ();
 		}
 
 		/// <summary>
@@ -116,7 +150,7 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		internal override void OnObjectMessage (ISFSObject dataObj, int senderId) {
 			if (dataObj.ContainsKey (Key)) {
-				var go = Spawn (transform.position);
+				var go = Spawn (transform.position, transform.rotation);
 
 				var insertSorted = false;
 				var goName = dataObj.GetUtfString (Key);
