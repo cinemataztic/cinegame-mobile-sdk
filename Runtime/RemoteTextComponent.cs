@@ -155,8 +155,8 @@ namespace CineGame.MobileComponents {
 			case "L":
 				return arg.ToString ().ToLower ();
 			default:
-				if (format.Length > 1 && format [0] == 'T') {
-					var trimLen = int.Parse (format.Substring (1));
+				if (format != null && format.Length > 1 && format [0] == 'T') {
+					var trimLen = int.Parse (format [1..]);
 					var str = arg.ToString ();
 					if (str.Length > trimLen) {
 						str = arg.ToString ().Substring (0, trimLen) + "…";
@@ -168,8 +168,8 @@ namespace CineGame.MobileComponents {
 		}
 
 		private string HandleOtherFormats (string format, object arg, IFormatProvider formatProvider) {
-			if (arg is IFormattable)
-				return ((IFormattable)arg).ToString (format, formatProvider);
+			if (arg is IFormattable formattable)
+				return formattable.ToString (format, formatProvider);
 			else if (arg != null)
 				return arg.ToString ();
 			else
