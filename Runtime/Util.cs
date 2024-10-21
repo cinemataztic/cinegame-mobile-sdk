@@ -206,6 +206,8 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public static event AssetBundleEvent OnLoadAssetBundle;
 
+		public static readonly CustomStringFormatter CustomStringFormat = new ();
+
 		/// <summary>
 		/// Determine API Region based on Application.identifier
 		/// </summary>
@@ -871,4 +873,43 @@ namespace CineGame.MobileComponents {
 		//public bool UseDefaultTagFieldDrawer = false;
 	}
 
+	/// <summary>
+	/// Custom string formatting. U is uppercase, L is lowercase, Txx trims to max xx characters with ellipse character if trimmed
+	/// </summary>
+	public class CustomStringFormatter : IFormatProvider, ICustomFormatter {
+		public object GetFormat (Type formatType) {
+			if (formatType == typeof (ICustomFormatter))
+				return this;
+			else
+				return null;
+		}
+
+		public string Format (string format, object arg, IFormatProvider formatProvider) {
+			switch (format) {
+			case "U":
+				return arg.ToString ().ToUpper ();
+			case "L":
+				return arg.ToString ().ToLower ();
+			default:
+				if (format != null && format.Length > 1 && format [0] == 'T') {
+					var trimLen = int.Parse (format [1..]);
+					var str = arg.ToString ();
+					if (str.Length > trimLen) {
+						str = arg.ToString ().Substring (0, trimLen) + "…";
+					}
+					return str;
+				}
+				return HandleOtherFormats (format, arg, formatProvider);
+			}
+		}
+
+		private string HandleOtherFormats (string format, object arg, IFormatProvider formatProvider) {
+			if (format != null && arg is IFormattable formattable)
+				return formattable.ToString (format, formatProvider);
+			else if (arg != null)
+				return arg.ToString ();
+
+			return string.Empty;
+		}
+	}
 }

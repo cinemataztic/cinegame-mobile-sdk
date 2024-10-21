@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
-using UnityEngine.Serialization;
 
 using Sfs2X.Entities.Data;
 
@@ -38,8 +37,6 @@ namespace CineGame.MobileComponents {
 		[Tooltip ("Invoked with the formatted string, or the raw string value if no formatter is specified")]
 		public UnityEvent<string> OnReceive;
 
-		CustomStringFormatter customStringFormatter;
-
 		public override void InitReplication () {
 			base.InitReplication ();
 
@@ -52,11 +49,11 @@ namespace CineGame.MobileComponents {
 				c = GetComponent<Text> ();
 				if (c == null) {
 					c = GetComponent<TextMesh> ();
-					if (c == null) {
 #if UNITY_2021_1_OR_NEWER
+					if (c == null) {
 						c = GetComponent<TMPro.TMP_Text> ();
-#endif
 					}
+#endif
 				}
 			}
 			if (c is Text textComponent) {
@@ -96,7 +93,6 @@ namespace CineGame.MobileComponents {
 				}
 			}
 #endif
-			customStringFormatter = new CustomStringFormatter ();
 		}
 
 		internal override void OnObjectMessage (ISFSObject dataObj, int senderId) {
@@ -124,7 +120,7 @@ namespace CineGame.MobileComponents {
 					i++;
 				}
 				if (!string.IsNullOrWhiteSpace (StringFormat) && args.Count == Keys.Length) {
-					s = string.Format (customStringFormatter, StringFormat, args.ToArray ());
+					s = string.Format (Util.CustomStringFormat, StringFormat, args.ToArray ());
 				}
 			} else if (dataObj.ContainsKey (Key)) {
 				s = dataObj.GetUtfString (Key);
@@ -134,46 +130,5 @@ namespace CineGame.MobileComponents {
 				Log ($"RemoteTextComponent: \"{s}\"\n{Util.GetEventPersistentListenersInfo (OnReceive)}");
 			}
         }
-	}
-
-	/// <summary>
-	/// Custom string formatting. U is uppercase, L is lowercase, Txx trims to max xx characters with ellipse character if trimmed
-	/// </summary>
-	public class CustomStringFormatter : IFormatProvider, ICustomFormatter {
-		public object GetFormat (Type formatType) {
-			if (formatType == typeof (ICustomFormatter))
-				return this;
-			else
-				return null;
-
-		}
-
-		public string Format (string format, object arg, IFormatProvider formatProvider) {
-			switch (format) {
-			case "U":
-				return arg.ToString ().ToUpper ();
-			case "L":
-				return arg.ToString ().ToLower ();
-			default:
-				if (format != null && format.Length > 1 && format [0] == 'T') {
-					var trimLen = int.Parse (format [1..]);
-					var str = arg.ToString ();
-					if (str.Length > trimLen) {
-						str = arg.ToString ().Substring (0, trimLen) + "…";
-					}
-					return str;
-				}
-				return HandleOtherFormats (format, arg, formatProvider);
-			}
-		}
-
-		private string HandleOtherFormats (string format, object arg, IFormatProvider formatProvider) {
-			if (arg is IFormattable formattable)
-				return formattable.ToString (format, formatProvider);
-			else if (arg != null)
-				return arg.ToString ();
-			else
-				return string.Empty;
-		}
 	}
 }
