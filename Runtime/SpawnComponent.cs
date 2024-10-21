@@ -76,15 +76,17 @@ namespace CineGame.MobileComponents {
 			Spawn (worldPosition, transform.rotation);
 		}
 
-		private GameObject Spawn (Vector3 worldPosition, Quaternion worldRotation) {
+		private GameObject Spawn (Vector3 worldPosition, Quaternion worldRotation, bool invoke=true) {
 			if (Capacity != 0 && numSpawns >= Capacity) {
+				Log ($"Spawn.OnEmpty\n{Util.GetEventPersistentListenersInfo (OnEmpty)}");
 				OnEmpty.Invoke ();
 				return null;
 			} else {
-				Log ($"SpawnAt {Prefab.name} {worldPosition}");
+				Log ($"SpawnAt {Prefab.name} {worldPosition} OnSpawn\n{Util.GetEventPersistentListenersInfo (OnSpawn)}");
 				Current = Instantiate (Prefab, transform);
 				Current.transform.SetPositionAndRotation (worldPosition, worldRotation);
-				OnSpawn.Invoke (Current);
+				if (invoke)
+					OnSpawn.Invoke (Current);
 				numSpawns++;
 				return Current;
 			}
@@ -150,7 +152,9 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		internal override void OnObjectMessage (ISFSObject dataObj, int senderId) {
 			if (dataObj.ContainsKey (Key)) {
-				var go = Spawn (transform.position, transform.rotation);
+				var go = Spawn (transform.position, transform.rotation, invoke: false);
+				if (go == null)
+					return;
 
 				var insertSorted = false;
 				var goName = dataObj.GetUtfString (Key);
@@ -181,6 +185,9 @@ namespace CineGame.MobileComponents {
 					//Init replication for ReplicatedComponent instance
 					rc.InitReplication ();
 				}
+
+				Log ($"OnSpawn\n{Util.GetEventPersistentListenersInfo (OnSpawn)}");
+				OnSpawn.Invoke (go);
 			}
 
 			if (dataObj.ContainsKey ("_instance")) {
