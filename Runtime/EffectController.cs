@@ -7,14 +7,14 @@ namespace CineGame.MobileComponents {
     /// High performance controller for spawning finite effects in world space locations. The effect can either be a particle system or an animation.
     /// </summary>
     [ComponentReference ("High performance controller for spawning finite effects in world space locations. The effect can either be a particle system or an animation.")]
-    public class EffectController : MonoBehaviour {
+    public class EffectController : BaseComponent {
         public GameObject [] Prefabs;
 
         [Tooltip ("Number of instances of each effect which will be pre-initialized for performance")]
         public int NumInstances = 20;
 
-        static Stack<GameObject> [] stacks;
-        static float [] durations;
+        Stack<GameObject> [] stacks;
+        float [] durations;
 
         static EffectController Instance;
 
@@ -26,12 +26,16 @@ namespace CineGame.MobileComponents {
             durations = new float [Prefabs.Length];
             stacks = new Stack<GameObject> [Prefabs.Length];
             for (int i = 0; i < Prefabs.Length; i++) {
+                Log ($"EffectController Setting up a stack of {NumInstances} {Prefabs [i].name} instances");
                 var stack = new Stack<GameObject> (NumInstances);
                 durations [i] = SetupEffect (Prefabs [i], stack);
                 stacks [i] = stack;
             }
         }
 
+        /// <summary>
+        /// Sets up a stack of deactivated instances of a specific prefab, ready to be moved and activated when needed.
+        /// </summary>
         float SetupEffect (GameObject prefab, Stack<GameObject> stack) {
             GameObject go = new (prefab.name);
             var parent = go.transform;
@@ -45,15 +49,17 @@ namespace CineGame.MobileComponents {
             }
             var ps = prefab.GetComponentInChildren<ParticleSystem> ();
             if (ps != null) {
+                Log ($"EffectController ParticleSystem main duration of {prefab.name}: {ps.main.duration}");
                 return ps.main.duration;
             }
             var animator = prefab.GetComponentInChildren<Animator> ();
             if (animator != null) {
                 var animStateInfo = animator.GetNextAnimatorStateInfo (0);
+                Log ($"EffectController Animator duration of {prefab.name}: {animStateInfo.length}");
                 return animStateInfo.length;
             }
             //Default to 1 sec
-            Debug.LogWarning ("Returning default duration on " + prefab.name);
+            Debug.LogWarning ("Returning default duration on " + prefab.name, this);
             return 1f;
         }
 
@@ -61,21 +67,21 @@ namespace CineGame.MobileComponents {
         /// Spawn an effect at the specified transform's position and with same rotation. If multiple prefabs are defined, chose a random
         /// </summary>
         public void Spawn (Transform location) {
-            Spawn (location.position, location.rotation, Random.Range (0, Instance.Prefabs.Length));
+            Spawn (location.position, location.rotation, Random.Range (0, Prefabs.Length));
         }
 
         /// <summary>
         /// Spawn an effect at the specified gameobject's position and with same rotation. If multiple prefabs are defined, chose a random
         /// </summary>
         public void Spawn (GameObject location) {
-            Spawn (location.transform.position, location.transform.rotation, Random.Range (0, Instance.Prefabs.Length));
+            Spawn (location.transform.position, location.transform.rotation, Random.Range (0, Prefabs.Length));
         }
 
         /// <summary>
         /// Spawn an effect at the specified world position. If multiple prefabs are defined, chose a random
         /// </summary>
         public void Spawn (Vector3 worldPosition) {
-            Spawn (worldPosition, Quaternion.identity, Random.Range (0, Instance.Prefabs.Length));
+            Spawn (worldPosition, Quaternion.identity, Random.Range (0, Prefabs.Length));
         }
 
         /// <summary>
@@ -87,21 +93,21 @@ namespace CineGame.MobileComponents {
                     return i;
                 }
             }
-            Debug.LogError ($"Prefab {prefabName} not registered!");
+            Instance.LogError ($"Prefab {prefabName} not registered!");
             return -1;
         }
 
         public static void Spawn (Vector3 position, Quaternion rotation, int prefabID) {
-            if (prefabID < 0 || prefabID >= stacks.Length)
+            if (prefabID < 0 || prefabID >= Instance.stacks.Length)
                 return;
-            if (!stacks [prefabID].TryPop (out GameObject instance)) {
+            if (!Instance.stacks [prefabID].TryPop (out GameObject instance)) {
                 var prefab = Instance.Prefabs [prefabID];
-                Debug.LogError ($"{prefab.name} stack exhausted! You should increase the NumInstances property on next build. Adding another instance (expensive)");
+                Instance.LogError ($"{prefab.name} stack exhausted! You should increase the NumInstances property on next build. Adding another instance (expensive)");
                 //Debug.Break ();
                 var parent = Instance.transform.Find (prefab.name);
                 instance = Instantiate (prefab, parent);
             }
-            Instance.StartCoroutine (Instance.E_Effect (instance, position, rotation, stacks [prefabID], durations [prefabID]));
+            Instance.StartCoroutine (Instance.E_Effect (instance, position, rotation, Instance.stacks [prefabID], Instance.durations [prefabID]));
         }
 
         /// <summary>
