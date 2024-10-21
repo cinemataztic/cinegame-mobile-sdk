@@ -5,6 +5,9 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
+#if UNITY_ANDROID
+using UnityEngine.Android;
+#endif
 
 using ZXing;
 
@@ -58,6 +61,8 @@ namespace CineGame.MobileComponents {
 
         Vector2 minCodeSize = new (128f, 128f);
 
+        bool hasUserPermission, hasUserDenied;
+
 		void OnEnable () {
             if (FullBrightnessOnWrite) {
                 originalScreenBrightness = Screen.brightness;
@@ -97,12 +102,26 @@ namespace CineGame.MobileComponents {
         }
 
         IEnumerator E_ScanQRCode () {
-            if (!Application.HasUserAuthorization(UserAuthorization.WebCam)) {
-                Log("Requesting permission to use Camera");
+#if UNITY_ANDROID
+            hasUserPermission = Permission.HasUserAuthorizedPermission (Permission.Camera);
+            if (!hasUserPermission) {
+                Log ("Requesting permission to use Camera");
+                var callbacks = new PermissionCallbacks ();
+                callbacks.PermissionDenied += PermissionCallbacks_PermissionDenied;
+                callbacks.PermissionGranted += PermissionCallbacks_PermissionGranted;
+                callbacks.PermissionDeniedAndDontAskAgain += PermissionCallbacks_PermissionDeniedAndDontAskAgain;
+                hasUserDenied = false;
+                Permission.RequestUserPermission (Permission.Camera, callbacks);
+                while (!hasUserPermission && !hasUserDenied)
+                    yield return null;
+                if (hasUserDenied) {
+#else
+            if (!Application.HasUserAuthorization (UserAuthorization.WebCam)) {
                 yield return Application.RequestUserAuthorization(UserAuthorization.Microphone);
                 if (!Application.HasUserAuthorization(UserAuthorization.Microphone)) {
-                    Log("User denied permission to use Camera");
-                    OnDenied.Invoke();
+#endif
+                    Log ($"CodeScanner.OnDenied\n{Util.GetEventPersistentListenersInfo (OnDenied)}");
+                    OnDenied.Invoke ();
                     yield break;
                 }
             }
@@ -159,11 +178,11 @@ namespace CineGame.MobileComponents {
                         }
                         var newQrCode = result.Text;
                         if (!string.IsNullOrEmpty (newQrCode) && (validRegex == null || validRegex.IsMatch (newQrCode))) {
-                            Log ($"Validated text from scanned {result.BarcodeFormat}: '{newQrCode}'");
+                            Log ($"Validated text from scanned {result.BarcodeFormat}: '{newQrCode}' OnRead\n{Util.GetEventPersistentListenersInfo (OnRead)}");
                             OnRead.Invoke (newQrCode);
                             break;
                         } else if (qrCode != newQrCode) {
-                            Log ($"Text from scanned {result.BarcodeFormat} did not validate: '{newQrCode}' regex: {validRegex}");
+                            Log ($"Text from scanned {result.BarcodeFormat} did not validate: '{newQrCode}' regex: {validRegex} OnInvalidCode\n{Util.GetEventPersistentListenersInfo (OnInvalidCode)}");
                             OnInvalidCode.Invoke (newQrCode);
                         }
                         qrCode = newQrCode;
@@ -224,11 +243,30 @@ namespace CineGame.MobileComponents {
             var texture = new Texture2D (pixelData.Width, pixelData.Height, TextureFormat.RGBA32, false);
             texture.SetPixelData (pixelData.Pixels, 0);
             texture.Apply ();
+
+            Log ($"CodeScanner.OnWrite\n{ Util.GetEventPersistentListenersInfo (OnWrite)}");
             OnWrite.Invoke (texture);
 
             if (FullBrightnessOnWrite) {
                 Screen.brightness = 1f;
             }
         }
+
+#if UNITY_ANDROID
+        void PermissionCallbacks_PermissionGranted (string permissionName) {
+            hasUserPermission = true;
+            Log ($"CodeScanner {permissionName} granted");
+        }
+
+        void PermissionCallbacks_PermissionDeniedAndDontAskAgain (string permissionName) {
+            hasUserDenied = true;
+            Log ($"CodeScanner {permissionName} denied and do not ask again");
+        }
+
+        void PermissionCallbacks_PermissionDenied (string permissionName) {
+            hasUserDenied = true;
+            Log ($"CodeScanner {permissionName} denied");
+        }
+#endif
     }
 }
