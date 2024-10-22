@@ -147,64 +147,83 @@ namespace CineGame.MobileComponents {
 		}
 
 		/// <summary>
-		/// Support spawning objects remotely. If value is non-null, it is treated as a suffix which will be appended to the GameObject's name (eg '1' = 'GameObjectClone_1').
-		/// If the suffix can be parsed as an integer, the transform is insert-sorted among the siblings, assuming that an ordered list is desired.
+		/// Handle object message from host. Can spawn one or multiple instances, insert-sort them and initialize them immediately with remote properties
 		/// </summary>
 		internal override void OnObjectMessage (ISFSObject dataObj, int senderId) {
 			if (dataObj.ContainsKey (Key)) {
-				var go = Spawn (transform.position, transform.rotation, invoke: false);
-				if (go == null)
+				if (dataObj.IsNull (Key)) {
+					var go = Spawn (transform.position, transform.rotation);
 					return;
+				}
+				var instanceNames = dataObj.GetUtfString (Key).Split (',');
+				var eventListenersDump = Util.IsDevModeActive ? Util.GetEventPersistentListenersInfo (OnSpawn) : string.Empty;
 
-				var insertSorted = false;
-				var goName = dataObj.GetUtfString (Key);
-				if (!string.IsNullOrWhiteSpace (goName)) {
-					go.name = goName;
+				foreach (var instanceName in instanceNames) {
+					var go = Spawn (transform.position, transform.rotation, invoke: false);
+					if (go == null)
+						return;
 
-					//if name is suffixed with a '_[int]', we insert-sort the transform (assuming an ordered list is desired)
-					var lastIndexOf_ = goName.LastIndexOf ('_');
-					if (lastIndexOf_ > 0 && int.TryParse (goName.Substring (lastIndexOf_ + 1), out int index)) {
-						for (int i = 0; i < transform.childCount; i++) {
-							var siblingName = transform.GetChild (i).name;
-							lastIndexOf_ = siblingName.LastIndexOf ('_');
-							if (lastIndexOf_ > 0 && int.TryParse (siblingName.Substring (lastIndexOf_ + 1), out int sibIndex) && sibIndex > index) {
-								go.transform.SetSiblingIndex (i);
-								Log ($"Spawned from host insert-sorted at {i}: {go.GetScenePath ()}");
-								insertSorted = true;
-								break;
+					var insertSorted = false;
+					if (!string.IsNullOrWhiteSpace (instanceName)) {
+						go.name = instanceName;
+
+						//if name is suffixed with a '_[int]', we insert-sort the transform (assuming an ordered list is desired)
+						var lastIndexOf_ = instanceName.LastIndexOf ('_');
+						if (lastIndexOf_ > 0 && int.TryParse (instanceName [(lastIndexOf_ + 1)..], out int index)) {
+							for (int i = 0; i < transform.childCount; i++) {
+								var siblingName = transform.GetChild (i).name;
+								lastIndexOf_ = siblingName.LastIndexOf ('_');
+								if (lastIndexOf_ > 0 && int.TryParse (siblingName [(lastIndexOf_ + 1)..], out int sibIndex) && sibIndex > index) {
+									go.transform.SetSiblingIndex (i);
+									Log ($"Spawned from host insert-sorted at {i}: {go.GetScenePath ()}");
+									insertSorted = true;
+									break;
+								}
 							}
 						}
 					}
-				}
-				if (!insertSorted) {
-					Log ($"Spawned from host: {go.GetScenePath ()}");
-				}
+					if (!insertSorted) {
+						Log ($"Spawned from host: {go.GetScenePath ()}");
+					}
 
-				go.transform.GetComponentsInChildren (includeInactive: true, replicatedComponents);
-				foreach (var rc in replicatedComponents) {
-					//Init replication for ReplicatedComponent instance
-					rc.InitReplication ();
-				}
+					go.transform.GetComponentsInChildren (includeInactive: true, replicatedComponents);
+					foreach (var rc in replicatedComponents) {
+						//Init replication for ReplicatedComponent instance
+						rc.InitReplication ();
+					}
 
-				Log ($"OnSpawn\n{Util.GetEventPersistentListenersInfo (OnSpawn)}");
-				OnSpawn.Invoke (go);
+					Log ($"OnSpawn {instanceName}\n{eventListenersDump}");
+					OnSpawn.Invoke (go);
+				}
 			}
 
 			if (dataObj.ContainsKey ("_instance")) {
 				var instance = dataObj.GetSFSObject ("_instance");
-				var instanceName = instance.GetUtfString ("_name");
-				var t = transform.Find (instanceName);
-				if (t == null) {
-					LogError ($"SpawnComponent instance not found: " + instanceName);
-				} else {
-					instance.RemoveElement ("_name");
-					if (Util.IsDevModeActive) {
-						Log ($"Routing instance properties to {t.gameObject.GetScenePath ()} : {instance.GetDump ()}");
-					}
-					t.GetComponentsInChildren (includeInactive: true, replicatedComponents);
-					foreach (var rc in replicatedComponents) {
-						rc.OnObjectMessage (instance, senderId);
-					}
+				UpdateInstance (instance, senderId);
+			} else if (dataObj.ContainsKey ("_instances")) {
+				var arr = dataObj.GetSFSArray ("_instances");
+				for (var i = 0; i < arr.Count; i++) {
+					UpdateInstance (arr.GetSFSObject (i), senderId);
+				}
+			}
+		}
+
+		/// <summary>
+        /// Send properties only to a named instance
+        /// </summary>
+		void UpdateInstance (ISFSObject instance, int senderId) {
+			var instanceName = instance.GetUtfString ("_name");
+			var t = transform.Find (instanceName);
+			if (t == null) {
+				LogError ($"SpawnComponent instance not found: " + instanceName);
+			} else {
+				instance.RemoveElement ("_name");
+				if (Util.IsDevModeActive) {
+					Log ($"Routing instance properties to {t.gameObject.GetScenePath ()} : {instance.GetDump ()}");
+				}
+				t.GetComponentsInChildren (includeInactive: true, replicatedComponents);
+				foreach (var rc in replicatedComponents) {
+					rc.OnObjectMessage (instance, senderId);
 				}
 			}
 		}
