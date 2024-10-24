@@ -14,6 +14,8 @@ namespace CineGame.MobileComponents {
 		public string Key;
 		[Header ("Target object or its parent, can contain a MeshRenderer or a UI Image")]
 		public GameObject TargetObject;
+		[Header ("Optional name of instanced material to control")]
+		public string MaterialName;
 		[Header ("Material property name")]
 		public string Property;
 
@@ -40,9 +42,17 @@ namespace CineGame.MobileComponents {
 		public void SetTarget (GameObject gameObject) {
 			Log ($"MaterialProperty SetTarget {gameObject.GetScenePath ()}");
 			TargetObject = gameObject;
-			var meshRenderer = TargetObject.GetComponentInChildren<MeshRenderer> ();
-			if (meshRenderer != null) {
-				MaterialInstance = meshRenderer.material;
+			var renderer = TargetObject.GetComponentInChildren<Renderer> (includeInactive: true);
+			if (renderer != null) {
+				var materials = renderer.materials;
+				if (materials.Length > 1 && !string.IsNullOrWhiteSpace (MaterialName)) {
+					MaterialInstance = materials.FirstOrDefault (m => m.name == MaterialName);
+					if (MaterialInstance == null) {
+						LogError ($"Material with name={MaterialName} not found on Renderer in {gameObject.GetScenePath ()}");
+					}
+				} else {
+					MaterialInstance = renderer.material;
+				}
 			} else {
 				var image = TargetObject.GetComponentInChildren<Image> (includeInactive: true);
 				if (image != null) {
