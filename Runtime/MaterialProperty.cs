@@ -8,7 +8,7 @@ namespace CineGame.MobileComponents {
 	/// <summary>
 	/// Control a material property remotely or locally
 	/// </summary>
-	[ComponentReference ("Set the material property specified in the Property field. You can invoke the Set() methods locally or send a Key=Value message from host.\nIf you want to assign a texture remotely, you should use the TextureSelectComponent and invoke this component's Set method from it's OnChange event.")]
+	[ComponentReference ("Set the material property specified in the Property field. You can invoke the Set() methods locally or send a Key=Value message from host.\nIf you want to assign a texture remotely, you should use the TextureSelect component and invoke this component's Set method from it's OnChange event.")]
 	public class MaterialProperty : ReplicatedComponent {
 		[Header ("Key in message from host which can contain a property value")]
 		public string Key;
@@ -44,9 +44,14 @@ namespace CineGame.MobileComponents {
 			if (meshRenderer != null) {
 				MaterialInstance = meshRenderer.material;
 			} else {
-				var image = TargetObject.GetComponentInChildren<Image> ();
+				var image = TargetObject.GetComponentInChildren<Image> (includeInactive: true);
 				if (image != null) {
 					MaterialInstance = image.material;
+				} else {
+					var rawImage = TargetObject.GetComponentInChildren<RawImage> (includeInactive: true);
+					if (rawImage != null) {
+						MaterialInstance = rawImage.material;
+					}
 				}
 			}
 			if (MaterialInstance == null) {
