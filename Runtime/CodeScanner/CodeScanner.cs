@@ -117,8 +117,8 @@ namespace CineGame.MobileComponents {
                 if (hasUserDenied) {
 #else
             if (!Application.HasUserAuthorization (UserAuthorization.WebCam)) {
-                yield return Application.RequestUserAuthorization(UserAuthorization.Microphone);
-                if (!Application.HasUserAuthorization(UserAuthorization.Microphone)) {
+                yield return Application.RequestUserAuthorization(UserAuthorization.WebCam);
+                if (!Application.HasUserAuthorization(UserAuthorization.WebCam)) {
 #endif
                     Log ($"CodeScanner.OnDenied\n{Util.GetEventPersistentListenersInfo (OnDenied)}");
                     OnDenied.Invoke ();
