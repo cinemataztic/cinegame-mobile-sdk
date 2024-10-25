@@ -95,7 +95,7 @@ namespace CineGame.MobileComponents {
 #endif
 		}
 
-		internal override void OnObjectMessage (ISFSObject dataObj, int senderId) {
+		internal override void OnObjectMessage (ISFSObject dataObj, Sfs2X.Entities.User sender) {
 			string s = null;
 			if (IsFormattedString) {
 				var args = new List<object> (Keys.Length);

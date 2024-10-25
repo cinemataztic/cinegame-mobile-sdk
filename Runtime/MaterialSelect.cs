@@ -95,7 +95,7 @@ namespace CineGame.MobileComponents {
 		/// <summary>
 		/// If 'Key' property present in payload, try to locate the material, set as current and invoke the OnChange event with it
 		/// </summary>
-		internal override void OnObjectMessage (ISFSObject dataObj, int senderId) {
+		internal override void OnObjectMessage (ISFSObject dataObj, Sfs2X.Entities.User sender) {
 			if (dataObj.ContainsKey (Key)) {
 				var value = dataObj.GetUtfString (Key);
 				if (Dict.TryGetValue (value, out Material material)) {

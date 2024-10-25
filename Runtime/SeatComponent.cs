@@ -110,7 +110,7 @@ namespace CineGame.MobileComponents {
 			SendButton.interactable = true;
 		}
 
-		internal override void OnObjectMessage (ISFSObject dataObj, int senderId) {
+		internal override void OnObjectMessage (ISFSObject dataObj, Sfs2X.Entities.User sender) {
 			if (dataObj.ContainsKey (seatSeatsKey)) {
 				var seatDataJson = Encoding.ASCII.GetString (dataObj.GetByteArray (seatSeatsKey).Bytes);
 				Setup (seatDataJson);

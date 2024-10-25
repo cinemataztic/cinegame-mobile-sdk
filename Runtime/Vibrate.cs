@@ -120,7 +120,7 @@ namespace CineGame.MobileComponents {
 			}
 		}
 
-		internal override void OnObjectMessage (ISFSObject dataObj, int senderId) {
+		internal override void OnObjectMessage (ISFSObject dataObj, Sfs2X.Entities.User sender) {
 			if (dataObj.ContainsKey (RepeatIntervalKey)) {
 				RepeatInterval = Mathf.Max (dataObj.GetFloat (RepeatIntervalKey), 0f);
 			}

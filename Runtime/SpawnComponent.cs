@@ -149,7 +149,7 @@ namespace CineGame.MobileComponents {
 		/// <summary>
 		/// Handle object message from host. Can spawn one or multiple instances, insert-sort them and initialize them immediately with remote properties
 		/// </summary>
-		internal override void OnObjectMessage (ISFSObject dataObj, int senderId) {
+		internal override void OnObjectMessage (ISFSObject dataObj, Sfs2X.Entities.User sender) {
 			if (dataObj.ContainsKey (Key)) {
 				if (dataObj.IsNull (Key)) {
 					var go = Spawn (transform.position, transform.rotation);
@@ -197,13 +197,17 @@ namespace CineGame.MobileComponents {
 				}
 			}
 
-			if (dataObj.ContainsKey ("_instance")) {
-				var instance = dataObj.GetSFSObject ("_instance");
-				UpdateInstance (instance, senderId);
-			} else if (dataObj.ContainsKey ("_instances")) {
-				var arr = dataObj.GetSFSArray ("_instances");
-				for (var i = 0; i < arr.Count; i++) {
-					UpdateInstance (arr.GetSFSObject (i), senderId);
+			var filter = !dataObj.ContainsKey ("_spawn") || dataObj.GetUtfString ("_spawn") == Key;
+
+			if (filter) {
+				if (dataObj.ContainsKey ("_instance")) {
+					var instance = dataObj.GetSFSObject ("_instance");
+					UpdateInstance (instance, sender);
+				} else if (dataObj.ContainsKey ("_instances")) {
+					var arr = dataObj.GetSFSArray ("_instances");
+					for (var i = 0; i < arr.Count; i++) {
+						UpdateInstance (arr.GetSFSObject (i), sender);
+					}
 				}
 			}
 		}
@@ -211,7 +215,7 @@ namespace CineGame.MobileComponents {
 		/// <summary>
         /// Send properties only to a named instance
         /// </summary>
-		void UpdateInstance (ISFSObject instance, int senderId) {
+		void UpdateInstance (ISFSObject instance, Sfs2X.Entities.User sender) {
 			var instanceName = instance.GetUtfString ("_name");
 			var t = transform.Find (instanceName);
 			if (t == null) {
@@ -223,7 +227,7 @@ namespace CineGame.MobileComponents {
 				}
 				t.GetComponentsInChildren (includeInactive: true, replicatedComponents);
 				foreach (var rc in replicatedComponents) {
-					rc.OnObjectMessage (instance, senderId);
+					rc.OnObjectMessage (instance, sender);
 				}
 			}
 		}

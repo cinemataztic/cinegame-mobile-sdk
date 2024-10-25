@@ -60,7 +60,7 @@ namespace CineGame.MobileComponents {
 		float cFloat, startFloat, destFloat;
 		float startTime = float.MinValue;
 
-		internal override void OnObjectMessage (ISFSObject dataObj, int senderId) {
+		internal override void OnObjectMessage (ISFSObject dataObj, Sfs2X.Entities.User sender) {
 			float[] floats;
 			string s;
 			bool b;

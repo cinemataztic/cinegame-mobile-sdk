@@ -59,7 +59,7 @@ namespace CineGame.MobileComponents {
         bool paused = false;
         Vector3 dampedInputRotation = Vector3.zero;
 
-        internal override void OnObjectMessage (ISFSObject dataObj, int senderId) {
+        internal override void OnObjectMessage (ISFSObject dataObj, User sender) {
             if (dataObj.ContainsKey (PitchOffsetKey)) {
                 remotePitchOffset = dataObj.GetFloat (PitchOffsetKey);
             }

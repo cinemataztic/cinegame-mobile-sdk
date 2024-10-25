@@ -1,34 +1,40 @@
-﻿using System.Collections.Generic;
+﻿using System.Text;
+
 using UnityEngine;
+using UnityEngine.SceneManagement;
+
+using Sfs2X.Entities;
 using Sfs2X.Entities.Data;
+
+using Smartfox;
 
 namespace CineGame.MobileComponents {
 
 	public abstract class ReplicatedComponent : BaseComponent {
-		public delegate void ObjectMessageDelegate (ISFSObject dataObj, int senderId);
-		public static event ObjectMessageDelegate onObjectMessage;
 
-		public delegate void PrivateMessageDelegate (string message, int senderId);
-		public static event PrivateMessageDelegate onPrivateMessage;
-
-		public static ISFSObject objectMessageToHost = new SFSObject ();
-		public static List<string> messagesToHost = new ();
-
-		static readonly Dictionary<string, SpawnComponent> SpawnComponents = new ();
-
-		public static void InvokePrivateMessage (string message, int senderId) {
-			onPrivateMessage?.Invoke (message, senderId);
+		[RuntimeInitializeOnLoadMethod]
+#if UNITY_EDITOR
+		[UnityEditor.InitializeOnLoadMethod]
+#endif
+		static void Init () {
+			SceneManager.sceneLoaded -= OnSceneLoaded;
+			SceneManager.sceneLoaded += OnSceneLoaded;
 		}
 
-		public static void InvokeObjectMessage (ISFSObject obj, int senderId) {
-			if (obj.ContainsKey ("_spawn")) {
-				var key = obj.GetUtfString ("_spawn");
-				if (Util.IsDevModeActive) {
-					Debug.Log ($"Routine SFSObject only to SpawnComponent with key={key} : {obj.GetDump ()}");
+		static void OnSceneLoaded (Scene scene, LoadSceneMode mode) {
+			Debug.Log ($"ReplicatedComponent.OnSceneLoaded {scene.path}");
+
+			var replicatedComponents = Resources.FindObjectsOfTypeAll<ReplicatedComponent> ();
+			var sb = new StringBuilder ();
+			foreach (var rc in replicatedComponents) {
+				var go = rc.gameObject;
+				if (go.scene == scene) {
+					sb.AppendLine ($"{Util.GetObjectScenePath (go)}:{rc.GetType ()}");
+					rc.InitReplication ();
 				}
-				SpawnComponents [key].OnObjectMessage (obj, senderId);
-			} else {
-				onObjectMessage?.Invoke (obj, senderId);
+			}
+			if (Util.IsDevModeActive) {
+				Debug.Log ("InitReplication:\n" + sb.ToString ());
 			}
 		}
 
@@ -36,60 +42,53 @@ namespace CineGame.MobileComponents {
 		/// Initialize replication (and filtering) of data from host to client
 		/// </summary>
 		public virtual void InitReplication () {
-			if (this is SpawnComponent sc) {
-				SpawnComponents [sc.Key] = sc;
-			}
-			onObjectMessage += OnObjectMessage;
-			onPrivateMessage += OnPrivateMessage;
-			if (Util.IsDevModeActive) {
-				Debug.Log ($"{GetType ()} InitReplication {Util.GetObjectScenePath (gameObject)}", this);
-			}
+			SmartfoxClient.Instance.OnObjectMessage.AddListener (OnObjectMessage);
+			SmartfoxClient.Instance.OnPrivateMessage.AddListener (OnPrivateMessage);
 		}
 
 		void OnDestroy () {
-			if (this is SpawnComponent sc) {
-				SpawnComponents.Remove (sc.Key);
-			}
-			onObjectMessage -= OnObjectMessage;
-			onPrivateMessage -= OnPrivateMessage;
-			if (Util.IsDevModeActive) {
-				Debug.Log ($"{GetType ()} DeinitReplication {Util.GetObjectScenePath (gameObject)}");
+			if (SmartfoxClient.Instance != null) {
+				SmartfoxClient.Instance.OnObjectMessage.RemoveListener (OnObjectMessage);
+				SmartfoxClient.Instance.OnPrivateMessage.RemoveListener (OnPrivateMessage);
+				if (Util.IsDevModeActive) {
+					Debug.Log ($"DeinitReplication {Util.GetObjectScenePath (gameObject)}:{GetType ()}");
+				}
 			}
 		}
 
-		internal virtual void OnObjectMessage (ISFSObject dataObj, int senderId) { }
-		internal virtual void OnPrivateMessage (string message, int senderId) { }
+		internal virtual void OnObjectMessage (ISFSObject dataObj, User sender) { }
+		internal virtual void OnPrivateMessage (string message, User sender) { }
 
 		protected void Send (string varName, bool value) {
-			objectMessageToHost.PutBool (varName, value);
+			SmartfoxClient.Send (varName, value);
 		}
 
 		protected void Send (string varName, int value) {
-			objectMessageToHost.PutInt (varName, value);
+			SmartfoxClient.Send (varName, value);
 		}
 
 		protected void Send (string varName, long value) {
-			objectMessageToHost.PutLong (varName, value);
+			SmartfoxClient.Send (varName, value);
 		}
 
 		protected void Send (string varName, int [] value) {
-			objectMessageToHost.PutIntArray (varName, value);
+			SmartfoxClient.Send (varName, value);
 		}
 
 		protected void Send (string varName, float value) {
-			objectMessageToHost.PutFloat (varName, value);
+			SmartfoxClient.Send (varName, value);
 		}
 
 		protected void Send (string varName, float [] value) {
-			objectMessageToHost.PutFloatArray (varName, value);
+			SmartfoxClient.Send (varName, value);
 		}
 
 		protected void Send (string varName, string value) {
-			objectMessageToHost.PutUtfString (varName, value);
+			SmartfoxClient.Send (varName, value);
 		}
 
 		protected void SendHostMessage (string message) {
-			messagesToHost.Add (message);
+			SmartfoxClient.Send (message);
 		}
 	}
 }
