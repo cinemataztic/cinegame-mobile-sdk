@@ -1,30 +1,39 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
+#if UNITY_EDITOR
+using System.Linq;
+using Smartfox;
+#endif
+
 namespace CineGame.MobileComponents {
 	/// <summary>
 	/// Proxy for wiring up buttons and events in canvases with static methods in singletons in the main level.
 	/// Should be added to each canvas of each scene.
 	/// </summary>
 	public class GameProxy : MonoBehaviour {
-		[Header ("Proxy for games to contact the app functions, eg Exit Game, Show Prizes etc")]
-
-		[Tooltip ("Mark if this canvas blocks the background completely. This way we can disable background effects and save battery.")]
+		[Tooltip ("Mark if this game scene blocks the background completely. This way we can disable background effects and save battery.")]
 		public bool BlocksBackground = true;
 
 		[HideInInspector]
 		public string GameType;
 
-		[Header ("Support-A-Friend")]
-		[Tooltip ("A prefab containing at least name (Text) and profile image (Image)")]
+		[Tooltip ("Supporter prefab: containing at least name (Text) and profile image (Image)")]
 		public Supporter SupporterPrefab;
 
 		[Tooltip ("The container for spawned supporters")]
 		public Transform SupporterContainer;
 
-		[Header ("Normal profile images")]
-		[Tooltip ("All images which should receive the facebook profile image OR user-chosen avatar")]
+		[Tooltip ("All images which should receive the user avatar or profile image")]
 		public Image [] ProfileImages;
+
+		[Header ("TESTING IN EDITOR")]
+		[Tooltip ("Only for testing in editor!")]
+		public string GameServer = "sfs-fin-1.cinemataztic.com";
+		[Tooltip ("Only for testing in editor!")]
+		public string GameCode = "1234";
+		[Tooltip ("Only for testing in editor!")]
+		public string GameZone;
 
 		public static Sprite ProfileImageSprite = null;
 		private Sprite CurrentImageSprite = null;
@@ -37,6 +46,78 @@ namespace CineGame.MobileComponents {
 		public static event SimpleEvent GoBackEvent;
 		public static event GotoScreenEvent GotoEvent;
 		public static event GotoScreenEvent ConfirmExitEvent;
+
+#if UNITY_EDITOR
+		CanvasGroup [] canvasGroups;
+		readonly System.Collections.Generic.Dictionary<Util.APIRegion, string> marketSfsZones = new () {
+			{ Util.APIRegion.DK, "Denmark" },
+			{ Util.APIRegion.EN, "International" },
+			{ Util.APIRegion.FI, "Finland" },
+			{ Util.APIRegion.DE, "Germany" },
+			{ Util.APIRegion.PT, "Portugal" },
+			{ Util.APIRegion.SE, "Sweden" },
+		};
+		private void Start () {
+			if (SmartfoxClient.Instance == null) {
+				Debug.Log ("GameProxy: Instantiating SmartfoxClient for testing");
+				var go = new GameObject {
+					name = "SmartfoxClient"
+				};
+				var sfc = SmartfoxClient.Instance = go.AddComponent<SmartfoxClient> ();
+				sfc.InitEvents ();
+
+				var zone = GameZone;
+				if (string.IsNullOrWhiteSpace (zone)) {
+					var _regions = Util.Markets.Select (m => m.Key).ToArray ();
+					var marketIndex = UnityEditor.EditorPrefs.GetInt ("AssetMarketIndex", 0);
+					zone = marketSfsZones [_regions [marketIndex]];
+				}
+
+				SmartfoxClient.Connect (GameServer, GameZone, (success) => {
+					if (success) {
+						SmartfoxClient.Login (string.Empty, (error) => {
+							if (string.IsNullOrEmpty (error)) {
+								SmartfoxClient.JoinRoom (GameCode, false, (room, isRoomFull) => {
+									if (room != null) {
+										var roomGameType = room.GetVariable ("GameType").GetStringValue ();
+										if (roomGameType != GameType) {
+											Debug.LogError ($"{roomGameType} does not match GameProxy.GameType={GameType}");
+										} else {
+											Debug.Log ($"GameProxy: Game room {room.Name} joined succesfully");
+										}
+										SmartfoxClient.Send ("bkid", 0);
+										SmartfoxClient.Send ("name", "UnityEditor");
+										SmartfoxClient.Send ("age", 21);
+										SmartfoxClient.Send ("gender", "N/A");
+										SmartfoxClient.Send ("avatar", "ct_ghost");
+
+										ReplicatedComponent.OnSceneLoaded (gameObject.scene, UnityEngine.SceneManagement.LoadSceneMode.Additive);
+
+										canvasGroups = GetComponentsInChildren<CanvasGroup> (includeInactive: true);
+										GotoEvent += (screenName) => {
+											foreach (var cg in canvasGroups) {
+												if (cg.transform.parent == transform) {
+													cg.gameObject.SetActive (cg.name == screenName);
+												}
+											}
+										};
+
+										Goto ("Lobby");
+									} else {
+										Debug.LogError ($"Could not join room {GameCode} - isRoomFull={isRoomFull}");
+									}
+								});
+							} else {
+								Debug.LogError ("Error while logging in to smartfox server: " + error);
+							}
+						});
+					} else {
+						Debug.LogError ("Could not connect to smartfox server");
+					}
+				});
+			}
+		}
+#endif
 
 		void OnDestroy () {
 			Debug.LogFormat ("{0} GameProxy.OnDestroy()", Util.GetObjectScenePath (gameObject));

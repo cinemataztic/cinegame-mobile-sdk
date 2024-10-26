@@ -21,9 +21,9 @@ namespace CineGame.MobileComponents {
 			SceneManager.sceneLoaded += OnSceneLoaded;
 		}
 
-		static void OnSceneLoaded (Scene scene, LoadSceneMode mode) {
-			Debug.Log ($"ReplicatedComponent.OnSceneLoaded {scene.path}");
-
+		internal static void OnSceneLoaded (Scene scene, LoadSceneMode mode) {
+			if (SmartfoxClient.Instance == null)
+				return;
 			var replicatedComponents = Resources.FindObjectsOfTypeAll<ReplicatedComponent> ();
 			var sb = new StringBuilder ();
 			foreach (var rc in replicatedComponents) {
@@ -34,7 +34,7 @@ namespace CineGame.MobileComponents {
 				}
 			}
 			if (Util.IsDevModeActive) {
-				Debug.Log ("InitReplication:\n" + sb.ToString ());
+				Debug.Log ("ReplicatedComponent.OnSceneLoaded - InitReplication\n" + sb.ToString ());
 			}
 		}
 
