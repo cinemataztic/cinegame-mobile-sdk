@@ -1177,7 +1177,7 @@ namespace CineGameEditor.MobileComponents {
 			{ "PlaySound.cs", "091a2f98215b249199e701dd0bad8ed5" },
 			{ "PointerEventComponent.cs", "c89d64cb538764722870310bd54cf525" },
 			{ "RemoteTextComponent.cs", "f64f24ad31c70436abc2ec8635a056b4" },
-			{ "RemoteSpriteComponent.cs", "8e28a58e3594b4f2e9f6fe925e3dfb65" },
+			{ "SpriteSelect.cs", "8e28a58e3594b4f2e9f6fe925e3dfb65" },
 			{ "RemoteControl.cs", "546ec569191b0428981532da17a34b76" },
 			{ "RenderConfig.cs", "8af72a6d7c2b44ba6aca576dbcc2e4d4" },
 			{ "ReplicatedComponent.cs", "3d59a6db02a9549b98fd389eb616de26" },
