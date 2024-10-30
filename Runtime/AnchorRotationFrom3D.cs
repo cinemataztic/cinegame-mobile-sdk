@@ -41,6 +41,8 @@ namespace CineGame.MobileComponents {
 		}
 
 		void LateUpdate () {
+			if (Camera.main == null)
+				return;
 			var screenPoint3 = Camera.main.WorldToScreenPoint (PositionSource.TransformPoint (OffsetInSourceSpace));
 			/*var dz = screenPoint3.z / Camera.main.nearClipPlane;
 			canvasGroup.alpha = Mathf.Clamp01 (dz);
