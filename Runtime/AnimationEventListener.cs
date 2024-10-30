@@ -16,7 +16,7 @@ namespace CineGame.MobileComponents {
             public UnityEvent<Transform> EventToTrigger;
         }
 
-        [SerializeField] EventTrigger [] Triggers;
+        public EventTrigger [] Triggers;
 
         Dictionary<string, UnityEvent<Transform>> events;
 
