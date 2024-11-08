@@ -1,51 +1,56 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace CineGame.MobileComponents {
     /// <summary>
-    /// High performance controller for spawning finite effects in world space locations. The effect can either be a particle system or an animation.
+    /// High performance controller for spawning finite effects in world space locations. The effect can be eg a particle system, a decal projector or a one-shot animation.
     /// </summary>
-    [ComponentReference ("High performance controller for spawning finite effects in world space locations. The effect can either be a particle system or an animation.")]
+    [ComponentReference ("High performance controller for spawning finite effects in world space locations. The effect can be eg a particle system, a decal projector or a one-shot animation.")]
     public class EffectController : BaseComponent {
-        public GameObject [] Prefabs;
+        public GameObject Prefab;
 
-        [Tooltip ("Number of instances of each effect which will be pre-initialized for performance")]
+        [Tooltip ("Duration of effect. If 0 then duration will be taken from ParticleSystem or Animator inside Prefab")]
+        public float Duration;
+
+        [Tooltip ("Number of instances which will be pre-initialized for performance")]
         public int NumInstances = 20;
 
-        Stack<GameObject> [] stacks;
-        float [] durations;
+        float [] timeToKill;
+        Transform [] transforms;
+        GameObject [] gameObjects;
 
-        static EffectController Instance;
+        /// <summary>
+        /// Dictionary of all instances, indexed by prefab name
+        /// </summary>
+        static readonly Dictionary<string, EffectController> EffectControllers = new ();
 
         void Awake () {
-            Instance = this;
             transform.SetPositionAndRotation (Vector3.zero, Quaternion.identity);
             transform.localScale = Vector3.one;
+            timeToKill = new float [NumInstances];
 
-            durations = new float [Prefabs.Length];
-            stacks = new Stack<GameObject> [Prefabs.Length];
-            for (int i = 0; i < Prefabs.Length; i++) {
-                Log ($"EffectController Setting up a stack of {NumInstances} {Prefabs [i].name} instances");
-                var stack = new Stack<GameObject> (NumInstances);
-                durations [i] = SetupEffect (Prefabs [i], stack);
-                stacks [i] = stack;
-            }
+            if (Prefab == null)
+                return;
+            EffectControllers.Add (Prefab.name, this);
+
+            Log ($"EffectController Setting up a stack of {NumInstances} {Prefab.name} instances at {gameObject.GetScenePath ()}");
+
+            var effectDuration = SetupEffect (Prefab, NumInstances);
+            Duration = (Duration > float.Epsilon) ? Duration : effectDuration;
         }
 
         /// <summary>
-        /// Sets up a stack of deactivated instances of a specific prefab, ready to be moved and activated when needed.
+        /// Sets up a number of deactivated instance of the prefab, ready to be moved and activated when needed. Returns duration from ParticleSystem or Animator, defaults to 1 sec if none found
         /// </summary>
-        float SetupEffect (GameObject prefab, Stack<GameObject> stack) {
-            GameObject go = new (prefab.name);
-            var parent = go.transform;
-            parent.parent = transform;
-            parent.SetLocalPositionAndRotation (Vector3.zero, Quaternion.identity);
-            parent.localScale = Vector3.one;
-            for (int i = 0; i < NumInstances; i++) {
-                go = Instantiate (prefab, parent);
-                stack.Push (go);
+        float SetupEffect (GameObject prefab, int numInstances) {
+            transforms = new Transform [numInstances];
+            gameObjects = new GameObject [numInstances];
+            var parent = transform;
+            for (int i = 0; i < numInstances; i++) {
+                var go = Instantiate (prefab, parent);
                 go.SetActive (false);
+                gameObjects [i] = go;
+                transforms [i] = go.transform;
             }
             var ps = prefab.GetComponentInChildren<ParticleSystem> ();
             if (ps != null) {
@@ -58,72 +63,90 @@ namespace CineGame.MobileComponents {
                 Log ($"EffectController Animator duration of {prefab.name}: {animStateInfo.length}");
                 return animStateInfo.length;
             }
-            //Default to 1 sec
-            Debug.LogWarning ("Returning default duration on " + prefab.name, this);
+            Debug.LogWarning ("EffectController Returning default duration of 1 for effect " + prefab.name);
             return 1f;
+        }
+
+        void Update () {
+            var _t = Time.time;
+            for (int i = 0; i < NumInstances; i++) {
+                if (timeToKill [i] < _t) {
+                    timeToKill [i] = float.MaxValue;
+                    gameObjects [i].SetActive (false);
+                    //Log ($"Deactivated instance of {Prefab.name} at {transforms [i].position}");
+                }
+            }
         }
 
         /// <summary>
         /// Spawn an effect at the specified transform's position and with same rotation. If multiple prefabs are defined, chose a random
         /// </summary>
         public void Spawn (Transform location) {
-            Spawn (location.position, location.rotation, Random.Range (0, Prefabs.Length));
+            Spawn (location.position, location.rotation);
         }
 
         /// <summary>
         /// Spawn an effect at the specified gameobject's position and with same rotation. If multiple prefabs are defined, chose a random
         /// </summary>
         public void Spawn (GameObject location) {
-            Spawn (location.transform.position, location.transform.rotation, Random.Range (0, Prefabs.Length));
+            Spawn (location.transform.position, location.transform.rotation);
         }
 
         /// <summary>
         /// Spawn an effect at the specified world position. If multiple prefabs are defined, chose a random
         /// </summary>
         public void Spawn (Vector3 worldPosition) {
-            Spawn (worldPosition, Quaternion.identity, Random.Range (0, Prefabs.Length));
+            Spawn (worldPosition, Quaternion.identity);
         }
 
         /// <summary>
-        /// Get ID (index) of the named prefab for future use
+        /// Find first inactive instance of prefab and move it to given world position and rotation. If no inactive instance available, warn in the log and hijack the oldest active.
         /// </summary>
-        public static int GetPrefabID (string prefabName) {
-            for (int i = 0; i < Instance.Prefabs.Length; i++) {
-                if (Instance.Prefabs [i].name == prefabName) {
-                    return i;
+        public void Spawn (Vector3 position, Quaternion rotation) {
+            var min_i = 0;
+            var min_ttk = float.MaxValue;
+            var i = 0;
+            for (; i < NumInstances; i++) {
+                var ttk = timeToKill [i];
+                if (ttk == float.MaxValue) {
+                    min_i = i;
+                    break;
+                }
+                if (min_ttk > ttk) {
+                    min_ttk = ttk;
+                    min_i = i;
                 }
             }
-            Instance.LogError ($"Prefab {prefabName} not registered!");
-            return -1;
-        }
-
-        public static void Spawn (Vector3 position, Quaternion rotation, int prefabID) {
-            if (prefabID < 0 || prefabID >= Instance.stacks.Length)
-                return;
-            if (!Instance.stacks [prefabID].TryPop (out GameObject instance)) {
-                var prefab = Instance.Prefabs [prefabID];
-                Instance.LogError ($"{prefab.name} stack exhausted! You should increase the NumInstances property on next build. Adding another instance (expensive)");
+            if (i == NumInstances) {
+                Debug.LogWarning ($"{name} EffectController exhausted. You should increase NumInstance next time round!");
                 //Debug.Break ();
-                var parent = Instance.transform.Find (prefab.name);
-                instance = Instantiate (prefab, parent);
             }
-            Instance.StartCoroutine (Instance.E_Effect (instance, position, rotation, Instance.stacks [prefabID], Instance.durations [prefabID]));
+
+            timeToKill [min_i] = Time.time + Duration;
+            transforms [min_i].SetLocalPositionAndRotation (position, rotation);
+            gameObjects [min_i].SetActive (true);
+            //Log ($"Spawned instance of {Prefab.name} at {position}");
         }
 
         /// <summary>
-        /// Activates an instance in the given world space location, waits for [duration] seconds and then deactivates the instance and puts it back on the stack.
+        /// Static interface to find an active EffectController for the specified prefab
         /// </summary>
-        IEnumerator E_Effect (GameObject instance, Vector3 position, Quaternion rotation, Stack<GameObject> queue, float duration) {
-            instance.transform.SetLocalPositionAndRotation (position, rotation);
-            instance.SetActive (true);
-            //Loop rather than create new WaitForSeconds YieldInstruction-- creates no garbage
-            var t = 0f;
-            while (t < duration) {
-                yield return null;
-                t += Time.deltaTime;
+        public static EffectController GetController (string prefabName) {
+            if (!EffectControllers.TryGetValue (prefabName, out EffectController ec)) {
+                Debug.LogError ("No active EffectController for " + prefabName);
+                return null;
             }
-            instance.SetActive (false);
-            queue.Push (instance);
+            return ec;
+        }
+
+        /// <summary>
+        /// Static interface to activate an instance of a named prefab at the given world position and rotation
+        /// </summary>
+        public static void Spawn (string prefabName, Vector3 position, Quaternion rotation) {
+            var ec = GetController (prefabName);
+            if (ec != null) {
+                ec.Spawn (position, rotation);
+            }
         }
     }
 }
