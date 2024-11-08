@@ -58,13 +58,17 @@ namespace CineGame.MobileComponents {
 			{ Util.APIRegion.SE, "Sweden" },
 		};
 		private void Start () {
-			if (SmartfoxClient.Instance == null) {
-				Debug.Log ("GameProxy: Instantiating SmartfoxClient for testing");
-				var go = new GameObject {
-					name = "SmartfoxClient"
-				};
-				var sfc = SmartfoxClient.Instance = go.AddComponent<SmartfoxClient> ();
-				sfc.InitEvents ();
+			if (string.IsNullOrWhiteSpace (GameCode)) {
+				InitScreens ();
+			} else {
+				if (SmartfoxClient.Instance == null) {
+					Debug.Log ("GameProxy: Instantiating SmartfoxClient for testing");
+					var go = new GameObject {
+						name = "SmartfoxClient"
+					};
+					var sfc = SmartfoxClient.Instance = go.AddComponent<SmartfoxClient> ();
+					sfc.InitEvents ();
+				}
 
 				var zone = GameZone;
 				if (string.IsNullOrWhiteSpace (zone)) {
@@ -91,18 +95,7 @@ namespace CineGame.MobileComponents {
 										SmartfoxClient.Send ("gender", "N/A");
 										SmartfoxClient.Send ("avatar", "ct_ghost");
 
-										ReplicatedComponent.OnSceneLoaded (gameObject.scene, UnityEngine.SceneManagement.LoadSceneMode.Additive);
-
-										canvasGroups = GetComponentsInChildren<CanvasGroup> (includeInactive: true);
-										GotoEvent += (screenName) => {
-											foreach (var cg in canvasGroups) {
-												if (cg.transform.parent == transform) {
-													cg.gameObject.SetActive (cg.name == screenName);
-												}
-											}
-										};
-
-										Goto ("Lobby");
+										InitScreens ();
 									} else {
 										Debug.LogError ($"Could not join room {GameCode} - isRoomFull={isRoomFull}");
 									}
@@ -116,6 +109,22 @@ namespace CineGame.MobileComponents {
 					}
 				});
 			}
+		}
+
+
+		void InitScreens () {
+			ReplicatedComponent.OnSceneLoaded (gameObject.scene, UnityEngine.SceneManagement.LoadSceneMode.Additive);
+
+			canvasGroups = GetComponentsInChildren<CanvasGroup> (includeInactive: true);
+			GotoEvent += (screenName) => {
+				foreach (var cg in canvasGroups) {
+					if (cg.transform.parent == transform) {
+						cg.gameObject.SetActive (cg.name == screenName);
+					}
+				}
+			};
+
+			Goto ("Lobby");
 		}
 #endif
 
