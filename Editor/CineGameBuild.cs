@@ -1181,6 +1181,7 @@ namespace CineGameEditor.MobileComponents {
 			{ "RemoteControl.cs", "546ec569191b0428981532da17a34b76" },
 			{ "RenderConfig.cs", "8af72a6d7c2b44ba6aca576dbcc2e4d4" },
 			{ "ReplicatedComponent.cs", "3d59a6db02a9549b98fd389eb616de26" },
+			{ "SafeAreaMargin.cs", "227c6ceb230474c10b08e06660829e3e" },
 			{ "SendVariableComponent.cs", "b2c122fc170c24695abd11767c61efea" },
 			{ "SendVariableEvent.cs", "330f0810a95a11d47a520951fbeb3146" },
 			{ "SetTextComponent.cs", "297e197a819704cb99e8d5932166d81a" },
@@ -1224,9 +1225,9 @@ namespace CineGameEditor.MobileComponents {
 			}
 			if (resetGuid) {
 				AssetDatabase.Refresh ();
-			} else {
+			}/* else {
 				Debug.Log ("SDK guids checked OK");
-			}
+			}*/
 		}
 
 
