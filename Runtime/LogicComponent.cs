@@ -110,25 +110,26 @@ namespace CineGame.MobileComponents {
 
 			if (SourceObject != null && !string.IsNullOrWhiteSpace (SourceMemberName)) {
 				isValueDynamic = true;
-				var sourceTypeString = string.Empty;
-				SourceFieldInfo = SourceObject.GetType ().GetField (SourceMemberName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
+				var type = SourceObject.GetType ();
+				var memberTypeString = string.Empty;
+				SourceFieldInfo = type.GetField (SourceMemberName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
 				if (SourceFieldInfo != null) {
-					sourceTypeString = SourceFieldInfo.FieldType.ToString ();
+					memberTypeString = SourceFieldInfo.FieldType.ToString ();
 				} else {
-					SourcePropertyInfo = SourceObject.GetType ().GetProperty (SourceMemberName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
+					SourcePropertyInfo = type.GetProperty (SourceMemberName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
 					if (SourcePropertyInfo != null) {
-						sourceTypeString = SourcePropertyInfo.PropertyType.ToString ();
+						memberTypeString = SourcePropertyInfo.PropertyType.ToString ();
 					} else {
-						SourceMethodInfo = SourceObject.GetType ().GetMethod (SourceMemberName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
+						SourceMethodInfo = type.GetMethod (SourceMemberName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
 						if (SourceMethodInfo != null) {
-							sourceTypeString = SourceMethodInfo.ReturnType.ToString ();
+							memberTypeString = SourceMethodInfo.ReturnType.ToString ();
 						} else {
-							LogError ($"{SourceObject.GetType ().FullName}.{SourceMemberName} not found!");
+							LogError ($"{type.FullName}.{SourceMemberName} not found!");
 							isValueDynamic = false;
 						}
 					}
 				}
-				sourceType = sourceTypeString switch {
+				sourceType = memberTypeString switch {
 					"System.Boolean" => SourceType.Boolean,
 					"System.Integer" => SourceType.Integer,
 					"System.Single" => SourceType.Float,
@@ -292,7 +293,12 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		public void RetriggerEvent () {
 			CurrentThresholdIndex = int.MinValue;
-			FireEvent ();
+			if (!isValueDynamic) {
+				FireEvent ();
+			} else {
+				//Value is dynamically read from a property and FireEvent called during next Update
+				_nextUpdateTime = Time.time;
+			}
 		}
 
 		/// <summary>
