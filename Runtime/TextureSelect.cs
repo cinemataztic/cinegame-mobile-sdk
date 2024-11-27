@@ -1,13 +1,11 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 using Sfs2X.Entities.Data;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace CineGame.MobileComponents {
 
 	/// <summary>
-	/// Replace textures (or invoke events) from host or locally with a pre-defined array of materials.
+	/// Select textures (or invoke events) from host or locally with a pre-defined array of materials.
 	/// </summary>
 	[ComponentReference ("Invoke an event with an entry from the Textures array. Can be invoked remotely with Key=Texture.name")]
 	public class TextureSelect : ReplicatedComponent {
@@ -23,36 +21,52 @@ namespace CineGame.MobileComponents {
 		[Tooltip ("Invoked with a texture from the array when Select is called")]
 		public UnityEvent<Texture2D> OnSelect;
 
-		Dictionary<string, Texture2D> Dict;
-		string Name;
+		int Index;
 
 		void Start () {
-			Dict = Textures.ToDictionary (m => m.name, m => m);
+			SetIndex (0);
+		}
+
+		/// <summary>
+		/// Invoke the OnChange method with the one at the specified index in the array
+		/// </summary>
+		public void SetIndex (int idx) {
+			if (idx >= 0 && idx < Textures.Length) {
+				Index = idx;
+				var texture = Textures [idx];
+				Log ($"SpriteSelect.SetIndex index={idx} Sprite={((texture != null) ? texture.name : string.Empty)}");
+				OnChange.Invoke (texture);
+				return;
+			}
+			LogError ($"SpriteSelect.SetIndex: {idx} out of range [0..{Textures.Length}]");
 		}
 
 		/// <summary>
 		/// Tries to locate the named texture in the array,set as current and invoke the OnChange event with it
 		/// </summary>
 		public void Change (string name) {
-			if (Dict.TryGetValue (name, out Texture2D texture)) {
-				Name = name;
-				Log ($"TextureSelect Set={texture.name}\n{Util.GetEventPersistentListenersInfo (OnChange)}");
-				OnChange.Invoke (texture);
-			} else {
-				LogError ($"TextureSelect: Texture.name={name} not found!");
+			for (int i = 0; i < Textures.Length; i++) {
+				if (Textures [i].name == name) {
+					var texture = Textures [i];
+					Index = i;
+					Log ($"TextureSelect Set={texture.name}\n{Util.GetEventPersistentListenersInfo (OnChange)}");
+					OnChange.Invoke (texture);
+					return;
+				}
 			}
+			LogError ($"TextureSelect: Texture.name={name} not found!");
 		}
 
 		/// <summary>
 		/// Invokes the OnSelect event with the current texture and, if Key is defined, sends Key={texture.name} to host
 		/// </summary>
 		public void Select () {
-			var texture = Dict [Name];
+			var texture = Textures [Index];
 			Log ($"TextureSelect Select={texture.name}\n{Util.GetEventPersistentListenersInfo (OnSelect)}");
 			OnSelect.Invoke (texture);
 
 			if (!string.IsNullOrWhiteSpace (Key)) {
-				Send (Key, Name);
+				Send (Key, texture.name);
 			}
 		}
 
@@ -60,16 +74,11 @@ namespace CineGame.MobileComponents {
 		/// Find current texture in array, set the previous one as current and invoke the OnChange event with it
 		/// </summary>
 		public void Previous () {
-			var texture = Textures [0];
-			for (int i = 0; i < Textures.Length; i++) {
-				if (Textures [i].name == Name) {
-					var j = (i == 0) ? Textures.Length - 1 : i - 1;
-					texture = Textures [j];
-					break;
-				}
-			}
-			Name = texture.name;
-			Log ($"TextureSelect Previous={Name}\n{Util.GetEventPersistentListenersInfo (OnChange)}");
+			Index--;
+			if (Index < 0)
+				Index = Textures.Length - 1;
+			var texture = Textures [Index];
+			Log ($"TextureSelect Previous={texture.name}\n{Util.GetEventPersistentListenersInfo (OnChange)}");
 			OnChange.Invoke (texture);
 		}
 
@@ -77,16 +86,11 @@ namespace CineGame.MobileComponents {
 		/// Find current texture in array, set the previous one as current and invoke the OnChange event with it
 		/// </summary>
 		public void Next () {
-			var texture = Textures [0];
-			for (int i = 0; i < Textures.Length; i++) {
-				if (Textures [i].name == Name) {
-					var j = (i == Textures.Length - 1) ? 0 : i + 1;
-					texture = Textures [j];
-					break;
-				}
-			}
-			Name = texture.name;
-			Log ($"TextureSelect Next={Name}\n{Util.GetEventPersistentListenersInfo (OnChange)}");
+			Index++;
+			if (Index >= Textures.Length)
+				Index = 0;
+			var texture = Textures [Index];
+			Log ($"TextureSelect Next={texture.name}\n{Util.GetEventPersistentListenersInfo (OnChange)}");
 			OnChange.Invoke (texture);
 		}
 
@@ -95,14 +99,7 @@ namespace CineGame.MobileComponents {
 		/// </summary>
 		internal override void OnObjectMessage (ISFSObject dataObj, Sfs2X.Entities.User sender) {
 			if (dataObj.ContainsKey (Key)) {
-				var value = dataObj.GetUtfString (Key);
-				if (Dict.TryGetValue (value, out Texture2D texture)) {
-					Name = value;
-					Log ($"TextureSelect Remote Change={texture.name}\n{Util.GetEventPersistentListenersInfo (OnChange)}");
-					OnChange.Invoke (texture);
-				} else {
-					LogError ($"TextureSelect Remote Change={value} not found!");
-				}
+				Change (dataObj.GetUtfString (Key));
 			}
         }
     }
