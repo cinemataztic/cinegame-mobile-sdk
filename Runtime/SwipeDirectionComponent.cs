@@ -76,10 +76,12 @@ namespace CineGame.MobileComponents {
         }
 
         private void OnDrag (Vector3 position, Vector3 delta) {
-            Vector3 worldPosition = new Vector3 (position.x, position.y, zPos);
-            worldPosition = mainCam.ScreenToWorldPoint (worldPosition);
-            worldPosition.z = zPos;
-            trailInstance.transform.position = worldPosition;
+            if (trailInstance != null) {
+                var worldPosition = new Vector3 (position.x, position.y, zPos);
+                worldPosition = mainCam.ScreenToWorldPoint (worldPosition);
+                worldPosition.z = zPos;
+                trailInstance.transform.position = worldPosition;
+            }
             holdTimer = 0f;
         }
 
@@ -103,7 +105,7 @@ namespace CineGame.MobileComponents {
         }
 
         private void BeginSwipe (Vector2 position, float time) {
-            if (trailInstance == null) {
+            if (trailInstance == null && trailRendererPrefab != null) {
                 Vector3 worldPosition = new Vector3 (position.x, position.y, zPos);
                 worldPosition = mainCam.ScreenToWorldPoint (worldPosition);
                 worldPosition.z = zPos;

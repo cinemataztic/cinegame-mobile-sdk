@@ -22,11 +22,13 @@ namespace CineGame.MobileComponents {
         private float swipeStartTime;
         private float holdTimer = 0f;
         private GameObject trailInstance;
+        private RectTransform rt;
 
         private void OnEnable () {
             if (mainCam == null) {
                 mainCam = Camera.main;
             }
+            rt = GetComponentInParent<RectTransform> ();
         }
 
         private void Update () {
@@ -73,10 +75,12 @@ namespace CineGame.MobileComponents {
         }
 
         private void OnDrag (Vector3 position, Vector3 delta) {
-            Vector3 worldPosition = new Vector3 (position.x, position.y, zPos);
-            worldPosition = mainCam.ScreenToWorldPoint (worldPosition);
-            worldPosition.z = zPos;
-            trailInstance.transform.position = worldPosition;
+            if (trailInstance != null) {
+                var worldPosition = new Vector3 (position.x, position.y, zPos);
+                worldPosition = mainCam.ScreenToWorldPoint (worldPosition);
+                worldPosition.z = zPos;
+                trailInstance.transform.position = worldPosition;
+            }
             holdTimer = 0f;
         }
 
@@ -100,8 +104,8 @@ namespace CineGame.MobileComponents {
         }
 
         private void BeginSwipe (Vector2 position, float time) {
-            if (trailInstance == null) {
-                Vector3 worldPosition = new Vector3 (position.x, position.y, zPos);
+            if (trailInstance == null && trailRendererPrefab != null) {
+                var worldPosition = new Vector3 (position.x, position.y, zPos);
                 worldPosition = mainCam.ScreenToWorldPoint (worldPosition);
                 worldPosition.z = zPos;
                 trailInstance = Instantiate (trailRendererPrefab, worldPosition, Quaternion.identity);
@@ -117,22 +121,36 @@ namespace CineGame.MobileComponents {
                 trailInstance = null;
             }
 
-            Vector2 normalizedStart = swipeStartPosition / Screen.width;
-            Vector2 normalizedEnd = position / Screen.width;
-            Vector2 swipe = (normalizedEnd - normalizedStart) / (time - swipeStartTime);
-            if (swipe.sqrMagnitude > minSwipeVelocity * minSwipeVelocity) {
-                DoSwipe (normalizedStart, swipe);
+            var w = (float)Screen.width;
+            var h = (float)Screen.height;
+            if (rt != null) {
+                w = rt.rect.width;
+                h = rt.rect.height;
+            }
+            var normalizedStart = new Vector2 (swipeStartPosition.x / w, swipeStartPosition.y / h);
+            var normalizedEnd = new Vector2 (position.x / w, position.y / h);
+            var swipeVel = (normalizedEnd - normalizedStart) / (time - swipeStartTime);
+            if (swipeVel.sqrMagnitude > minSwipeVelocity * minSwipeVelocity) {
+                DoSwipe (normalizedStart, swipeVel);
                 return true;
             }
             return false;
         }
 
         private void DoSwipe (Vector2 swipeStart, Vector2 swipeVector) {
-            Quaternion rotation = Quaternion.FromToRotation (Vector3.right, swipeVector.normalized);
-            arrow.transform.rotation = rotation;
-            arrow.transform.localScale = Vector3.one * (swipeVector.magnitude / expectedMaxSwipeLength);
-            arrowAnimator.SetTrigger (SHOW_HASH);
-            Send (swipeVariable, new float [] { swipeVector.x, swipeVector.y });
+            Log ($"Swipe ({swipeVector.x:#.00}, {swipeVector.y:#.00})");
+            if (arrow != null) {
+                var rotation = Quaternion.FromToRotation (Vector3.right, swipeVector.normalized);
+                arrow.transform.rotation = rotation;
+                arrow.transform.localScale = Vector3.one * (swipeVector.magnitude / expectedMaxSwipeLength);
+                if (arrowAnimator != null) {
+                    arrowAnimator.SetTrigger (SHOW_HASH);
+                }
+            }
+            if (!string.IsNullOrWhiteSpace (swipeVariable)) {
+                Send (swipeVariable, new float [] { swipeVector.x, swipeVector.y });
+            }
+            //OnSwipe.Invoke (swipeVector);
         }
     }
 }
