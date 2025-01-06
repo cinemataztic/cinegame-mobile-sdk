@@ -9,6 +9,8 @@ using System.IO;
 using System.Text.RegularExpressions;
 using UnityEngine.Networking;
 using System.Linq;
+using System.Collections;
+using System.Net;
 
 namespace CineGame.MobileComponents {
 
@@ -799,6 +801,67 @@ namespace CineGame.MobileComponents {
 				miFindObjectInstanceFromID = typeof (UnityEngine.Object).GetMethod ("FindObjectFromInstanceID", BindingFlags.NonPublic | BindingFlags.Static);
 			}
 			return (UnityEngine.Object)miFindObjectInstanceFromID.Invoke (null, new object [] { iid });
+		}
+
+		public static IEnumerator E_LoadTexture (string url, Action<Texture2D> callback) {
+			var statusCode = HttpStatusCode.OK;
+			using var request = LoadTextureFromCacheOrUrl (url);
+			yield return request.SendWebRequest ();
+			Texture2D response = null;
+			if (request.result == UnityWebRequest.Result.ConnectionError) {
+				statusCode = HttpStatusCode.ServiceUnavailable;
+				Debug.LogWarningFormat ("Network error while loading texture from {0} : {1}", request.url, request.error);
+			} else if (request.result != UnityWebRequest.Result.Success) {
+				statusCode = (HttpStatusCode)request.responseCode;
+				Debug.LogErrorFormat ("Error happened while loading texture from {0} : {1}", request.url, request.error);
+			} else {
+				//cache image if not already cached
+				StoreTextureInCache (request);
+				response = DownloadHandlerTexture.GetContent (request);
+			}
+			callback?.Invoke (response);
+		}
+
+		/// <summary>
+		/// Generate a unique temp filename based on the original download URL
+		/// </summary>
+		public static string GetCacheFileName (string url) {
+			return string.Format ("{0}/{1}", Application.temporaryCachePath, Util.ComputeMD5Hash (url));
+		}
+
+		/// <summary>
+		/// Get a UnityWebRequest to load a texture either from cache or URL
+		/// </summary>
+		public static UnityWebRequest LoadTextureFromCacheOrUrl (string url) {
+			var filename = GetCacheFileName (url);
+			if (File.Exists (filename)) {
+				//We can expire the cached version based on timestamp
+				//var lastWriteTimeUtc = System.IO.File.GetLastWriteTimeUtc (filename);
+				//var nowUtc = DateTime.UtcNow;
+				//var totalHours = (int)nowUtc.Subtract (lastWriteTimeUtc).TotalHours;
+				//if (totalHours < 7*24) {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+				//Debug.LogFormat ("CACHE LOAD {0} => {1}", url, filename);
+#endif
+				return UnityWebRequestTexture.GetTexture ("file://" + filename, true);
+			}
+			var webRequest = UnityWebRequestTexture.GetTexture (url, true);
+			webRequest.timeout = 10;
+			return webRequest;
+		}
+
+		/// <summary>
+		/// Store a downloaded binary as a temp file (name based on download url)
+		/// </summary>
+		public static void StoreTextureInCache (UnityWebRequest w) {
+			try {
+				if (!w.url.StartsWith ("file://") && w.result == UnityWebRequest.Result.Success) {
+					var filename = GetCacheFileName (w.url);
+					System.IO.File.WriteAllBytes (filename, w.downloadHandler.data);
+				}
+			} catch (Exception ex) {
+				Debug.LogWarning ($"{ex.GetType ()} happened while storing texture in cache: {ex}");
+			}
 		}
 	}
 

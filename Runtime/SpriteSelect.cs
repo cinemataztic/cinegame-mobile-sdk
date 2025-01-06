@@ -44,9 +44,24 @@ namespace CineGame.MobileComponents {
 		}
 
 		/// <summary>
-		/// Find the Sprite with the specified name in the array and invoke the OnChange method
+		/// Find the Sprite with the specified name in the array and invoke the OnChange method.
+		/// If the specified name is a wellformed URI, attempt to download a texture, create a new sprite and add it to the array and invoke the event with that.
 		/// </summary>
 		public void Change (string name) {
+			if (System.Uri.IsWellFormedUriString (name, System.UriKind.Absolute)) {
+				StartCoroutine (Util.E_LoadTexture (name, (texture) => {
+					if (texture != null) {
+						var sprite = Sprite.Create (texture, new Rect (0, 0, texture.width, texture.height), new Vector2 (.5f, .5f));
+						sprite.name = System.IO.Path.GetFileNameWithoutExtension (new System.Uri (name).LocalPath);
+						Index = Sprites.Length;
+						var newSprites = new Sprite [Index + 1];
+						System.Array.Copy (Sprites, newSprites, Index);
+						Sprites = newSprites;
+						Sprites [Index] = sprite;
+						OnChange.Invoke (sprite);
+					}
+				}));
+			}
 			for (int i = 0; i < Sprites.Length; i++) {
 				if (Sprites [i].name == name) {
 					var sprite = Sprites [i];

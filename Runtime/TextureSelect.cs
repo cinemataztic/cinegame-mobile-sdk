@@ -42,9 +42,22 @@ namespace CineGame.MobileComponents {
 		}
 
 		/// <summary>
-		/// Tries to locate the named texture in the array,set as current and invoke the OnChange event with it
+		/// Tries to locate the named texture in the array,set as current and invoke the OnChange event with it.
+        /// If the specified name is a wellformed URI, attempt to download a texture, add it to the array and invoke the event with that.
 		/// </summary>
 		public void Change (string name) {
+			if (System.Uri.IsWellFormedUriString (name, System.UriKind.Absolute)) {
+				StartCoroutine (Util.E_LoadTexture (name, (texture) => {
+					if (texture != null) {
+						Index = Textures.Length;
+						var newTextures = new Texture2D [Index + 1];
+						System.Array.Copy (Textures, newTextures, Index);
+						Textures = newTextures;
+						Textures [Index] = texture;
+						OnChange.Invoke (texture);
+					}
+				}));
+			}
 			for (int i = 0; i < Textures.Length; i++) {
 				if (Textures [i].name == name) {
 					var texture = Textures [i];
