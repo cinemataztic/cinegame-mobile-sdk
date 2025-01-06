@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace CineGame.MobileComponents {
 
 	[ComponentReference("Receives messages and invokes events from physics (OnTriggerEnter, OnCollisionEnter, OnJointBreak etc). Collision and trigger events can be filtered on specific objects or tags besides the standard physics layers.")]
-	public class PhysicsEventListener : BaseEventComponent {
+	public class OnCollision : BaseEventComponent {
 
 		[Tooltip ("Filter trigger/collision events on these gameobjects")]
 		[SerializeField] private GameObject[] FilterObjects;

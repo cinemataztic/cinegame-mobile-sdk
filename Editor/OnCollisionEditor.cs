@@ -2,8 +2,8 @@
 using CineGame.MobileComponents;
 
 namespace CineGameEditor.MobileComponents {
-	[CustomEditor (typeof (PhysicsEventListener))]
+	[CustomEditor (typeof (OnCollision))]
 	[CanEditMultipleObjects]
-	public class PhysicsEventListenerEditor : EventEditorBase {
+	public class OnCollisionEditor : EventEditorBase {
 	}
 }
