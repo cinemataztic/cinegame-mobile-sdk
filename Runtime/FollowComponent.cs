@@ -1,19 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.EventSystems;
-using UnityEngine.Serialization;
-using UnityEngine.UI;
+﻿using UnityEngine;
 
 namespace CineGame.MobileComponents {
 
-	[ComponentReference ("Follow other object smoothly. The object will always stay inside the followzone, and can move inside the deadzone without the following object moving. You can optionally orientate the transform towards the target (LookAt)")]
+	[ComponentReference ("Follow other object smoothly. The ObjectToFollow will always stay inside the Followzone, and can move inside the Deadzone without the following object moving. You can optionally orientate the transform towards the target (LookAt)")]
 	public class FollowComponent : BaseComponent {
 
 		public Transform ObjectToFollow;
 		public bool LookAt = true;
+		[Tooltip ("The inner box where the follower will not move so long as the ObjectToFollow is inside this")]
 		public BoxCollider Deadzone;
+		[Tooltip ("The outer box where the follower will smoothly follow the ObjectToFollow until it is again inside the Deadzone")]
 		public BoxCollider Followzone;
 
 		void LateUpdate () {
@@ -21,7 +17,7 @@ namespace CineGame.MobileComponents {
 				transform.LookAt (ObjectToFollow);
 			}
 
-			var pos = transform.InverseTransformPoint (ObjectToFollow.position);
+			var pos = Followzone.transform.InverseTransformPoint (ObjectToFollow.position);
 			var deadzoneBounds = new Bounds (Deadzone.center, Deadzone.size);
 			var followzoneBounds = new Bounds (Followzone.center, Followzone.size);
 
