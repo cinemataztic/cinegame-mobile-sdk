@@ -11,6 +11,8 @@ namespace CineGame.MobileComponents {
 		public BoxCollider Deadzone;
 		[Tooltip ("The outer box where the follower will smoothly follow the ObjectToFollow until it is again inside the Deadzone")]
 		public BoxCollider Followzone;
+		[Tooltip ("Threshold to prevent creeping. Should be adjusted according to world scale")]
+		public float MoveThreshold = .003f;
 
 		void LateUpdate () {
 			if (LookAt) {
@@ -46,7 +48,12 @@ namespace CineGame.MobileComponents {
 				v.y = Mathf.Clamp (v.y, -1f, 1f);
 				v.z = Mathf.Clamp (v.z, -1f, 1f);
 
-				transform.position += transform.TransformDirection (v);
+				v = Followzone.transform.TransformDirection (v);
+				if (Mathf.Abs (v.x) < MoveThreshold) v.x = 0f;
+				if (Mathf.Abs (v.y) < MoveThreshold) v.y = 0f;
+				if (Mathf.Abs (v.z) < MoveThreshold) v.z = 0f;
+
+				transform.position += v;
 			}
 		}
 	}
