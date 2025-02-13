@@ -152,18 +152,21 @@ namespace CineGame.MobileComponents {
 
 		IEnumerator E_Interp (float time) {
 			Log ("AlignToAxes.Interpolate time={time}");
-			var startRotation = transform.rotation;
-			var startPosition = transform.position;
-			float t = 0f;
-			while (t < 1f) {
-				DisablePhysicsIfPresent ();
-				float tCubic = Interpolation.Interp (t, InterpType);
-				transform.rotation = Quaternion.Slerp (startRotation, GetLookRotation (AlignObject.rotation), tCubic);
-				if (Reposition) {
-					transform.position = Vector3.Lerp (startPosition, AlignObject.position, tCubic);
+			if (time > float.Epsilon) {
+				var startRotation = transform.rotation;
+				var startPosition = transform.position;
+				float t = 0f;
+				float dt = 1f / time;
+				while (t < 1f) {
+					DisablePhysicsIfPresent ();
+					float tCubic = Interpolation.Interp (t, InterpType);
+					transform.rotation = Quaternion.Slerp (startRotation, GetLookRotation (AlignObject.rotation), tCubic);
+					if (Reposition) {
+						transform.position = Vector3.Lerp (startPosition, AlignObject.position, tCubic);
+					}
+					t += Time.deltaTime * dt;
+					yield return null;
 				}
-				t += Time.deltaTime;
-				yield return null;
 			}
 			transform.rotation = GetLookRotation (AlignObject.rotation);
 			if (Reposition) {
