@@ -55,6 +55,7 @@ namespace CineGame.MobileComponents {
 			m_onTriggerEnter = new UnityEvent<GameObject> ();
 			m_onTriggerExit = new UnityEvent<GameObject> ();
 			m_onJointBreak = new UnityEvent<GameObject> ();
+			Start ();
 		}
 
 		/// <summary>
