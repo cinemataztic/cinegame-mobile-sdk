@@ -2,7 +2,7 @@
 
 namespace CineGame.MobileComponents {
 
-	[ComponentReference ("Follow other object smoothly. The ObjectToFollow will always stay inside the Followzone, and can move inside the Deadzone without the following object moving. You can optionally orientate the transform towards the target (LookAt)")]
+	[ComponentReference ("Follow other object smoothly. The ObjectToFollow will always stay inside the Followzone, and can move inside the Deadzone without the following object moving. You can optionally lock the rotation to always look at the target (LookAt), or you can disable that feature and instead pair this Component with a LookAt Component which will smoothly rotate to look at the target.")]
 	public class FollowComponent : BaseComponent {
 
 		public Transform ObjectToFollow;
@@ -56,5 +56,10 @@ namespace CineGame.MobileComponents {
 				transform.position += v;
 			}
 		}
+
+		public void SetObjectToFollow (Transform t) {
+			ObjectToFollow = t;
+		}
+
 	}
 }
