@@ -15,9 +15,22 @@ namespace CineGame.MobileComponents {
             public UnityEvent<Transform> EventToTrigger;
         }
 
+        [System.Serializable]
+        public class SoundTrigger {
+            [Tooltip ("String parameter passed to Sound event in Animation")]
+            public string SoundName;
+            [Tooltip ("AudioClips to play (chooses a random index when event triggered)")]
+            public AudioClip [] SoundClips;
+        }
+
         public EventTrigger [] Triggers;
+        public SoundTrigger [] Sounds;
+
+        [Tooltip ("AudioSource to play sounds on. If none defined, then GetComponentInParent is used and finally AddComponent")]
+        public AudioSource AudioSource;
 
         Dictionary<string, UnityEvent<Transform>> events;
+        Dictionary<string, AudioClip []> audioClips;
 
         Rigidbody rigidBody;
         Rigidbody2D rigidBody2d;
@@ -26,6 +39,17 @@ namespace CineGame.MobileComponents {
             events = Triggers
                 .Where (t => !string.IsNullOrWhiteSpace (t.EventName) && t.EventToTrigger != null)
                 .ToDictionary (t => t.EventName, t => t.EventToTrigger);
+
+            audioClips = Sounds
+                .Where (t => !string.IsNullOrWhiteSpace (t.SoundName) && t.SoundClips.Length != 0)
+                .ToDictionary (t => t.SoundName, t => t.SoundClips);
+
+            if (audioClips.Count != 0 && AudioSource == null) {
+                AudioSource = GetComponentInParent<AudioSource> ();
+                if (AudioSource == null) {
+                    AudioSource = gameObject.AddComponent<AudioSource> ();
+                }
+            }
 
             FindRigidBody ();
         }
@@ -36,6 +60,15 @@ namespace CineGame.MobileComponents {
                 e.Invoke (transform);
             } else {
                 Debug.LogWarning ($"{gameObject.GetScenePath ()} AnimationEventListener.NewEvent (\"{eventName}\") not defined!", this);
+            }
+        }
+
+        public void Sound (string soundName) {
+            if (audioClips.TryGetValue (soundName, out AudioClip [] clips)) {
+                Log ($"AnimationEventListener.Sound (\"{soundName}\")");
+                AudioSource.PlayOneShot (clips [Random.Range (0, clips.Length)]);
+            } else {
+                Debug.LogWarning ($"{gameObject.GetScenePath ()} AnimationEventListener.Sound (\"{soundName}\") not defined!", this);
             }
         }
 
