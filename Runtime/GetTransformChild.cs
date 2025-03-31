@@ -24,6 +24,9 @@ namespace CineGame.MobileComponents {
 		[FormerlySerializedAs ("OnUpdate")]
 		public UnityEvent<Transform> OnSelect;
 
+		[Tooltip ("Invoked with the previously selected child when a new one is selected. Eg for activating only one child at a time")]
+		public UnityEvent<Transform> OnDeselect;
+
 		float lastSetTime = float.MinValue;
 		int lastIndex = -1;
 		bool backSequentialUpdate;
@@ -81,6 +84,9 @@ namespace CineGame.MobileComponents {
 			}
 			var child = Source.GetChild (newIndex);
 			Log ($"GetTransformChild.UpdateNow lastIndex={lastIndex} newIndex={newIndex} name={child.name}");
+			if (lastIndex >= 0 && lastIndex < Source.childCount) {
+				OnDeselect?.Invoke (Source.GetChild (lastIndex));
+			}
 			lastIndex = newIndex;
 			OnSelect?.Invoke (child);
 		}
