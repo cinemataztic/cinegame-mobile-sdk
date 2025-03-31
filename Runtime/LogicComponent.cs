@@ -87,14 +87,6 @@ namespace CineGame.MobileComponents {
         /// True if we should use reflection to update Value each Interval
         /// </summary>
 		bool isValueDynamic;
-		enum SourceType {
-			Void,
-			Boolean,
-			Integer,
-			Float,
-			Double,
-		};
-		SourceType sourceType;
 
 		float _nextUpdateTime;
 
@@ -111,31 +103,17 @@ namespace CineGame.MobileComponents {
 			if (SourceObject != null && !string.IsNullOrWhiteSpace (SourceMemberName)) {
 				isValueDynamic = true;
 				var type = SourceObject.GetType ();
-				var memberTypeString = string.Empty;
 				SourceFieldInfo = type.GetField (SourceMemberName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
-				if (SourceFieldInfo != null) {
-					memberTypeString = SourceFieldInfo.FieldType.ToString ();
-				} else {
+				if (SourceFieldInfo == null) {
 					SourcePropertyInfo = type.GetProperty (SourceMemberName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
-					if (SourcePropertyInfo != null) {
-						memberTypeString = SourcePropertyInfo.PropertyType.ToString ();
-					} else {
+					if (SourcePropertyInfo == null) {
 						SourceMethodInfo = type.GetMethod (SourceMemberName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
-						if (SourceMethodInfo != null) {
-							memberTypeString = SourceMethodInfo.ReturnType.ToString ();
-						} else {
+						if (SourceMethodInfo == null) {
 							LogError ($"{type.FullName}.{SourceMemberName} not found!");
 							isValueDynamic = false;
 						}
 					}
 				}
-				sourceType = memberTypeString switch {
-					"System.Boolean" => SourceType.Boolean,
-					"System.Integer" => SourceType.Integer,
-					"System.Single" => SourceType.Float,
-					"System.Double" => SourceType.Double,
-					_ => SourceType.Void
-				};
 			}
 		}
 
@@ -380,13 +358,7 @@ namespace CineGame.MobileComponents {
 				} else {
 					_v = SourceMethodInfo.Invoke (SourceObject, SourceMethodParams);
 				}
-				Value = sourceType switch {
-					SourceType.Boolean => (bool)_v ? 1f : 0f,
-					SourceType.Integer => (int)_v,
-					SourceType.Float => (float)_v,
-					SourceType.Double => (float)(double)_v,
-					_ => 0
-				};
+				Value = Convert.ToSingle (_v);
 				FireEvent ();
 			} else if (Other != null) {
 				switch (Function) {
