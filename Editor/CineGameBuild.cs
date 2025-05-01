@@ -1164,6 +1164,7 @@ namespace CineGameEditor.MobileComponents {
 			{ "GravityComponent.cs", "a5f37167862804f4085906d19efb4f6d" },
 			{ "GyroComponent.cs", "4b2e7470ca5cd4ba28ba7ca9f9432a98" },
 			{ "JoystickComponent.cs", "e12223f1cfe254b5fa8b051b88c642a2" },
+			{ "LayoutAnimator.cs", "c11e6438a22d14a119c26a450b02d98e" },
 			{ "LogicComponent.cs", "cc7fbe9cb65b24476b1426f19a438a63" },
 			{ "LookAt.cs", "93bc52955bb1a40a5aafdaeb32f37cfe" },
 			{ "MaterialProperty.cs", "695b935104058422c99c25a86212e265" },
