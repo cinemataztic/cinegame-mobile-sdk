@@ -34,6 +34,7 @@ namespace CineGame.MobileComponents {
 
         void Start () {
             var containerGo = Instantiate (gameObject, transform.parent);
+            containerGo.name = "LayoutAnimator_" + containerGo.name;
             Container = containerGo.transform;
             Destroy (containerGo.GetComponent<LayoutAnimator> ());
             Destroy (containerGo.GetComponent<LayoutGroup> ());
