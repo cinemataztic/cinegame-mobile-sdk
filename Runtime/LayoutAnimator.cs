@@ -48,7 +48,9 @@ namespace CineGame.MobileComponents {
         }
 
         void OnDestroy () {
-            Destroy (Container.gameObject);
+            if (Container != null) {
+                Destroy (Container.gameObject);
+            }
         }
 
         void OnTransformChildrenChanged () {
