@@ -22,6 +22,7 @@ namespace CineGame.MobileComponents {
 
         Transform Container;
         bool bCheckAdded;
+        RectTransform MyRectTransform;
 
         class Tuple {
             public RectTransform original;
@@ -39,6 +40,7 @@ namespace CineGame.MobileComponents {
             var layoutElement = containerGo.AddComponent<LayoutElement> ();
             layoutElement.ignoreLayout = true;
             GetComponent<CanvasGroup> ().alpha = 0f;
+            MyRectTransform = GetComponent<RectTransform> ();
             //var containerGo = new GameObject ("LayoutAnimator_Container");
             //containerGo.transform.SetParent (GetComponentInParent<Canvas> ().transform);
             //Container = containerGo.AddComponent<RectTransform> ();
@@ -156,6 +158,7 @@ namespace CineGame.MobileComponents {
                 animated = newGameObject.GetComponent<RectTransform> (),
             };
             tuple.animated.position = pos;
+            LayoutRebuilder.ForceRebuildLayoutImmediate (MyRectTransform);
             TrackedObjects.Add (tuple);
             return tuple.animated;
         }
