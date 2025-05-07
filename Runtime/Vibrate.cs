@@ -8,7 +8,7 @@ namespace CineGame.MobileComponents {
 	[ComponentReference ("Play haptic feedback and vibration effects when enabled or when invoked via the Play methods. You can trigger the effect from host or send haptic patterns")]
 	public class Vibrate : ReplicatedComponent {
 
-		[Tooltip ("Text file in the format {PRIMITIVE_ID},{intensity 0;1},{delay in msecs}")]
+		[Tooltip ("Exported Android JSON file from HapticSync")]
 		public TextAsset AndroidHapticFile;
 
 		[Tooltip ("Standard AHAP file")]
@@ -29,7 +29,7 @@ namespace CineGame.MobileComponents {
 		[Tooltip ("Property from host containing an iOS AHAP file as string")]
 		public string iOSHapticKey = "iOSHaptic";
 
-		[Tooltip ("Property from host containing an Android VibrationEffect.Composition file as string")]
+		[Tooltip ("Property from host containing an Android JSON file from HapticSync as string")]
 		public string AndroidHapticKey = "AndroidHaptic";
 
 		[Tooltip ("Property from host defining the repeat interval in seconds (float)")]
