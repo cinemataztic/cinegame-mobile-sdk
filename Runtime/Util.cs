@@ -494,22 +494,26 @@ namespace CineGame.MobileComponents {
 		/// Vibrate the phone for the specified amount of ms (only implemented on Android, iOS will vibrate default time)
 		/// </summary>
 		public static void Vibrate (long milliseconds = 500) {
+#if !UNITY_STANDALONE
 			if (Application.platform == RuntimePlatform.Android && !Application.isEditor) {
 				AndroidVibrator.Call ("vibrate", milliseconds);
 			} else {
 				Handheld.Vibrate ();
 			}
+#endif
 		}
 
 		/// <summary>
 		/// Vibrate the phone in a specific pattern (long array of ms, even are vibrate, odd are pause). Only implemented on Android, iOS will vibrate once default time
 		/// </summary>
 		public static void Vibrate (long [] pattern, int repeat) {
+#if !UNITY_STANDALONE
 			if (Application.platform == RuntimePlatform.Android && !Application.isEditor) {
 				AndroidVibrator.Call ("vibrate", pattern, repeat);
 			} else {
 				Handheld.Vibrate ();
 			}
+#endif
 		}
 
 		/// <summary>
