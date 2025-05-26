@@ -24,6 +24,9 @@ namespace CineGame.MobileComponents {
 		[Tooltip ("Align with world Y axis")]
 		public bool AlignWithWorldAxis;
 
+		[Tooltip ("When using the Interpolate method to gently move towards the projected position")]
+		public float InterpTime = .75f;
+
 		Vector2 localPoint;
 
 		RectTransform myRectTransform;
@@ -31,6 +34,9 @@ namespace CineGame.MobileComponents {
 		Camera canvasCamera;
 		CanvasGroup canvasGroup;
 		readonly Vector3 [] worldCorners = new Vector3 [4];
+		float InterpStartTime;
+		Vector2 InterpStartPos;
+		bool bInterp;
 
 		void Start () {
 			myRectTransform = GetComponent<RectTransform> ();
@@ -49,7 +55,14 @@ namespace CineGame.MobileComponents {
 			if (dz < 0f)
 				return;
 			RectTransformUtility.ScreenPointToLocalPointInRectangle (parentRectTransform, new Vector2 (screenPoint3.x, screenPoint3.y), canvasCamera, out localPoint);
-			myRectTransform.anchoredPosition = localPoint + OffsetInRectTransform;
+			localPoint += OffsetInRectTransform;
+			if (bInterp) {
+				var t = (Time.time - InterpStartTime) / InterpTime;
+				myRectTransform.anchoredPosition = Vector2.Lerp (InterpStartPos, localPoint, Interpolation.EaseOutQuad (t));
+				bInterp = t < 1f;
+			} else {
+				myRectTransform.anchoredPosition = localPoint;
+			}
 
 			if (StayOnScreen) {
 				myRectTransform.GetWorldCorners (worldCorners);
@@ -67,6 +80,17 @@ namespace CineGame.MobileComponents {
 				myRectTransform.localRotation = Quaternion.Euler (myRot.eulerAngles.x, myRot.eulerAngles.y, -rotCam.transform.eulerAngles.z);
 			}
 
+		}
+
+		public void Interpolate () {
+			Interpolate (InterpTime);
+		}
+
+		public void Interpolate (float time) {
+			bInterp = true;
+			InterpStartTime = Time.time;
+			InterpStartPos = myRectTransform.anchoredPosition;
+			InterpTime = time;
 		}
 
 		public void SetStayOnScreen (bool enable) {
