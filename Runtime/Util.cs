@@ -881,6 +881,34 @@ namespace CineGame.MobileComponents {
 		public static string GetScenePath (this GameObject obj, char separator = '/') {
 			return Util.GetObjectScenePath (obj, separator);
 		}
+
+		/// <summary>
+        /// Find first child with the specified tag, recursively. Includes inactive objects.
+        /// </summary>
+		public static Transform FindTag (this Transform transform, string tag) {
+			if (transform.CompareTag (tag))
+				return transform;
+			foreach (Transform t in transform) {
+				var result = t.FindTag (tag);
+				if (result != null)
+					return result;
+			}
+			return null;
+		}
+
+		/// <summary>
+		/// Find first child with the specified name, recursively. Includes inactive objects.
+		/// </summary>
+		public static Transform FindName (this Transform transform, string name) {
+			if (transform.name == name)
+				return transform;
+			foreach (Transform t in transform) {
+				var result = t.FindName (name);
+				if (result != null)
+					return result;
+			}
+			return null;
+		}
 	}
 
 	public static class StringHelpers {
