@@ -7,6 +7,7 @@ namespace CineGame.MobileComponents {
 	/// </summary>
 	[ComponentReference ("Creates a rotation on a UI element according to the projection of a world 3D position on the canvas. This can be used for eg arrows on HUD overlays.")]
 	[ExecuteAlways]
+	[DefaultExecutionOrder (1000)]
 	public class AnchorRotationFrom3D : BaseComponent {
 		[Tooltip ("Transform to project")]
 		public Transform PositionSource;

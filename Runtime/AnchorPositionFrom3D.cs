@@ -7,6 +7,7 @@ namespace CineGame.MobileComponents {
 	/// </summary>
 	[ComponentReference ("Projects a world 3D position onto a screen-aligned canvas. This can be used for eg HUD overlays or speech bubbles.")]
 	[ExecuteAlways]
+	[DefaultExecutionOrder (1000)]
 	[RequireComponent (typeof (CanvasGroup))]
 	public class AnchorPositionFrom3D : BaseComponent {
 		[Tooltip ("Transform to project")]
