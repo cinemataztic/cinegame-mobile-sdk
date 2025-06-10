@@ -39,6 +39,10 @@ namespace CineGame.MobileComponents {
             Duration = (Duration > float.Epsilon) ? Duration : effectDuration;
         }
 
+        void OnDestroy () {
+            EffectControllers.Remove (Prefab.name);
+        }
+
         /// <summary>
         /// Sets up a number of deactivated instance of the prefab, ready to be moved and activated when needed. Returns duration from ParticleSystem or Animator, defaults to 1 sec if none found
         /// </summary>
