@@ -565,10 +565,6 @@ namespace CineGame.MobileComponents {
 			/// <summary>
 			/// Available on Android 11 (2020)
 			/// </summary>
-			ENTRY_BUMP = 10,
-			/// <summary>
-			/// Available on Android 11 (2020)
-			/// </summary>
 			DRAG_CROSSING = 11,
 			/// <summary>
 			/// Available on Android 11 (2020)
@@ -597,16 +593,45 @@ namespace CineGame.MobileComponents {
 			/// <summary>
 			/// Available on Android 11 (2020)
 			/// </summary>
-			ROTARY_SCROLL_TICK = 18,
+			SCROLL_TICK = 18,
 			/// <summary>
 			/// Available on Android 11 (2020)
 			/// </summary>
-			ROTARY_SCROLL_ITEM_FOCUS = 19,
+			SCROLL_ITEM_FOCUS = 19,
 			/// <summary>
 			/// Available on Android 11 (2020)
 			/// </summary>
-			ROTARY_SCROLL_LIMIT = 20,
+			SCROLL_LIMIT = 20,
+			/// <summary>
+			/// Available on Android 14 (2023)
+			/// </summary>
+			TOGGLE_ON = 21,
+			/// <summary>
+			/// Available on Android 14 (2023)
+			/// </summary>
+			TOGGLE_OFF = 22,
+			/// <summary>
+			/// Available on Android 14 (2023)
+			/// </summary>
+			GESTURE_THRESHOLD_ACTIVATE = 23,
+			/// <summary>
+			/// Available on Android 14 (2023)
+			/// </summary>
+			GESTURE_THRESHOLD_DEACTIVATE = 24,
+			/// <summary>
+			/// Available on Android 14 (2023)
+			/// </summary>
+			DRAG_START = 25,
+			/// <summary>
+			/// Available on Android 14 (2023)
+			/// </summary>
+			SEGMENT_TICK = 26,
+			/// <summary>
+			/// Available on Android 14 (2023)
+			/// </summary>
+			SEGMENT_FREQUENT_TICK = 27,
 		}
+
 
 		/// <summary>
 		/// Play a haptic feedback effect (parse string)
