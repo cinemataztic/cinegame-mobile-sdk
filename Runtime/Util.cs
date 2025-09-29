@@ -249,7 +249,7 @@ namespace CineGame.MobileComponents {
 
 		public static string GetRegionProfanityUrl () {
 			var market = Markets [GetRegion()];
-			var uri = new Uri ($"https://{market.Network}-{market.Country}.api.profanity.{market.Cluster}.cinemataztic.com/txt-file");
+			var uri = new Uri ($"https://{market.Network}.{market.Country}.api.profanity.{market.Cluster}.cinemataztic.com/txt-file");
 			if (isStaging || isDev) {
 				return new Uri (Regex.Replace (uri.AbsoluteUri, "(.+?)\\.[^.]+?\\.(cinemataztic\\.com.+)", isStaging ? "$1.staging.$2" : "$1.dev.$2"));
 			}
