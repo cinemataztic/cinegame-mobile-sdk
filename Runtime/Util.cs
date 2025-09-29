@@ -247,7 +247,7 @@ namespace CineGame.MobileComponents {
 		}
 
 
-		public static string GetRegionProfanityUrl () {
+		public static Uri GetRegionProfanityUri (bool isStaging = false, bool isDev = false) {
 			var market = Markets [GetRegion()];
 			var uri = new Uri ($"https://{market.Network}.{market.Country}.api.profanity.{market.Cluster}.cinemataztic.com/txt-file");
 			if (isStaging || isDev) {
