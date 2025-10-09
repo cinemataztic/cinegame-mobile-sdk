@@ -292,7 +292,7 @@ namespace CineGameEditor.MobileComponents {
 					LastBuildReportString = File.ReadAllText (lastBuildReportPath);
 				}
 
-				var hasBuildReport = !string.IsNullOrEmpty (LastBuildReportString);
+				var hasBuildReport = !string.IsNullOrEmpty (LastBuildReportString) && LastBuildReportString.Contains ("Build report for " + bundleName);
 				if (hasBuildReport) {
 					Rect rScroll = EditorGUILayout.BeginVertical ();
 					buildReportScrollPosition = EditorGUILayout.BeginScrollView (buildReportScrollPosition, false, true, GUILayout.Height (rScroll.height));
