@@ -814,6 +814,10 @@ namespace CineGame.MobileComponents {
 		}
 
 		public static IEnumerator E_LoadTexture (string url, Action<Texture2D> callback) {
+			if (!url.StartsWith ("https://")) {
+				Debug.LogError ($"Download from non-secure url not supported: {url}");
+				yield break;
+			}
 			var statusCode = HttpStatusCode.OK;
 			using var request = LoadTextureFromCacheOrUrl (url);
 			yield return request.SendWebRequest ();
