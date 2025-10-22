@@ -810,24 +810,24 @@ namespace CineGame.MobileComponents {
 		}
 
 		public static IEnumerator E_LoadTexture (string url, Action<Texture2D> callback) {
+			Texture2D response = null;
 			if (!url.StartsWith ("https://")) {
 				Debug.LogError ($"Download from non-secure url not supported: {url}");
-				yield break;
-			}
-			var statusCode = HttpStatusCode.OK;
-			using var request = LoadTextureFromCacheOrUrl (url);
-			yield return request.SendWebRequest ();
-			Texture2D response = null;
-			if (request.result == UnityWebRequest.Result.ConnectionError) {
-				statusCode = HttpStatusCode.ServiceUnavailable;
-				Debug.LogWarningFormat ("Network error while loading texture from {0} : {1}", request.url, request.error);
-			} else if (request.result != UnityWebRequest.Result.Success) {
-				statusCode = (HttpStatusCode)request.responseCode;
-				Debug.LogErrorFormat ("Error happened while loading texture from {0} : {1}", request.url, request.error);
 			} else {
-				//cache image if not already cached
-				StoreTextureInCache (request);
-				response = DownloadHandlerTexture.GetContent (request);
+				var statusCode = HttpStatusCode.OK;
+				using var request = LoadTextureFromCacheOrUrl (url);
+				yield return request.SendWebRequest ();
+				if (request.result == UnityWebRequest.Result.ConnectionError) {
+					statusCode = HttpStatusCode.ServiceUnavailable;
+					Debug.LogWarning ($"Network error while loading texture from {request.url}: {request.error}");
+				} else if (request.result != UnityWebRequest.Result.Success) {
+					statusCode = (HttpStatusCode)request.responseCode;
+					Debug.LogError ($"Protocol error while loading texture from {request.url}: {request.error}");
+				} else {
+					//cache image if not already cached
+					StoreTextureInCache (request);
+					response = DownloadHandlerTexture.GetContent (request);
+				}
 			}
 			callback?.Invoke (response);
 		}
