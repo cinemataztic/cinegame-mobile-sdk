@@ -570,10 +570,6 @@ namespace CineGame.MobileComponents {
 			/// <summary>
 			/// Available on Android 11 (2020)
 			/// </summary>
-			DRAG_CROSSING = 11,
-			/// <summary>
-			/// Available on Android 11 (2020)
-			/// </summary>
 			GESTURE_START = 12,
 			/// <summary>
 			/// Available on Android 11 (2020)
