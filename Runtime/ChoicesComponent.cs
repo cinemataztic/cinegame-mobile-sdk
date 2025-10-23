@@ -121,7 +121,7 @@ namespace CineGame.MobileComponents {
 
 			if (dataObj.ContainsKey (CorrectIndicesKey)) {
 				CorrectIndices = dataObj.GetIntArray (CorrectIndicesKey);
-				Debug.LogFormat ("Received Correct Indices: {0}", string.Join (",", new List<int> (CorrectIndices).ConvertAll (i => i.ToString ()).ToArray ()));
+				Log (string.Format ("Received Correct Indices: {0}", string.Join (",", new List<int> (CorrectIndices).ConvertAll (i => i.ToString ()).ToArray ())));
 				InitializeCorrectIndicesStack ();
 				if (DeactivateOthersOnChoice) {
 					//Reactivate remaining choices, if previously deactivated
@@ -169,7 +169,7 @@ namespace CineGame.MobileComponents {
 					choice.ResetChoice ();
 					choice.SetSingleShot (ChoicesAreSingleShot);
 					choice.AddButtonListener (delegate {
-						Debug.LogFormat ("Player chooses {0} index {1} ({2})", gameObject.name, choiceIndex, choice.gameObject.name);
+						Log ($"Player chooses {gameObject.name} index {choiceIndex} ({choice.gameObject.name})");
 						if (ChooseIndex (choiceIndex)) {
 							choice.Success ();
 						} else {
@@ -200,7 +200,7 @@ namespace CineGame.MobileComponents {
 					success = true;
 					CorrectIndicesStack.Remove (choiceIndex);
 					if (CorrectIndicesStack.Count == 0) {
-						onSuccess.Invoke ();
+						onSuccess?.Invoke ();
 						//if host wants a success/fail variable, send it
 						if (!string.IsNullOrEmpty (SuccessFailKey)) {
 							Send (SuccessFailKey, true);
@@ -208,7 +208,7 @@ namespace CineGame.MobileComponents {
 					}
 				} else {
 					CorrectIndicesStack.Clear ();
-					onFail.Invoke ();
+					onFail?.Invoke ();
 					//if host wants a success/fail variable, send it
 					if (!string.IsNullOrEmpty (SuccessFailKey)) {
 						Send (SuccessFailKey, false);
