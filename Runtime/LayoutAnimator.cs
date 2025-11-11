@@ -16,6 +16,7 @@ namespace CineGame.MobileComponents {
             ScaleDown,
             FadeOut,
             ScaleAndFade,
+            DestroyImmediately,
         }
         [Tooltip ("Which animation to perform when destroying an element")]
         public DestroyAnimType DestroyAnim = DestroyAnimType.ScaleDown;
@@ -81,7 +82,10 @@ namespace CineGame.MobileComponents {
                 var t = TrackedObjects [j];
                 if (t.original == null || t.original.parent != transform) {
                     //original destroyed, destroy animated and remove tuple
-                    StartCoroutine (E_Destroy (t.animated));
+                    if (DestroyAnim == DestroyAnimType.DestroyImmediately)
+                        Destroy (t.animated.gameObject);
+                    else
+                        StartCoroutine (E_Destroy (t.animated));
                     TrackedTransforms.Remove (t.original);
                     TrackedObjects.RemoveAt (j--);
                     e--;
