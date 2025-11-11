@@ -21,8 +21,8 @@ namespace CineGame.MobileComponents {
         [Tooltip ("Which animation to perform when destroying an element")]
         public DestroyAnimType DestroyAnim = DestroyAnimType.ScaleDown;
 
-        Transform Container;
-        bool bCheckAdded;
+        Transform Container, AddContainer;
+        bool bCheckAdded, bRebuildLayout;
         RectTransform MyRectTransform;
 
         class Tuple {
@@ -34,6 +34,9 @@ namespace CineGame.MobileComponents {
         readonly List<Tuple> TrackedObjects = new ();
 
         void Start () {
+            MyRectTransform = GetComponent<RectTransform> ();
+
+            //Duplicate this gameObject but without the LayoutGroup and the LayoutAnimator
             var containerGo = Instantiate (gameObject, transform.parent);
             containerGo.name = "LayoutAnimator_" + containerGo.name;
             Container = containerGo.transform;
@@ -42,10 +45,12 @@ namespace CineGame.MobileComponents {
             var layoutElement = containerGo.AddComponent<LayoutElement> ();
             layoutElement.ignoreLayout = true;
             GetComponent<CanvasGroup> ().alpha = 0f;
-            MyRectTransform = GetComponent<RectTransform> ();
-            //var containerGo = new GameObject ("LayoutAnimator_Container");
-            //containerGo.transform.SetParent (GetComponentInParent<Canvas> ().transform);
-            //Container = containerGo.AddComponent<RectTransform> ();
+
+            //Create a new container GameObject which will hold added elements which need to animate smoothly into the layout
+            var addContainerGo = new GameObject ("LayoutAnimator_AddContainer");
+            addContainerGo.transform.SetParent (transform.parent, worldPositionStays: false);
+            AddContainer = addContainerGo.AddComponent<RectTransform> ();
+            AddContainer.SetSiblingIndex (Container.GetSiblingIndex () + 1);
         }
 
         void OnDestroy () {
@@ -59,6 +64,10 @@ namespace CineGame.MobileComponents {
         }
 
         void LateUpdate () {
+            if (bRebuildLayout) {
+                bRebuildLayout = false;
+                LayoutRebuilder.ForceRebuildLayoutImmediate (MyRectTransform);
+            }
             if (bCheckAdded) {
                 bCheckAdded = false;
                 var num = transform.childCount;
@@ -159,15 +168,28 @@ namespace CineGame.MobileComponents {
                 rt.SetSiblingIndex (siblingIndex);
             }
             //new element, lets clone it and track it
-            var newGameObject = Instantiate (rt.gameObject, Container);
+            var newGameObject = Instantiate (rt.gameObject, AddContainer);
             var tuple = new Tuple {
                 original = rt,
                 animated = newGameObject.GetComponent<RectTransform> (),
             };
             tuple.animated.position = pos;
-            LayoutRebuilder.ForceRebuildLayoutImmediate (MyRectTransform);
             TrackedObjects.Add (tuple);
+            bRebuildLayout = true;
+            StartCoroutine (E_ReparentDelay (tuple.animated, Container));
             return tuple.animated;
+        }
+
+        /// <summary>
+        /// Reparents a transform after a specific delay
+        /// </summary>
+        IEnumerator E_ReparentDelay (Transform element, Transform newParent, float delay = .3f) {
+            var t = Time.time;
+            while (Time.time - t < delay)
+                yield return null;
+            if (element != null) {
+                element.SetParent (newParent, worldPositionStays: true);
+            }
         }
     }
 
