@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
@@ -18,13 +17,6 @@ namespace CineGameEditor.MobileComponents {
 		string [] memberNames;
         readonly GUIContent SourceMemberContent = new ("Source Property", "Property or field to get value from every Interval");
         readonly GUIContent DropdownButtonContent = new ();
-
-		readonly Type _b = typeof (bool);
-		readonly Type _i = typeof (int);
-		readonly Type _f = typeof (float);
-		readonly Type _d = typeof (double);
-		readonly Type _mbType = typeof (MonoBehaviour);
-		readonly Type _tType = typeof (Transform);
 
 		Rect DropDownRect;
 
@@ -57,7 +49,7 @@ namespace CineGameEditor.MobileComponents {
 							}
 							compTypes = compList.Count != 0 ? compList.Select (c => c.GetType ().Name).ToArray () : null;
 							var compTypeIndex = comp != null ? Mathf.Max (0, ArrayUtility.IndexOf (compTypes, comp.GetType ().Name)) : 0;
-							memberNames = compList.Count != 0 ? GetValueMemberNames (compList.ElementAt (compTypeIndex)) : null;
+							memberNames = compList.Count != 0 ? SetScriptPropertyEditor.GetValueMemberNames (compList.ElementAt (compTypeIndex), set: false) : null;
 							if (memberNames != null) {
 								var fieldName = serializedObject.FindProperty ("SourceMemberName").stringValue;
 								if (memberNames.Contains (fieldName)) {
@@ -73,7 +65,7 @@ namespace CineGameEditor.MobileComponents {
 							EditorGUILayout.BeginHorizontal ();
 							EditorGUILayout.PrefixLabel (SourceMemberContent);
 							if (EditorGUILayout.DropdownButton (DropdownButtonContent, FocusType.Passive, EditorStyles.popup)) {
-								var menu = BuildMenu (compList);
+								var menu = SetScriptPropertyEditor.BuildMenu (compList, SetMemberFunction, set: false);
 								menu.DropDown (DropDownRect);
 							}
 							if (Event.current.type == EventType.Repaint) {
@@ -106,49 +98,12 @@ namespace CineGameEditor.MobileComponents {
 			serializedObject.ApplyModifiedProperties ();
 		}
 
-		GenericMenu BuildMenu (List<Component> components) {
-			var menu = new GenericMenu ();
-			var _b = typeof (bool);
-			var _i = typeof (int);
-			var _f = typeof (float);
-			var _d = typeof (double);
-			foreach (var c in components) {
-				var cType = c.GetType ();
-				var cName = cType.Name;
-				var props = cType.GetProperties (BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
-				var fields = cType.GetFields (BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
-				var methods = cType.GetMethods (BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
-				for (int i = 0; i < props.Length; i++) {
-					var _type = props [i].PropertyType;
-					if (props [i].DeclaringType.IsSubclassOf (_mbType) && (_type == _b || _type == _i || _type == _f || _type == _d)) {
-						menu.AddItem (new GUIContent (cName + "/" + props [i].Name), false, SetMemberFunction, new MemberFunctionParams (c, props [i].Name));
-					}
-				}
-				for (int i = 0; i < fields.Length; i++) {
-					var _type = fields [i].FieldType;
-					if (fields [i].DeclaringType.IsSubclassOf (_mbType) && (_type == _b || _type == _i || _type == _f || _type == _d)) {
-						menu.AddItem (new GUIContent (cName + "/" + fields [i].Name), false, SetMemberFunction, new MemberFunctionParams (c, fields [i].Name));
-					}
-				}
-				for (int i = 0; i < methods.Length; i++) {
-					var mi = methods [i];
-					if ((mi.DeclaringType != _tType && !mi.DeclaringType.IsSubclassOf (_mbType)) || mi.GetParameters ().Length != 0 || mi.Name.StartsWith ("get_"))
-						continue;
-					var _type = mi.ReturnType;
-					if (_type == _b || _type == _i || _type == _f || _type == _d) {
-						menu.AddItem (new GUIContent (cName + "/" + mi.Name), false, SetMemberFunction, new MemberFunctionParams (c, mi.Name));
-					}
-				}
-			}
-			return menu;
-		}
-
 		/// <summary>
         /// A member property or field was chosen. Update serialized properties and dropdown button text
         /// </summary>
         /// <param name="data"></param>
 		void SetMemberFunction (object data) {
-			var uef = (MemberFunctionParams)data;
+			var uef = (SetScriptPropertyEditor.MemberFunctionParams)data;
 			serializedObject.Update ();
 			serializedObject.FindProperty ("SourceObject").objectReferenceValue = uef.Component;
 			serializedObject.FindProperty ("SourceMemberName").stringValue = uef.MemberName;
@@ -159,49 +114,6 @@ namespace CineGameEditor.MobileComponents {
 				$"{typeName}.{uef.MemberName}";
 		}
 
-		struct MemberFunctionParams {
-			public readonly Component Component;
-			public readonly string MemberName;
-
-			public MemberFunctionParams (Component component, string memberName) {
-				Component = component;
-				MemberName = memberName;
-			}
-		}
-
-		/// <summary>
-		/// Use reflection to get an array of all public properties, fields and methods which return bool, int, float or double
-		/// </summary>
-		string [] GetValueMemberNames (Component c) {
-			var cType = c.GetType ();
-			var props = cType.GetProperties (BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
-			var fields = cType.GetFields (BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
-			var methods = cType.GetMethods (BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
-			var fn = new List<string> (props.Length + fields.Length + methods.Length);
-			for (int i = 0; i < props.Length; i++) {
-				var _type = props [i].PropertyType;
-				if (props [i].DeclaringType.IsSubclassOf (_mbType) && (_type == _b || _type == _i || _type == _f || _type == _d)) {
-					fn.Add (props [i].Name);
-				}
-			}
-			for (int i = 0; i < fields.Length; i++) {
-				var _type = fields [i].FieldType;
-				if (fields [i].DeclaringType.IsSubclassOf (_mbType) && (_type == _b || _type == _i || _type == _f || _type == _d)) {
-					fn.Add (fields [i].Name);
-				}
-			}
-
-			for (int i = 0; i < methods.Length; i++) {
-				var mi = methods [i];
-				if ((mi.DeclaringType != _tType && !mi.DeclaringType.IsSubclassOf (_mbType)) || mi.GetParameters ().Length != 0 || mi.Name.StartsWith ("get_"))
-					continue;
-				var _type = mi.ReturnType;
-				if (_type == _b || _type == _i || _type == _f || _type == _d) {
-					fn.Add (mi.Name);
-				}
-			}
-			return fn.ToArray ();
-		}
 	}
 
 }
