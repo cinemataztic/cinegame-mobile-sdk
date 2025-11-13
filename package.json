@@ -3,7 +3,7 @@
     "version": "2.1.0",
     "displayName": "CineGame Mobile SDK",
     "description": "This is the SDK for creating mobile interfaces for CineGame and CineClash",
-    "unity": "6000.0",
+    "unity": "2021.3",
     "documentationUrl": "https://github.com/cinemataztic/cinegame-mobile-sdk",
     "changelogUrl": "https://github.com/cinemataztic/cinegame-mobile-sdk",
     "licensesUrl": "https://github.com/cinemataztic/cinegame-mobile-sdk",
