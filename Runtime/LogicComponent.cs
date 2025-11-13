@@ -25,16 +25,16 @@ namespace CineGame.MobileComponents {
 
 		public CompareFunction Function = CompareFunction.Value;
 
-		[SerializeField]
-		[Tooltip ("Initial value")]
-		private float Value;
-
 		[Tooltip ("Layers to intersect with during LineOfSight check")]
 		public LayerMask LayerMask = -1;
 
 		[Tooltip ("The source object to compare position, orientation or values from. If None then this GameObject's position and orientation will be used for spatial comparison")]
 		public UnityEngine.Object SourceObject;
 		public string SourceMemberName;
+
+		[SerializeField]
+		[Tooltip ("Initial value")]
+		private float Value;
 
 		[Tooltip ("Compare distance, dotproduct, angle or line-of-sight with this transform")]
 		public Transform Other;
@@ -97,10 +97,12 @@ namespace CineGame.MobileComponents {
 			UpdateString ();
 
 			if (Function != CompareFunction.Value) {
-				sourceTransform = SourceObject != null ? SourceObject as Transform : transform;
-			}
-
-			if (SourceObject != null && !string.IsNullOrWhiteSpace (SourceMemberName)) {
+				if (SourceObject is GameObject go) {
+					sourceTransform = go.transform;
+				} else {
+					sourceTransform = transform;
+				}
+			} else if (SourceObject != null && !string.IsNullOrWhiteSpace (SourceMemberName)) {
 				isValueDynamic = true;
 				var type = SourceObject.GetType ();
 				SourceFieldInfo = type.GetField (SourceMemberName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
