@@ -15,7 +15,7 @@ namespace CineGameEditor.MobileComponents {
 
 		readonly List<Component> compList = new ();
 		string [] compTypes;
-		string [] memberNames;
+		IEnumerable<string> memberNames;
 		readonly GUIContent ScriptMemberContent = new ("Script Property", "Property, field or method to set value of");
 		readonly GUIContent DropdownButtonContent = new ();
 
@@ -23,6 +23,7 @@ namespace CineGameEditor.MobileComponents {
 		static readonly Type _i = typeof (int);
 		static readonly Type _f = typeof (float);
 		static readonly Type _d = typeof (double);
+		static readonly Type _objType = typeof (UnityEngine.Object);
 		static readonly Type _eventType = typeof (UnityEngine.Events.UnityEventBase);
 
 		Rect DropDownRect;
@@ -88,39 +89,6 @@ namespace CineGameEditor.MobileComponents {
 
 		const BindingFlags _bindingFlags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly;
 
-		internal static GenericMenu BuildMenu (List<Component> components, GenericMenu.MenuFunction2 func, bool set = true) {
-			var menu = new GenericMenu ();
-			var _b = typeof (bool);
-			var _i = typeof (int);
-			var _f = typeof (float);
-			var _d = typeof (double);
-			foreach (var c in components) {
-				var cType = c.GetType ();
-				var cName = cType.Name;
-				var props = cType.GetProperties (_bindingFlags);
-				var fields = cType.GetFields (_bindingFlags);
-				var methods = cType.GetMethods (_bindingFlags);
-				for (int i = 0; i < props.Length; i++) {
-					menu.AddItem (new GUIContent (cName + "/" + props [i].Name), false, func, new MemberFunctionParams (c, props [i].Name));
-				}
-				for (int i = 0; i < fields.Length; i++) {
-					if (fields [i].FieldType.IsSubclassOf (_eventType))
-						continue;
-					menu.AddItem (new GUIContent (cName + "/" + fields [i].Name), false, func, new MemberFunctionParams (c, fields [i].Name));
-				}
-				for (int i = 0; i < methods.Length; i++) {
-					var mi = methods [i];
-					if (mi.GetParameters ().Length != 0 || mi.Name.StartsWith (set ? "set_" : "get_"))
-						continue;
-					var _type = mi.ReturnType;
-					if (set || _type == _b || _type == _i || _type == _f || _type == _d) {
-						menu.AddItem (new GUIContent (cName + "/" + mi.Name), false, func, new MemberFunctionParams (c, mi.Name));
-					}
-				}
-			}
-			return menu;
-		}
-
 		/// <summary>
 		/// A member property or field was chosen. Update serialized properties and dropdown button text
 		/// </summary>
@@ -137,6 +105,21 @@ namespace CineGameEditor.MobileComponents {
 				$"{typeName}.{uef.MemberName}";
 		}
 
+		internal static GenericMenu BuildMenu (List<Component> components, GenericMenu.MenuFunction2 func, bool set = true) {
+			var menu = new GenericMenu ();
+			foreach (var c in components) {
+				var cType = c.GetType ();
+				var cName = cType.Name;
+				var props = cType.GetProperties (_bindingFlags).Where (p => IsMemberViable (p.PropertyType, set)).Select (p => p.Name);
+				var fields = cType.GetFields (_bindingFlags).Where (f => IsMemberViable (f.FieldType, set)).Select (f => f.Name);
+				var methods = cType.GetMethods (_bindingFlags).Where (m => IsMethodViable (m, set)).Select (m => m.Name);
+				foreach (var p in props.Concat (fields).Concat (methods)) {
+					menu.AddItem (new GUIContent (cName + "/" + p), false, func, new MemberFunctionParams (c, p));
+				}
+			}
+			return menu;
+		}
+
 		internal struct MemberFunctionParams {
 			public readonly Component Component;
 			public readonly string MemberName;
@@ -147,39 +130,35 @@ namespace CineGameEditor.MobileComponents {
 			}
 		}
 
+		static bool IsMemberViable (Type _type, bool set) {
+			return _type == _b || _type == _i || _type == _f || _type == _d
+				|| (set && (_type == _objType || _type == typeof(string) || (_type.IsSubclassOf (_objType) && !_type.IsSubclassOf (_eventType))));
+		}
+
+		static bool IsMethodViable (MethodInfo mi, bool set) {
+			if (mi.Name.StartsWith ("set_") || mi.Name.StartsWith ("get_"))
+				return false;
+			Type _type;
+			if (set) {
+				var _params = mi.GetParameters ();
+				if (_params.Length != 1)
+					return false;
+				_type = _params [0].ParameterType;
+			} else {
+				_type = mi.ReturnType;
+			}
+			return IsMemberViable (_type, set);
+		}
+
 		/// <summary>
 		/// Use reflection to get an array of all public properties, fields and methods which return bool, int, float or double
 		/// </summary>
-		internal static string [] GetValueMemberNames (Component c, bool set = true) {
+		internal static IEnumerable<string> GetValueMemberNames (Component c, bool set = true) {
 			var cType = c.GetType ();
-			var props = cType.GetProperties (_bindingFlags);
-			var fields = cType.GetFields (_bindingFlags);
-			var methods = cType.GetMethods (_bindingFlags);
-			var fn = new List<string> (props.Length + fields.Length + methods.Length);
-			for (int i = 0; i < props.Length; i++) {
-				var _type = props [i].PropertyType;
-				if (set || _type == _b || _type == _i || _type == _f || _type == _d) {
-					fn.Add (props [i].Name);
-				}
-			}
-			for (int i = 0; i < fields.Length; i++) {
-				var _type = fields [i].FieldType;
-				if (_type.IsSubclassOf (_eventType))
-					continue;
-				if (set || _type == _b || _type == _i || _type == _f || _type == _d) {
-					fn.Add (fields [i].Name);
-				}
-			}
-			for (int i = 0; i < methods.Length; i++) {
-				var mi = methods [i];
-				if (mi.GetParameters ().Length != 0 || mi.Name.StartsWith (set ? "set_" : "get_"))
-					continue;
-				var _type = mi.ReturnType;
-				if (set || _type == _b || _type == _i || _type == _f || _type == _d) {
-					fn.Add (mi.Name);
-				}
-			}
-			return fn.ToArray ();
+			var props = cType.GetProperties (_bindingFlags).Where (p => IsMemberViable (p.PropertyType, set)).Select (p => p.Name);
+			var fields = cType.GetFields (_bindingFlags).Where (f => IsMemberViable (f.FieldType, set)).Select (f => f.Name);
+			var methods = cType.GetMethods (_bindingFlags).Where (m => IsMethodViable (m, set)).Select (m => m.Name);
+            return props.Concat (fields).Concat (methods);
 		}
 	}
 

@@ -14,7 +14,7 @@ namespace CineGameEditor.MobileComponents {
 
 		readonly List<Component> compList = new ();
 		string [] compTypes;
-		string [] memberNames;
+		IEnumerable<string> memberNames;
         readonly GUIContent SourceMemberContent = new ("Source Property", "Property or field to get value from every Interval");
         readonly GUIContent DropdownButtonContent = new ();
 
@@ -28,6 +28,7 @@ namespace CineGameEditor.MobileComponents {
 			var funcProperty = serializedObject.FindProperty ("Function");
 			var function = (LogicComponent.CompareFunction)funcProperty.enumValueIndex;
 			var isValueFunction = (function == LogicComponent.CompareFunction.Value);
+			var srcObjProperty = serializedObject.FindProperty ("SourceObject");
 
 			var obj = serializedObject.GetIterator ();
 			if (obj.NextVisible (true)) {
@@ -37,7 +38,7 @@ namespace CineGameEditor.MobileComponents {
 						EditorGUILayout.PropertyField (obj, true);
 						if (!isValueFunction)
 							continue;
-						if (EditorGUI.EndChangeCheck () || compTypes == null) {
+						if (EditorGUI.EndChangeCheck () || compList.Count == 0) {
 							Component comp = null;
 							if (obj.objectReferenceValue is GameObject go) {
 								go.GetComponents (compList);
@@ -61,7 +62,7 @@ namespace CineGameEditor.MobileComponents {
 								DropdownButtonContent.text = "-";
 							}
 						}
-						if (compTypes != null) {
+						if (compList.Count != 0) {
 							EditorGUILayout.BeginHorizontal ();
 							EditorGUILayout.PrefixLabel (SourceMemberContent);
 							if (EditorGUILayout.DropdownButton (DropdownButtonContent, FocusType.Passive, EditorStyles.popup)) {
@@ -87,6 +88,7 @@ namespace CineGameEditor.MobileComponents {
 						&& obj.name != "SourceMemberName"
 						&& !(isValueFunction && obj.name == "Other")
 						&& !(!isValueFunction && obj.name == "Value")
+						&& !(obj.name == "Value" && (!isValueFunction || srcObjProperty.objectReferenceValue != null))
 						&& !(function != LogicComponent.CompareFunction.LineOfSight && obj.name == "LayerMask")
 					) {
 						EditorGUILayout.PropertyField (obj, true);
