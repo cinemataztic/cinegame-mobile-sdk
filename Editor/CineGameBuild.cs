@@ -716,12 +716,8 @@ namespace CineGameEditor.MobileComponents {
 				*/
 				return true;
 			} else if (IsGamecenterGame) {
-				var cameras = Resources.FindObjectsOfTypeAll<Camera> ();
-				if (cameras.Length != 1 || cameras [0].gameObject.scene != activeScene || !cameras [0].gameObject.CompareTag ("MainCamera")) {
-					Debug.LogError("Active scene must contain at least one Main Camera");
-					return false;
-				}
-				return true;
+				var hasMainCamera = Resources.FindObjectsOfTypeAll<Camera> ().Any (c => c.gameObject.scene == activeScene && c.gameObject.CompareTag ("MainCamera"));
+				return hasMainCamera;
 			}
 			return false;
 		}
