@@ -464,10 +464,14 @@ namespace CineGame.MobileComponents {
 		public static AndroidJavaObject AndroidVibrator {
 			get {
 				if (_androidVibrator == null) {
-					using (var unityPlayer = new AndroidJavaClass ("com.unity3d.player.UnityPlayer"))
-					using (var currentActivity = unityPlayer.GetStatic<AndroidJavaObject> ("currentActivity")) {
-						_androidVibrator = currentActivity.Call<AndroidJavaObject> ("getSystemService", "vibrator");
+#if UNITY_6000_0_OR_NEWER
+					_androidVibrator = UnityEngine.Android.AndroidApplication.currentActivity.Call<AndroidJavaObject> ("getSystemService", "vibrator");
+#else
+					using (var unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
+					using (var currentActivity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity")) {
+						_androidVibrator = currentActivity.Call<AndroidJavaObject>("getSystemService", "vibrator");
 					}
+#endif
 				}
 				return _androidVibrator;
 			}
