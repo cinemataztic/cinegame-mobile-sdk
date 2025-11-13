@@ -283,6 +283,8 @@ namespace CineGame.MobileComponents {
 		/// Fire appropriate event acccording to the current value instantly
 		/// </summary>
 		public void FireEvent () {
+			if (!enabled)
+				return;
 			UpdateString ();
 			int thresholdIndex = -1;
 			foreach (var threshold in Thresholds) {
