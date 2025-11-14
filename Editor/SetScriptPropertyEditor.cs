@@ -23,6 +23,10 @@ namespace CineGameEditor.MobileComponents {
 		static readonly Type _i = typeof (int);
 		static readonly Type _f = typeof (float);
 		static readonly Type _d = typeof (double);
+		static readonly Type _c = typeof (Color);
+		static readonly Type _q = typeof (Quaternion);
+		static readonly Type _v2 = typeof (Vector2);
+		static readonly Type _v3 = typeof (Vector3);
 		static readonly Type _objType = typeof (UnityEngine.Object);
 		static readonly Type _eventType = typeof (UnityEngine.Events.UnityEventBase);
 
@@ -110,14 +114,38 @@ namespace CineGameEditor.MobileComponents {
 			foreach (var c in components) {
 				var cType = c.GetType ();
 				var cName = cType.Name;
-				var props = cType.GetProperties (_bindingFlags).Where (p => IsMemberViable (p.PropertyType, set)).Select (p => p.Name);
-				var fields = cType.GetFields (_bindingFlags).Where (f => IsMemberViable (f.FieldType, set)).Select (f => f.Name);
-				var methods = cType.GetMethods (_bindingFlags).Where (m => IsMethodViable (m, set)).Select (m => m.Name);
-				foreach (var p in props.Concat (fields).Concat (methods)) {
-					menu.AddItem (new GUIContent (cName + "/" + p), false, func, new MemberFunctionParams (c, p));
+				var props = cType.GetProperties (_bindingFlags).Where (p => IsMemberViable (p.PropertyType, set));
+				var fields = cType.GetFields (_bindingFlags).Where (f => IsMemberViable (f.FieldType, set));
+				var methods = cType.GetMethods (_bindingFlags).Where (m => IsMethodViable (m, set));
+				foreach (var p in props) {
+					menu.AddItem (new GUIContent ($"{cName}/{PrettyPrint (p.PropertyType)} {p.Name}"), false, func, new MemberFunctionParams (c, p.Name));
+				}
+				foreach (var p in fields) {
+					menu.AddItem (new GUIContent ($"{cName}/{PrettyPrint (p.FieldType)} {p.Name}"), false, func, new MemberFunctionParams (c, p.Name));
+				}
+				foreach (var p in methods) {
+					menu.AddItem (new GUIContent ($"{cName}/{p.Name} ({PrettyPrint (set ? p.GetParameters ()[0].ParameterType : p.ReturnType)})"), false, func, new MemberFunctionParams (c, p.Name));
 				}
 			}
 			return menu;
+		}
+
+		static string PrettyPrint (Type t) {
+			var tString = t.ToString ();
+			tString = tString.Substring (tString.LastIndexOf ('.') + 1);
+			switch (tString) {
+			case "Boolean":
+				return "bool";
+			case "Int32":
+				return "int";
+			case "Int64":
+				return "long";
+			case "Single":
+				return "float";
+			default:
+				break;
+			}
+			return tString;
 		}
 
 		internal struct MemberFunctionParams {
@@ -132,7 +160,10 @@ namespace CineGameEditor.MobileComponents {
 
 		static bool IsMemberViable (Type _type, bool set) {
 			return _type == _b || _type == _i || _type == _f || _type == _d
-				|| (set && (_type == _objType || _type == typeof(string) || (_type.IsSubclassOf (_objType) && !_type.IsSubclassOf (_eventType))));
+				|| (set && (_type == _c || _type == _q || _type == _v2 || _type == _v3
+						|| _type == _objType || _type == typeof (string)
+						|| (_type.IsSubclassOf (_objType) && !_type.IsSubclassOf (_eventType)))
+					);
 		}
 
 		static bool IsMethodViable (MethodInfo mi, bool set) {
