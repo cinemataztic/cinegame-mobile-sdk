@@ -58,7 +58,26 @@ namespace CineGame.MobileComponents {
 			}
 		}
 
-		void OnValidate() {
+		void Reset () {
+			ShadowDistance = QualitySettings.shadowDistance;
+			ShadowResolution = QualitySettings.shadowResolution;
+
+			AntiAliasing = (AALevel)QualitySettings.antiAliasing;
+
+			AmbientMode = RenderSettings.ambientMode;
+			AmbientSkyColor = (AmbientMode == AmbientMode.Flat) ? RenderSettings.ambientLight : RenderSettings.ambientSkyColor;
+			AmbientGroundColor = RenderSettings.ambientGroundColor;
+			AmbientEquatorColor = RenderSettings.ambientEquatorColor;
+
+			SkyboxMaterial = RenderSettings.skybox;
+#if UNITY_2022_3_OR_NEWER
+			CustomReflection = RenderSettings.customReflectionTexture;
+#else
+			CustomReflection = RenderSettings.customReflection;
+#endif
+		}
+
+        void OnValidate() {
 			OnEnable ();
 		}
 	}
