@@ -3,8 +3,11 @@ using UnityEngine.Rendering;
 
 namespace CineGame.MobileComponents {
 
-	[ComponentReference ("Render and Quality settings applied in OnEnable")]
+	[ComponentReference ("Render and Quality settings applied in OnEnable. If AnimateSettings is enabled, then the animatable settings (colors, distances, intensities) are applied in each frame, so you can eg animate the fog color with SetScriptProperty or RemoteControl")]
 	public class RenderConfig : BaseComponent {
+
+		[Tooltip ("Apply colors, intensities and distances on Update?")]
+		public bool AnimateSettings;
 
 		[System.Serializable]
 		public enum AALevel {
@@ -76,6 +79,23 @@ namespace CineGame.MobileComponents {
 				RenderSettings.ambientGroundColor = AmbientGroundColor;
 				RenderSettings.ambientEquatorColor = AmbientEquatorColor;
 				break;
+			}
+		}
+
+        void Update () {
+			if (!AnimateSettings)
+				return;
+			RenderSettings.fogColor = FogColor;
+			RenderSettings.fogDensity = FogDensity;
+			RenderSettings.fogStartDistance = FogStartDistance;
+			RenderSettings.fogEndDistance = FogEndDistance;
+			RenderSettings.ambientIntensity = AmbientIntensity;
+			if (AmbientMode == AmbientMode.Trilight) {
+				RenderSettings.ambientSkyColor = AmbientSkyColor;
+				RenderSettings.ambientGroundColor = AmbientGroundColor;
+				RenderSettings.ambientEquatorColor = AmbientEquatorColor;
+			} else {
+				RenderSettings.ambientLight = AmbientSkyColor;
 			}
 		}
 
