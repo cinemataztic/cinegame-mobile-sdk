@@ -16,7 +16,23 @@ namespace CineGame.MobileComponents {
 		FieldInfo FieldInfo;
 		PropertyInfo PropertyInfo;
 		MethodInfo MethodInfo;
-		Type PropertyType;
+
+		public enum PropertyType {
+			Boolean,
+			Int32,
+			Int64,
+			Single,
+			String,
+			Vector2,
+			Vector3,
+			Color,
+			Quaternion,
+			Rect,
+			Object,
+			Transform,
+			GameObject,
+		}
+		PropertyType propertyType;
 		readonly object [] MethodParams = new object [1];
 
 		const BindingFlags _bindingFlags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly;
@@ -24,21 +40,28 @@ namespace CineGame.MobileComponents {
 		void Start () {
 			if (ScriptObject != null && !string.IsNullOrWhiteSpace (ScriptPropertyName)) {
 				var type = ScriptObject.GetType ();
+				Type pType;
 				FieldInfo = type.GetField (ScriptPropertyName, _bindingFlags);
 				if (FieldInfo != null) {
-					PropertyType = FieldInfo.FieldType;
+					pType = FieldInfo.FieldType;
 				} else {
 					PropertyInfo = type.GetProperty (ScriptPropertyName, _bindingFlags);
 					if (PropertyInfo != null) {
-						PropertyType = PropertyInfo.PropertyType;
+						pType = PropertyInfo.PropertyType;
 					} else {
 						MethodInfo = type.GetMethod (ScriptPropertyName, _bindingFlags);
 						if (MethodInfo != null) {
-							PropertyType = MethodInfo.ReturnType;
+							pType = MethodInfo.GetParameters () [0].ParameterType;
 						} else {
 							LogError ($"{type.FullName}.{ScriptPropertyName} not found!");
+							return;
 						}
 					}
+				}
+				var pTypeString = pType.ToString ();
+				pTypeString = pTypeString.Substring (pTypeString.LastIndexOf ('.') + 1);
+				if (!Enum.TryParse (pTypeString, out propertyType)) {
+					propertyType = PropertyType.Object;
 				}
 			}
 		}
@@ -56,12 +79,9 @@ namespace CineGame.MobileComponents {
 			}
 		}
 
-		/// <summary>
-        /// Set script property int value
-        /// </summary>
-		public void SetValue (int v) {
+		public void SetInt (int v) {
 #if UNITY_EDITOR
-			if (PropertyType != typeof (int)) {
+			if (propertyType != PropertyType.Int32) {
 				LogError ($"Property {ScriptPropertyName} is not an integer!");
 				return;
 			}
@@ -70,12 +90,9 @@ namespace CineGame.MobileComponents {
 			SetObjValue (v);
 		}
 
-		/// <summary>
-		/// Set script property float value
-		/// </summary>
-		public void SetValue (float v) {
+		public void SetFloat (float v) {
 #if UNITY_EDITOR
-			if (PropertyType != typeof (float)) {
+			if (propertyType != PropertyType.Single) {
 				LogError ($"Property {ScriptPropertyName} is not a float!");
 				return;
 			}
@@ -84,26 +101,9 @@ namespace CineGame.MobileComponents {
 			SetObjValue (v);
 		}
 
-		/// <summary>
-		/// Set script property bool value
-		/// </summary>
-		public void SetValue (bool v) {
+		public void SetVector2 (Vector2 v) {
 #if UNITY_EDITOR
-			if (PropertyType != typeof (bool)) {
-				LogError ($"Property {ScriptPropertyName} is not a bool!");
-				return;
-			}
-#endif
-			Log ("SetValue " + v);
-			SetObjValue (v);
-		}
-
-		/// <summary>
-		/// Set script property Vector2 value
-		/// </summary>
-		public void SetValue (Vector2 v) {
-#if UNITY_EDITOR
-			if (PropertyType != typeof (Vector2)) {
+			if (propertyType != PropertyType.Vector2) {
 				LogError ($"Property {ScriptPropertyName} is not a Vector2!");
 				return;
 			}
@@ -112,12 +112,9 @@ namespace CineGame.MobileComponents {
 			SetObjValue (v);
 		}
 
-		/// <summary>
-		/// Set script property Vector3 value
-		/// </summary>
-		public void SetValue (Vector3 v) {
+		public void SetVector3 (Vector3 v) {
 #if UNITY_EDITOR
-			if (PropertyType != typeof (Vector3)) {
+			if (propertyType != PropertyType.Vector3) {
 				LogError ($"Property {ScriptPropertyName} is not a Vector3!");
 				return;
 			}
@@ -126,26 +123,66 @@ namespace CineGame.MobileComponents {
 			SetObjValue (v);
 		}
 
-		/// <summary>
-		/// Set script property Object value
-		/// </summary>
-		public void SetValue (UnityEngine.Object v) {
+		public void SetQuaternion (Quaternion v) {
 #if UNITY_EDITOR
-			if (PropertyType != typeof (UnityEngine.Object)) {
+			if (propertyType != PropertyType.Quaternion) {
+				LogError ($"Property {ScriptPropertyName} is not a Quaternion!");
+				return;
+			}
+#endif
+			Log ("SetValue " + v);
+			SetObjValue (v);
+		}
+
+		public void SetColor (Color v) {
+#if UNITY_EDITOR
+			if (propertyType != PropertyType.Color) {
+				LogError ($"Property {ScriptPropertyName} is not a Color!");
+				return;
+			}
+#endif
+			Log ("SetValue " + v);
+				SetObjValue (v);
+		}
+
+		public void SetObject (UnityEngine.Object v) {
+#if UNITY_EDITOR
+			if (propertyType != PropertyType.Object) {
 				LogError ($"Property {ScriptPropertyName} is not an Object!");
 				return;
 			}
 #endif
 			//Convenient transformation of GameObject to Transform and vice versa
-			if (v is GameObject go && PropertyType == typeof (Transform)) {
+			if (v is GameObject go && propertyType == PropertyType.Transform) {
 				v = go.transform;
-			} else if (v is Transform t && PropertyType == typeof (GameObject)) {
+			} else if (v is Transform t && propertyType == PropertyType.GameObject) {
 				v = t.gameObject;
 			}
 			Log("SetValue " + ((v != null) ? v.name : "null"));
 			SetObjValue(v);
 		}
 
+		public void SetBool (bool v) {
+#if UNITY_EDITOR
+			if (propertyType != PropertyType.Boolean) {
+				LogError ($"Property {ScriptPropertyName} is not a bool!");
+				return;
+			}
+#endif
+			Log ("SetValue " + v);
+			SetObjValue (v);
+		}
+
+		public void SetString (string v) {
+#if UNITY_EDITOR
+			if (propertyType != PropertyType.String) {
+				LogError ($"Property {ScriptPropertyName} is not a string!");
+				return;
+			}
+#endif
+			Log ("SetValue " + v);
+			SetObjValue (v);
+		}
 	}
 
 }
