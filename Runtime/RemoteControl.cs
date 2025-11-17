@@ -1,15 +1,15 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 using Sfs2X.Entities.Data;
-using System;
 
 namespace CineGame.MobileComponents {
 
 	/// <summary>
 	/// RemoteControl enables game host to control values or invoke methods on this client.
-	/// Values can either be set or (if not void or string) can be interpolated linearly over InterpTime duration.
+	/// Values can either be set or (if not void, bool or string) can be interpolated linearly over InterpTime duration.
+    /// You can also use the interpolation feature locally.
 	/// </summary>
-	[ComponentReference ("Control unity objects and properties remotely from host. The property referenced by Key triggers the event with its value. Make sure to select the correct type (void if N/A)")]
+	[ComponentReference ("Control methods and properties remotely from host. The property referenced by Key triggers the event with its value. Make sure to select the correct type (void if N/A).\nValues can either be set or (if not void, bool or string) can be interpolated linearly over InterpTime duration.\nYou can also use the Set methods to use the interpolation feature locally.")]
 	public class RemoteControl : ReplicatedComponent {
 
 		[Tooltip ("Property from host to listen for")]
@@ -59,6 +59,83 @@ namespace CineGame.MobileComponents {
 		long cLong, startLong, destLong;
 		float cFloat, startFloat, destFloat;
 		float startTime = float.MinValue;
+
+		public void SetInt (int v) {
+			Log ("SetInt " + v);
+			if (InterpTime != 0f) {
+				destInt = v;
+				startInt = cInt;
+				startTime = Time.time;
+			} else {
+				cInt = v;
+			}
+		}
+
+		public void SetFloat (float v) {
+			Log ("SetFloat " + v);
+			if (InterpTime != 0f) {
+				destFloat = v;
+				startFloat = cFloat;
+				startTime = Time.time;
+			} else {
+				cFloat = v;
+			}
+		}
+
+		public void SetVector2 (Vector2 v) {
+			Log ("SetVector2 " + v);
+			if (InterpTime != 0f) {
+				destV2 = v;
+				startV2 = cV2;
+				startTime = Time.time;
+			} else {
+				cV2 = v;
+			}
+		}
+
+		public void SetVector3 (Vector3 v) {
+			Log ("SetVector3 " + v);
+			if (InterpTime != 0f) {
+				destV3 = v;
+				startV3 = cV3;
+				startTime = Time.time;
+			} else {
+				cV3 = v;
+			}
+		}
+
+		public void SetQuaternion (Quaternion v) {
+			Log ("SetQuaternion " + v);
+			if (InterpTime != 0f) {
+				destQuaternion = v;
+				startQuaternion = cQuaternion;
+				startTime = Time.time;
+			} else {
+				cQuaternion = v;
+			}
+		}
+
+		public void SetColor (Color v) {
+			Log ("SetColor " + v);
+			if (InterpTime != 0f) {
+				destColor = v;
+				startColor = cColor;
+				startTime = Time.time;
+			} else {
+				cColor = v;
+			}
+		}
+
+		public void SetRect (Rect v) {
+			Log ("SetRect " + v);
+			if (InterpTime != 0f) {
+				destRect = v;
+				startRect = cRect;
+				startTime = Time.time;
+			} else {
+				cRect = v;
+			}
+		}
 
 		internal override void OnObjectMessage (ISFSObject dataObj, Sfs2X.Entities.User sender) {
 			float[] floats;
@@ -189,31 +266,31 @@ namespace CineGame.MobileComponents {
 					var ct = Interpolation.Interp (Mathf.Min (t, 1f), InterpType);
 					switch (Type) {
 					case EventType.Float:
-						cFloat = Mathf.Lerp (startFloat, destFloat, ct);
+						cFloat = Mathf.LerpUnclamped (startFloat, destFloat, ct);
 						onReceiveFloat.Invoke (cFloat);
 						break;
 					case EventType.Int:
-						cInt = (int)(.5f + Mathf.Lerp (startInt, destInt, ct));
+						cInt = (int)(.5f + Mathf.LerpUnclamped (startInt, destInt, ct));
 						onReceiveInt.Invoke (cInt);
 						break;
 					case EventType.Long:
-						cLong = (long)(.5f + Mathf.Lerp (startLong, destLong, ct));
+						cLong = (long)(.5f + Mathf.LerpUnclamped (startLong, destLong, ct));
 						onReceiveLong.Invoke (cLong);
 						break;
 					case EventType.Vector2:
-						cV2 = Vector2.Lerp (startV2, destV2, ct);
+						cV2 = Vector2.LerpUnclamped (startV2, destV2, ct);
 						onReceiveVector2.Invoke (cV2);
 						break;
 					case EventType.Vector3:
-						cV3 = Vector3.Lerp (startV3, destV3, ct);
+						cV3 = Vector3.LerpUnclamped (startV3, destV3, ct);
 						onReceiveVector3.Invoke (cV3);
 						break;
 					case EventType.Color:
-						cColor = Color.Lerp (startColor, destColor, ct);
+						cColor = Color.LerpUnclamped (startColor, destColor, ct);
 						onReceiveColor.Invoke (cColor);
 						break;
 					case EventType.Quaternion:
-						cQuaternion = Quaternion.Slerp (startQuaternion, destQuaternion, ct);
+						cQuaternion = Quaternion.SlerpUnclamped (startQuaternion, destQuaternion, ct);
 						onReceiveQuaternion.Invoke (cQuaternion);
 						break;
 					case EventType.Rect:
