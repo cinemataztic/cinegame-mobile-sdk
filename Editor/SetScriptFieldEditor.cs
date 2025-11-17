@@ -9,14 +9,14 @@ using CineGame.MobileComponents;
 
 namespace CineGameEditor.MobileComponents {
 
-	[CustomEditor (typeof (SetScriptProperty))]
+	[CustomEditor (typeof (SetScriptField))]
 	[CanEditMultipleObjects]
-	public class SetScriptPropertyEditor : EditorBase {
+	public class SetScriptFieldEditor : EditorBase {
 
 		readonly List<Component> compList = new ();
 		string [] compTypes;
 		IEnumerable<string> memberNames;
-		readonly GUIContent ScriptMemberContent = new ("Script Property", "Property, field or method to set value of");
+		readonly GUIContent ScriptMemberContent = new ("Script Field", "Field to set or interp value of");
 		readonly GUIContent DropdownButtonContent = new ();
 
 		static readonly Type _b = typeof (bool);
@@ -36,6 +36,10 @@ namespace CineGameEditor.MobileComponents {
 			// Update the serializedProperty - always do this in the beginning of OnInspectorGUI.
 			serializedObject.Update ();
 			DrawReferenceButton ();
+
+			var interpTime = serializedObject.FindProperty ("InterpTime").floatValue;
+			var objReferenceValue = serializedObject.FindProperty ("ScriptObject").objectReferenceValue;
+			var memberName = serializedObject.FindProperty ("ScriptFieldName").stringValue;
 
 			var obj = serializedObject.GetIterator ();
 			if (obj.NextVisible (true)) {
@@ -57,7 +61,7 @@ namespace CineGameEditor.MobileComponents {
 							var compTypeIndex = comp != null ? Mathf.Max (0, ArrayUtility.IndexOf (compTypes, comp.GetType ().Name)) : 0;
 							memberNames = compList.Count != 0 ? GetValueMemberNames (compList.ElementAt (compTypeIndex)) : null;
 							if (memberNames != null) {
-								var fieldName = serializedObject.FindProperty ("ScriptPropertyName").stringValue;
+								var fieldName = serializedObject.FindProperty ("ScriptFieldName").stringValue;
 								if (memberNames.Contains (fieldName)) {
 									DropdownButtonContent.text = compTypes [compTypeIndex] + "." + fieldName;
 								} else {
@@ -80,7 +84,9 @@ namespace CineGameEditor.MobileComponents {
 							EditorGUILayout.EndHorizontal ();
 						}
 					} else if (obj.name != "m_Script"
-						&& obj.name != "ScriptPropertyName"
+						&& obj.name != "ScriptFieldName"
+						&& !(obj.name == "InterpType" && interpTime == 0f)
+						&& !((obj.name == "InterpTime" || obj.name == "InterpType") && (objReferenceValue == null || string.IsNullOrEmpty (memberName)))
 					) {
 						EditorGUILayout.PropertyField (obj, true);
 					}
@@ -101,7 +107,7 @@ namespace CineGameEditor.MobileComponents {
 			var uef = (MemberFunctionParams)data;
 			serializedObject.Update ();
 			serializedObject.FindProperty ("ScriptObject").objectReferenceValue = uef.Component;
-			serializedObject.FindProperty ("ScriptPropertyName").stringValue = uef.MemberName;
+			serializedObject.FindProperty ("ScriptFieldName").stringValue = uef.MemberName;
 			serializedObject.ApplyModifiedProperties ();
 			var typeName = uef.Component.GetType ().Name;
 			DropdownButtonContent.text =
@@ -114,17 +120,19 @@ namespace CineGameEditor.MobileComponents {
 			foreach (var c in components) {
 				var cType = c.GetType ();
 				var cName = cType.Name;
-				var props = cType.GetProperties (_bindingFlags).Where (p => IsMemberViable (p.PropertyType, set));
 				var fields = cType.GetFields (_bindingFlags).Where (f => IsMemberViable (f.FieldType, set));
-				var methods = cType.GetMethods (_bindingFlags).Where (m => IsMethodViable (m, set));
-				foreach (var p in props) {
-					menu.AddItem (new GUIContent ($"{cName}/{PrettyPrint (p.PropertyType)} {p.Name}"), false, func, new MemberFunctionParams (c, p.Name));
-				}
 				foreach (var p in fields) {
 					menu.AddItem (new GUIContent ($"{cName}/{PrettyPrint (p.FieldType)} {p.Name}"), false, func, new MemberFunctionParams (c, p.Name));
 				}
-				foreach (var p in methods) {
-					menu.AddItem (new GUIContent ($"{cName}/{p.Name} ({PrettyPrint (set ? p.GetParameters ()[0].ParameterType : p.ReturnType)})"), false, func, new MemberFunctionParams (c, p.Name));
+				if (!set) {
+					var props = cType.GetProperties (_bindingFlags).Where (p => IsMemberViable (p.PropertyType, set));
+					var methods = cType.GetMethods (_bindingFlags).Where (m => IsMethodViable (m, set));
+					foreach (var p in props) {
+						menu.AddItem (new GUIContent ($"{cName}/{PrettyPrint (p.PropertyType)} {p.Name}"), false, func, new MemberFunctionParams (c, p.Name));
+					}
+					foreach (var p in methods) {
+						menu.AddItem (new GUIContent ($"{cName}/{p.Name} ({PrettyPrint (set ? p.GetParameters () [0].ParameterType : p.ReturnType)})"), false, func, new MemberFunctionParams (c, p.Name));
+					}
 				}
 			}
 			return menu;
@@ -186,10 +194,13 @@ namespace CineGameEditor.MobileComponents {
 		/// </summary>
 		internal static IEnumerable<string> GetValueMemberNames (Component c, bool set = true) {
 			var cType = c.GetType ();
-			var props = cType.GetProperties (_bindingFlags).Where (p => IsMemberViable (p.PropertyType, set)).Select (p => p.Name);
 			var fields = cType.GetFields (_bindingFlags).Where (f => IsMemberViable (f.FieldType, set)).Select (f => f.Name);
-			var methods = cType.GetMethods (_bindingFlags).Where (m => IsMethodViable (m, set)).Select (m => m.Name);
-            return props.Concat (fields).Concat (methods);
+			if (!set) {
+				var props = cType.GetProperties (_bindingFlags).Where (p => IsMemberViable (p.PropertyType, set)).Select (p => p.Name);
+				var methods = cType.GetMethods (_bindingFlags).Where (m => IsMethodViable (m, set)).Select (m => m.Name);
+				return props.Concat (fields).Concat (methods);
+			}
+			return fields;
 		}
 	}
 

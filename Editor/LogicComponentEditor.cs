@@ -50,7 +50,7 @@ namespace CineGameEditor.MobileComponents {
 							}
 							compTypes = compList.Count != 0 ? compList.Select (c => c.GetType ().Name).ToArray () : null;
 							var compTypeIndex = comp != null ? Mathf.Max (0, ArrayUtility.IndexOf (compTypes, comp.GetType ().Name)) : 0;
-							memberNames = compList.Count != 0 ? SetScriptPropertyEditor.GetValueMemberNames (compList.ElementAt (compTypeIndex), set: false) : null;
+							memberNames = compList.Count != 0 ? SetScriptFieldEditor.GetValueMemberNames (compList.ElementAt (compTypeIndex), set: false) : null;
 							if (memberNames != null) {
 								var fieldName = serializedObject.FindProperty ("SourceMemberName").stringValue;
 								if (memberNames.Contains (fieldName)) {
@@ -66,7 +66,7 @@ namespace CineGameEditor.MobileComponents {
 							EditorGUILayout.BeginHorizontal ();
 							EditorGUILayout.PrefixLabel (SourceMemberContent);
 							if (EditorGUILayout.DropdownButton (DropdownButtonContent, FocusType.Passive, EditorStyles.popup)) {
-								var menu = SetScriptPropertyEditor.BuildMenu (compList, SetMemberFunction, set: false);
+								var menu = SetScriptFieldEditor.BuildMenu (compList, SetMemberFunction, set: false);
 								menu.DropDown (DropDownRect);
 							}
 							if (Event.current.type == EventType.Repaint) {
@@ -105,7 +105,7 @@ namespace CineGameEditor.MobileComponents {
         /// </summary>
         /// <param name="data"></param>
 		void SetMemberFunction (object data) {
-			var uef = (SetScriptPropertyEditor.MemberFunctionParams)data;
+			var uef = (SetScriptFieldEditor.MemberFunctionParams)data;
 			serializedObject.Update ();
 			serializedObject.FindProperty ("SourceObject").objectReferenceValue = uef.Component;
 			serializedObject.FindProperty ("SourceMemberName").stringValue = uef.MemberName;
