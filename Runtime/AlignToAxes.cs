@@ -109,9 +109,18 @@ namespace CineGame.MobileComponents {
 		}
 
 		/// <summary>
+		/// Set 'AlignObject' property
+		/// </summary>
+		public void SetAlignObject (GameObject v) {
+			AlignObject = v.transform;
+		}
+
+		/// <summary>
 		/// Align with 'AlignObject' instantly-- and move to it if specified by 'Reposition'
 		/// </summary>
 		public void Snap () {
+			if (!enabled)
+				return;
 			Log ("AlignToAxes.Snap");
 			DisablePhysicsIfPresent ();
 			transform.rotation = GetLookRotation (AlignObject.rotation);
@@ -132,6 +141,8 @@ namespace CineGame.MobileComponents {
 		/// Smoothly interpolates to align with the 'AlignObject' over the time constant specified
 		/// </summary>
 		public void Interpolate (float time) {
+			if (!enabled)
+				return;
 			StartCoroutine (E_Interp (time));
 		}
 
