@@ -46,6 +46,14 @@ namespace CineGame.MobileComponents {
 		}
 
 		/// <summary>
+		/// Set Source GameObject, from whose transform the properties will be used. Speed will be reset and calculated next frame.
+		/// </summary>
+		public void SetSource (GameObject s) {
+			Source = s.transform;
+			OnEnable ();
+		}
+
+		/// <summary>
 		/// Invoke Update events immediately with the current values of Source
 		/// </summary>
 		public void UpdateNow () {

@@ -5,7 +5,7 @@ using UnityEngine.Serialization;
 namespace CineGame.MobileComponents {
 
 	[ComponentReference ("Pass through one of a transform's children. Each interval or each time UpdateNow is called, a new child is selected. 'Mode' determines in which order.")]
-	public class GetTransformChild : BaseComponent {
+	public class GetTransformChild : BaseEventComponent {
 
 		[Tooltip ("The parent of the children. If none specified, this gameobject is used as Source")]
 		public Transform Source;
@@ -20,12 +20,20 @@ namespace CineGame.MobileComponents {
 		}
 		public SequenceMode Mode = SequenceMode.Random;
 
-		[Tooltip("Invoked with the Source's selected child")]
+		[Tooltip("Invoked with the selected child")]
 		[FormerlySerializedAs ("OnUpdate")]
-		public UnityEvent<Transform> OnSelect;
+		[FormerlySerializedAs ("OnSelect")]
+		public UnityEvent<Transform> OnSelectTransform;
 
-		[Tooltip ("Invoked with the previously selected child when a new one is selected. Eg for activating only one child at a time")]
-		public UnityEvent<Transform> OnDeselect;
+		[Tooltip ("Invoked with the selected child")]
+		public UnityEvent<GameObject> OnSelectGameObject;
+
+		[Tooltip ("Invoked with the previously selected child when a new one is selected. Eg for activating only one at a time")]
+		[FormerlySerializedAs ("OnDeselect")]
+		public UnityEvent<Transform> OnDeselectTransform;
+
+		[Tooltip ("Invoked with the previously selected child when a new one is selected. Eg for activating only one at a time")]
+		public UnityEvent<GameObject> OnDeselectGameObject;
 
 		float lastSetTime = float.MinValue;
 		int lastIndex = -1;
@@ -57,8 +65,16 @@ namespace CineGame.MobileComponents {
 		}
 
 		/// <summary>
-        /// Choose a new child now
-        /// </summary>
+		/// Set a new Source transform to get children from
+		/// </summary>
+		public void SetSource (GameObject s) {
+			Source = s.transform;
+			OnEnable ();
+		}
+
+		/// <summary>
+		/// Choose a new child now
+		/// </summary>
 		public void UpdateNow () {
 			lastSetTime = Time.time;
 			var newIndex = 0;
@@ -85,10 +101,13 @@ namespace CineGame.MobileComponents {
 			var child = Source.GetChild (newIndex);
 			Log ($"GetTransformChild.UpdateNow lastIndex={lastIndex} newIndex={newIndex} name={child.name}");
 			if (lastIndex >= 0 && lastIndex < Source.childCount) {
-				OnDeselect?.Invoke (Source.GetChild (lastIndex));
+				var lastChild = Source.GetChild (lastIndex);
+				OnDeselectTransform?.Invoke (lastChild);
+				OnDeselectGameObject?.Invoke (lastChild.gameObject);
 			}
 			lastIndex = newIndex;
-			OnSelect?.Invoke (child);
+			OnSelectTransform?.Invoke (child);
+			OnSelectGameObject?.Invoke (child.gameObject);
 		}
 
 		/// <summary>
