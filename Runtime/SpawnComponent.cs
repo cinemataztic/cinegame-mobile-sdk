@@ -9,6 +9,9 @@ namespace CineGame.MobileComponents {
 
 		public GameObject Prefab;
 
+		[Tooltip ("Use this array if you want to randomly select from a number of objects")]
+		public GameObject [] Prefabs;
+
 		[Tooltip("How many spawns (0=infinite)")]
 		public int Capacity = 0;
 
@@ -83,7 +86,7 @@ namespace CineGame.MobileComponents {
 				return null;
 			} else {
 				Log ($"SpawnAt {Prefab.name} {worldPosition} OnSpawn\n{Util.GetEventPersistentListenersInfo (OnSpawn)}");
-				Current = Instantiate (Prefab, transform);
+				Current = Instantiate (Prefabs.Length != 0 ? Prefabs [Random.Range (0, Prefabs.Length)] : Prefab, transform);
 				Current.transform.SetPositionAndRotation (worldPosition, worldRotation);
 				if (invoke)
 					OnSpawn.Invoke (Current);
@@ -123,9 +126,18 @@ namespace CineGame.MobileComponents {
 			Capacity = newCapacity;
 		}
 
+		public void SetPrefab (GameObject v) {
+			Prefabs = new GameObject [0];
+			Prefab = v;
+		}
+
+		public void SetPrefab (Transform v) {
+			SetPrefab (v.gameObject);
+		}
+
 		/// <summary>
-        /// Apply a 2D impulse to the physics object of the last spawned instance. If the object is not 2D, the impulse is aligned with the X and Y axis of this object.
-        /// </summary>
+		/// Apply a 2D impulse to the physics object of the last spawned instance. If the object is not 2D, the impulse is aligned with the X and Y axis of this object.
+		/// </summary>
 		public void Impulse (Vector2 force) {
 			if (Current.TryGetComponent<Rigidbody2D>(out var rb2d)) {
 				Log ($"SpawnComponent.Impulse 2D ({force})");
