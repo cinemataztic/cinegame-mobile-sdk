@@ -68,6 +68,19 @@ namespace CineGame.MobileComponents {
 				startTime = Time.time;
 			} else {
 				cInt = v;
+				onReceiveInt.Invoke (v);
+			}
+		}
+
+		public void SetLong (long v) {
+			Log ("SetLong " + v);
+			if (InterpTime != 0f) {
+				destLong = v;
+				startLong = cLong;
+				startTime = Time.time;
+			} else {
+				cLong = v;
+				onReceiveLong.Invoke (v);
 			}
 		}
 
@@ -79,6 +92,7 @@ namespace CineGame.MobileComponents {
 				startTime = Time.time;
 			} else {
 				cFloat = v;
+				onReceiveFloat.Invoke (v);
 			}
 		}
 
@@ -90,6 +104,7 @@ namespace CineGame.MobileComponents {
 				startTime = Time.time;
 			} else {
 				cV2 = v;
+				onReceiveVector2.Invoke (v);
 			}
 		}
 
@@ -101,6 +116,7 @@ namespace CineGame.MobileComponents {
 				startTime = Time.time;
 			} else {
 				cV3 = v;
+				onReceiveVector3.Invoke (v);
 			}
 		}
 
@@ -112,6 +128,7 @@ namespace CineGame.MobileComponents {
 				startTime = Time.time;
 			} else {
 				cQuaternion = v;
+				onReceiveQuaternion.Invoke (v);
 			}
 		}
 
@@ -123,6 +140,7 @@ namespace CineGame.MobileComponents {
 				startTime = Time.time;
 			} else {
 				cColor = v;
+				onReceiveColor.Invoke (v);
 			}
 		}
 
@@ -134,6 +152,7 @@ namespace CineGame.MobileComponents {
 				startTime = Time.time;
 			} else {
 				cRect = v;
+				onReceiveRect.Invoke (v);
 			}
 		}
 
