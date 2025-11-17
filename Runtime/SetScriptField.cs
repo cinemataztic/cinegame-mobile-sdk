@@ -5,9 +5,9 @@ using UnityEngine;
 namespace CineGame.MobileComponents {
 
 	/// <summary>
-	/// Control a script field from events. For instance, you can route the value of a LogicComponent into a field on a script-- or you can route the collider from an OnCollision event into a script's Object field.\nThe interpolation feature is a bit expensive so don't use it too much each frame, better to use an alternative if possible.
+	/// Set or interpolate a script field from events. For instance, you can route the value of a LogicComponent into a field on a script-- or you can route the colliding GameObject from an OnCollision event into a script's Object field.\nThe interpolation feature is a bit expensive so don't use it too much each and with short intervals, better to use an alternative if possible.
 	/// </summary>
-	[ComponentReference ("Control a script field from events. For instance, you can route the value of a LogicComponent into a field on a script-- or you can route the collider from an OnCollision event into a script's Object field.\nThe interpolation feature is a bit expensive so don't use it too much each frame, better to use an alternative if possible.")]
+	[ComponentReference ("Control a script field from events. For instance, you can route the value of a LogicComponent into a field on a script-- or you can route the collider from an OnCollision event into a script's Object field.\nThe interpolation feature is a bit expensive so don't use it too much and with short intervals, better to use an alternative if possible.")]
 	public class SetScriptField : BaseComponent {
 
 		public UnityEngine.Object ScriptObject;

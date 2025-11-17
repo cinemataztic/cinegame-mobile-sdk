@@ -15,7 +15,7 @@ namespace CineGame.MobileComponents {
 		[Tooltip ("If Speed > 0 then OnReachedTarget will trigger when angle is smaller than threshold. OnInterpolating will trigger when angle is bigger.")]
 		public float AngleThreshold = 2f;
 
-		[Header("How fast to interpolate. Zero = snap")]
+		[Header ("How fast to interpolate. Zero = snap")]
 		public float Speed = 0f;
 
 		[Tooltip ("Invoked when the interpolation is complete")]
@@ -24,6 +24,14 @@ namespace CineGame.MobileComponents {
 		public UnityEvent OnInterpolating;
 
 		private bool IsInterpolating;
+
+		public void SetTarget (Transform v) {
+			Target = v;
+		}
+
+		public void SetTarget (GameObject v) {
+			Target = v.transform;
+		}
 
 		void Update () {
 			var target = TargetIsMainCamera ? Camera.main.transform : Target;
