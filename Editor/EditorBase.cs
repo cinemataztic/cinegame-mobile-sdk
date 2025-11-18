@@ -243,6 +243,11 @@ namespace CineGameEditor.MobileComponents {
     public class GetTransformPropertyEditor : EventEditorBase {
     }
 
+	[CustomEditor (typeof (GetTransformChild))]
+	[CanEditMultipleObjects]
+	public class GetTransformChildEditor : EventEditorBase {
+	}
+
 	[CustomEditor (typeof (OnApplicationPlatform))]
 	[CanEditMultipleObjects]
 	public class OnApplicationPlatformEditor : EventEditorBase {

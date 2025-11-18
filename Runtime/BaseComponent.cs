@@ -8,9 +8,9 @@ namespace CineGame.MobileComponents {
 
 		private void Awake () {
 			VerboseDebug &= Debug.isDebugBuild || Util.IsDevModeActive;
-			if (VerboseDebug) {
-				Debug.Log ($"Enabled verbose debug for {gameObject.GetScenePath ()}.{GetType ().Name}", this);
-			}
+			//if (VerboseDebug) {
+			//	Debug.Log ($"Enabled verbose debug for {gameObject.GetScenePath ()}.{GetType ().Name}", this);
+			//}
 		}
 
 		protected void Log (string message) {

@@ -92,6 +92,23 @@ namespace CineGame.MobileComponents {
 			}
 		}
 
+		public void SetLong (long v) {
+#if UNITY_EDITOR
+			if (propertyType != PropertyType.Int64) {
+				LogError ($"{ScriptFieldName} is not a long!");
+				return;
+			}
+#endif
+			Log ("SetLong " + v);
+			if (InterpTime != 0f) {
+				destLong = v;
+				startLong = cLong;
+				startTime = Time.time;
+			} else {
+				SetObjValue (v);
+			}
+		}
+
 		public void SetFloat (float v) {
 #if UNITY_EDITOR
 			if (propertyType != PropertyType.Single) {

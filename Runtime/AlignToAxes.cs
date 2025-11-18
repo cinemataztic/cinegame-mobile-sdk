@@ -162,7 +162,7 @@ namespace CineGame.MobileComponents {
 		}
 
 		IEnumerator E_Interp (float time) {
-			Log ("AlignToAxes.Interpolate time={time}");
+			Log ($"AlignToAxes.Interpolate time={time}");
 			if (time > float.Epsilon) {
 				var startRotation = transform.rotation;
 				var startPosition = transform.position;
