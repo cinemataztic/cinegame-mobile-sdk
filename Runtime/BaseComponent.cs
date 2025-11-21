@@ -4,7 +4,7 @@ namespace CineGame.MobileComponents {
     public abstract class BaseComponent : MonoBehaviour, IGameComponentIcon {
 		[Tooltip ("Log events verbosely in editor and debug builds")]
 		[SerializeField]
-		private bool VerboseDebug;
+		protected bool VerboseDebug;
 
 		private void Awake () {
 			VerboseDebug &= Debug.isDebugBuild || Util.IsDevModeActive;

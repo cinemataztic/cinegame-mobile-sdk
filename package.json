@@ -1,6 +1,6 @@
 {
     "name": "com.cinegamesdk.mobile",
-    "version": "2.1.0",
+    "version": "2.2.0",
     "displayName": "CineGame Mobile SDK",
     "description": "This is the SDK for creating mobile interfaces for CineGame and CineClash",
     "unity": "2021.3",
