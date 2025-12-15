@@ -810,6 +810,18 @@ namespace CineGame.MobileComponents {
 				Debug.LogWarning ($"{ex.GetType ()} happened while storing texture in cache: {ex}");
 			}
 		}
+
+		/// <summary>
+        /// Turn all keys in a string->object dictionary to lower case
+        /// </summary>
+		public static Dictionary<string, object> LowerCaseKeys (Dictionary<string, object> dict) {
+			var _d = new Dictionary<string, object> (dict.Count);
+			var _en = dict.GetEnumerator ();
+			while (_en.MoveNext ()) {
+				_d.Add (_en.Current.Key.ToLower (), _en.Current.Value);
+			}
+			return _d;
+		}
 	}
 
 	public static class ComponentHelpers {
