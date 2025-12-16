@@ -3,7 +3,7 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace CineGame.MobileComponents {
-    [ComponentReference ("Pinch zoom, rotate and pan a child UI element inside a parent rect (crop area). On non-multitouch platforms the mouse wheel is used for zooming.\n\nWhen Crop method is invoked, it will invoke the OnCropUV event with the UV Rect of the crop area. This can be used for setting the uvRect on a RawImage.\n\nIf the OnCropTexture event has any listeners, and the content is a UI Image or RawImage, a Texture2D cropped to the same area will be created and sent to these listeners.\n\nNote that the Unlit/Texture built-in shader must be added to \"Always Included Shaders\" in Graphics Settings")]
+    [ComponentReference ("Pinch zoom, rotate and pan a child UI element inside a parent rect (crop area). On non-multitouch platforms the mouse wheel is used for zooming.\n\nWhen Crop method is invoked, it will invoke the OnCropUV event with the UV Rect of the crop area. This can be used for setting the uvRect on a RawImage.\n\nIf the OnCropTexture event has any listeners, and the content is a UI Image or RawImage, a Texture2D cropped to the same area will be created and sent to these listeners.")]
     public class PinchZoomAndPan : BaseComponent {
         [SerializeField] RectTransform content;
         [Tooltip ("Maximum zoom factor")]
@@ -26,7 +26,7 @@ namespace CineGame.MobileComponents {
         Camera cam;
 
         Mesh quadMesh;
-        Material blitMaterial;
+        static Material blitMaterial;
         readonly float minZoom = .1f;
         Vector3 maxZoomVector;
 
@@ -37,11 +37,19 @@ namespace CineGame.MobileComponents {
 
         void Start () {
             maxZoomVector = new Vector3 (_maxZoom, _maxZoom, 1f);
-            var unlitShader = Shader.Find ("Unlit/Texture");
-            if (unlitShader == null) {
-                LogError ("Unlit/Texture shader not found. Cropping to texture will not work.");
+            if (blitMaterial == null) {
+                var unlitShader = Shader.Find ("Sprites/Default");
+                if (unlitShader == null) {
+                    Log ("Sprites/Default shader not found, trying Unlit/Texture ...");
+                    unlitShader = Shader.Find ("Unlit/Texture");
+                }
+                if (unlitShader == null) {
+                    LogError ("Suitable shader not found. Cropping to texture will not work.");
+                }
+                blitMaterial = new Material (unlitShader) {
+                    color = Color.white
+                };
             }
-            blitMaterial = new Material (unlitShader);
             quadMesh = new Mesh {
                 vertices = new Vector3 [] {
                     new Vector3(-0.5f, -0.5f, 0),
