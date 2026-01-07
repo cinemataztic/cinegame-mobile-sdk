@@ -25,7 +25,18 @@ namespace CineGame.MobileComponents {
         [Tooltip ("Uservariable (bool) whether user is typing (has mobile input open)")]
         public string VariableNameTyping = "";
 
+        /// <summary>
+		/// Callback when textinput is opened/activated
+		/// </summary>
         public static Action<TextInputComponent> OnOpen;
+
+        /// <summary>
+		/// Callback to validate text input. Eg moderation/filtering
+		/// </summary>
+        public static Action<string, Action<bool>> ValidateText;
+
+        public static float ValidationCooldownSecs = 1f;
+        string ValidationText;
 
         public void Open () {
             if (!string.IsNullOrEmpty (VariableNameTyping)) {
@@ -45,7 +56,25 @@ namespace CineGame.MobileComponents {
         }
 
         public void OnTextEntered (string text) {
-            SendHostMessage (string.Format ("{0} {1}", TextMessage, text));
+            if (ValidateText == null) {
+                Log ("WARNING: ValidateText callback not set, sending unfiltered message: " + text);
+                SendHostMessage ($"{TextMessage} text");
+            } else {
+                ValidationText = text;
+                CancelInvoke (nameof (RunValidation));
+                Invoke (nameof (RunValidation), ValidationCooldownSecs);
+            }
+        }
+
+        void RunValidation () {
+            var text = ValidationText;
+            ValidateText.Invoke (text, (isValid) => {
+                if (!isValid) {
+                    Log ("Input text did not validate, sending empty message");
+                    text = string.Empty;
+                }
+                SendHostMessage ($"{TextMessage} {text}");
+            });
         }
 
         public void OnGiphySelected (string giphyId) {
