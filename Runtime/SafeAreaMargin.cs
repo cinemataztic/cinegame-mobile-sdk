@@ -23,7 +23,7 @@ namespace CineGame.MobileComponents {
         [Tooltip ("Invoked if the screen has a safe-area smaller than fullscreen (eg phone display with notches and/or navigation bar)")]
         public UnityEvent OnAdjusted;
 
-        void Awake () {
+        void Start () {
             var safeArea = Screen.safeArea;
 #if UNITY_EDITOR
             //Simulate iPhone 12 Pro safeArea (portrait values taken from actual device)
