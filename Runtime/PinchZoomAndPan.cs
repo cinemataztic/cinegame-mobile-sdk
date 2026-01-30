@@ -5,6 +5,7 @@ using UnityEngine.UI;
 namespace CineGame.MobileComponents {
     [ComponentReference ("Pinch zoom, rotate and pan a child UI element inside a parent rect (crop area). On non-multitouch platforms the mouse wheel is used for zooming.\n\nWhen Crop method is invoked, it will invoke the OnCropUV event with the UV Rect of the crop area. This can be used for setting the uvRect on a RawImage.\n\nIf the OnCropTexture event has any listeners, and the content is a UI Image or RawImage, a Texture2D cropped to the same area will be created and sent to these listeners.")]
     public class PinchZoomAndPan : BaseComponent {
+        [HideInInspector][SerializeField] Shader CropShader;
         [SerializeField] RectTransform content;
         [Tooltip ("Maximum zoom factor")]
         [SerializeField] float _maxZoom = 4f;
@@ -25,8 +26,7 @@ namespace CineGame.MobileComponents {
         RectTransform parentRT;
         Camera cam;
 
-        Mesh quadMesh;
-        static Material blitMaterial;
+        Material blitMaterial;
         readonly float minZoom = .1f;
         Vector3 maxZoomVector;
 
@@ -35,42 +35,17 @@ namespace CineGame.MobileComponents {
         /// </summary>
         readonly TextureFormat textureFormat = TextureFormat.RGB24;
 
+#if UNITY_EDITOR
+        void OnValidate () {
+            CropShader = Shader.Find ("Hidden/UnlitCrop");
+        }
+#endif
+
         void Start () {
             maxZoomVector = new Vector3 (_maxZoom, _maxZoom, 1f);
-            if (blitMaterial == null) {
-                var unlitShader = Shader.Find ("Sprites/Default");
-                if (unlitShader == null) {
-                    Log ("Sprites/Default shader not found, trying Unlit/Texture ...");
-                    unlitShader = Shader.Find ("Unlit/Texture");
-                }
-                if (unlitShader == null) {
-                    LogError ("Suitable shader not found. Cropping to texture will not work.");
-                }
-                blitMaterial = new Material (unlitShader) {
-                    color = Color.white
-                };
-            }
-            quadMesh = new Mesh {
-                vertices = new Vector3 [] {
-                    new Vector3(-0.5f, -0.5f, 0),
-                    new Vector3( 0.5f, -0.5f, 0),
-                    new Vector3( 0.5f,  0.5f, 0),
-                    new Vector3(-0.5f,  0.5f, 0),
-                },
-
-                uv = new Vector2 [] {
-                    new Vector2(0, 0),
-                    new Vector2(1, 0),
-                    new Vector2(1, 1),
-                    new Vector2(0, 1),
-                },
-
-                triangles = new int [] {
-                    0, 2, 1,
-                    0, 3, 2,
-                }
+            blitMaterial = new Material (CropShader) {
+                color = Color.white
             };
-            quadMesh.RecalculateNormals ();
         }
 
         void OnEnable () {
@@ -113,6 +88,24 @@ namespace CineGame.MobileComponents {
             var pos1 = Input.mousePosition;
             var pos2 = pos1;
             var tc = 0;
+#if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
+            MacTrackpad.Poll ();
+            if (MacTrackpad.deviceCount != 0) {
+                var dev = MacTrackpad.devices [0];
+                tc = dev.touchCount;
+                if (tc != 0) {
+                    pos1 = dev.touches [0].position;
+                    pos1.x *= Screen.width;
+                    pos1.y *= Screen.height;
+                    pos2 = pos1;
+                    if (tc > 1) {
+                        pos2 = dev.touches [1].position;
+                        pos2.x *= Screen.width;
+                        pos2.y *= Screen.height;
+                    }
+                }
+            }
+#endif
             if (tc == 0) {
                 if (!Input.GetMouseButton (0)) {
                     lastTc = 0;
@@ -162,7 +155,7 @@ namespace CineGame.MobileComponents {
         /// <summary>
         /// Check if parent bounds are within the content rect
         /// </summary>
-        void CheckBounds () {
+        public void CheckBounds () {
             var contentRect = content.rect;
             var bounds = CalculateRelativeRectTransformBounds (content, parentRT);
 
@@ -244,8 +237,6 @@ namespace CineGame.MobileComponents {
             if (OnCropTexture.GetPersistentEventCount () == 0)
                 return;
 
-            uvRect = new Rect (0f, 0f, 1f, 1f);
-
             Texture2D texture = null;
             var ri = content.GetComponentInChildren<RawImage> ();
             if (ri != null) {
@@ -254,22 +245,13 @@ namespace CineGame.MobileComponents {
                 var i = content.GetComponentInChildren<Image> ();
                 if (i != null) {
                     texture = i.sprite.texture;
-                    if (texture != null) {
-                        uvRect = i.sprite.textureRect;
-                        uvRect.min += i.sprite.textureRectOffset;
-                        //Log ("sprite rect " + uvRect);
-                        uvRect = new Rect (uvRect.x / texture.width, uvRect.y / texture.height, uvRect.width / texture.width, uvRect.height / texture.height);
-                    }
                 }
             }
             if (texture == null) {
                 LogError ("No texture to crop!");
                 return;
             }
-            //Log ("uvRect " + uvRect);
             blitMaterial.mainTexture = texture;
-            //blitMaterial.mainTextureScale = uvRect.size;
-            //blitMaterial.mainTextureOffset = uvRect.min;
 
             var parentSize = parentRT.rect.size;
             var mipmap = texture.mipmapCount > 1;
@@ -294,33 +276,45 @@ namespace CineGame.MobileComponents {
                 return;
             }
 
+            Vector3 [] corners = new Vector3 [4];
+            parentRT.GetWorldCorners (corners);
+            // corners[0] = Bottom Left
+            // corners[1] = Top Left
+            // corners[2] = Top Right
+            // corners[3] = Bottom Right
+
+            // Convert World corners to Content's Local Space
+            Vector3 bl_Local = content.InverseTransformPoint (corners [0]);
+            Vector3 tl_Local = content.InverseTransformPoint (corners [1]);
+            Vector3 br_Local = content.InverseTransformPoint (corners [3]);
+
+            // Convert Local Space pixels to Normalized UV coords (0 to 1)
+            Vector2 bl_UV = LocalPointToUV (bl_Local, content.rect);
+            Vector2 tl_UV = LocalPointToUV (tl_Local, content.rect);
+            Vector2 br_UV = LocalPointToUV (br_Local, content.rect);
+
+            // Build the Basis Vectors
+            // The shader expects a matrix that transforms the Quad's (0,0) to BL_UV
+            // and (1,0) to BR_UV, etc.
+            Vector2 origin = bl_UV;
+            Vector2 xAxis = br_UV - bl_UV;
+            Vector2 yAxis = tl_UV - bl_UV;
+
+            // Construct the Matrix
+            // Col 0: X Axis, Col 1: Y Axis, Col 3: Origin translation
+            var uvMatrix = Matrix4x4.identity;
+            uvMatrix.m00 = xAxis.x; uvMatrix.m01 = yAxis.x; uvMatrix.m03 = origin.x;
+            uvMatrix.m10 = xAxis.y; uvMatrix.m11 = yAxis.y; uvMatrix.m13 = origin.y;
+
+            blitMaterial.SetMatrix ("_UVMatrix",uvMatrix);
+
             var prevRenderTexture = RenderTexture.active;
             RenderTexture.active = tmpRenderTexture;
 
-            GL.PushMatrix ();
-            var proj = Matrix4x4.Ortho (0, 1, 0, 1, -1, 1);
+            GL.Clear (true, true, Color.clear);
 
-            // apply scaling around center (0.5, 0.5)
-            var scaleM = Matrix4x4.TRS (
-                new Vector3 (0.5f, 0.5f, 0),
-                Quaternion.identity,
-                new Vector3 (1f / parentSize.x, 1f / parentSize.y, 1)
-            );
-            GL.LoadProjectionMatrix (proj * scaleM);
-
-            var scale = new Vector3 (content.rect.size.x * content.localScale.x, content.rect.size.y * content.localScale.y);
-
-            var toLocal = parentRT.worldToLocalMatrix;
-            content.GetWorldCorners (s_Corners);
-            var v1 = toLocal.MultiplyPoint3x4 (s_Corners [0]);
-            var v2 = toLocal.MultiplyPoint3x4 (s_Corners [2]);
-            var pos = new Vector3 ((v1.x + v2.x) * .5f, (v1.y + v2.y) * .5f);
-
-            var matrix = Matrix4x4.TRS (pos, content.localRotation, scale);
             blitMaterial.SetPass (0);
-            Graphics.DrawMeshNow (quadMesh, matrix);
-
-            GL.PopMatrix ();
+            Graphics.Blit (texture, tmpRenderTexture, blitMaterial);
 
             // Copy the pixels to the cropped texture
             croppedTexture.ReadPixels (new Rect (0, 0, _w, _h), 0, 0);
@@ -332,6 +326,12 @@ namespace CineGame.MobileComponents {
 
             Log ($"Created cropped Texture2D width={croppedTexture.width} height={croppedTexture.height}");
             OnCropTexture.Invoke (croppedTexture);
+        }
+
+        Vector2 LocalPointToUV (Vector3 localPoint, Rect contentRect) {
+            float u = (localPoint.x - contentRect.x) / contentRect.width;
+            float v = (localPoint.y - contentRect.y) / contentRect.height;
+            return new Vector2 (u, v);
         }
     }
 }
