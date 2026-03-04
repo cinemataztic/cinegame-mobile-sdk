@@ -163,13 +163,13 @@ namespace CineGameEditor.MobileComponents {
     /// <summary>
     /// Our own base editor for all our components. 
     /// </summary>
-    public class EditorBase : Editor {
+    public class EditorBase : AranciaAssets.EditorTools.AranciaBehaviourEditor {
 		private string ReferenceText;
 		private bool ReferenceVisible;
 		private GUIContent ReferenceIcon;
 		private GUIStyle ReferenceButtonStyle;
 
-		protected virtual void OnEnable () {
+		protected override void OnEnable () {
 			var customAttributes = (ComponentReferenceAttribute [])target.GetType ().GetCustomAttributes (typeof (ComponentReferenceAttribute), true);
 			if (customAttributes.Length > 0) {
 				var myAttribute = customAttributes [0];
@@ -178,6 +178,7 @@ namespace CineGameEditor.MobileComponents {
 					tooltip = ReferenceText
 				};
 			}
+			base.OnEnable ();
 		}
 
 		protected void DrawReferenceButton () {
@@ -214,6 +215,7 @@ namespace CineGameEditor.MobileComponents {
 		public override void OnInspectorGUI () {
 			serializedObject.Update ();
 
+			DrawComment ();
 			DrawReferenceButton ();
 
 			//var instanceID = serializedObject.targetObject.GetInstanceID ();

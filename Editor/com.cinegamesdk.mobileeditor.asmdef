@@ -4,7 +4,9 @@
     "references": [
         "com.cinegamesdk.mobile",
         "Unity.TextMeshPro",
-        "Unity.EditorCoroutines.Editor"
+        "Unity.EditorCoroutines.Editor",
+        "com.aranciaassets.runtime",
+        "com.aranciaassets.editor"
     ],
     "includePlatforms": [
         "Editor"

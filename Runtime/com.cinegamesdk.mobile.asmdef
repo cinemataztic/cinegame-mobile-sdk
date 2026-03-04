@@ -2,7 +2,8 @@
     "name": "com.cinegamesdk.mobile",
     "references": [
         "Unity.TextMeshPro",
-        "com.smartfoxserver.csharpclient"
+        "com.smartfoxserver.csharpclient",
+        "com.aranciaassets.runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

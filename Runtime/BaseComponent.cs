@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
+using AranciaAssets.EditorTools;
 
 namespace CineGame.MobileComponents {
-    public abstract class BaseComponent : MonoBehaviour, IGameComponentIcon {
+    public abstract class BaseComponent : AranciaBehaviour, IGameComponentIcon {
 		[Tooltip ("Log events verbosely in editor and debug builds")]
 		[SerializeField]
 		protected bool VerboseDebug;
