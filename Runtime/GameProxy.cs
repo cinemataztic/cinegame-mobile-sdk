@@ -31,7 +31,7 @@ namespace CineGame.MobileComponents {
 		[Tooltip ("Only for testing in editor!")]
 		public string GameServer = "sfs-fin-1.cinemataztic.com";
 		[Tooltip ("Only for testing in editor!")]
-		public string GameCode = "1234";
+		public string GameCode;
 		[Tooltip ("Only for testing in editor!")]
 		public string GameZone;
 
@@ -69,45 +69,46 @@ namespace CineGame.MobileComponents {
 					var sfc = SmartfoxClient.Instance = go.AddComponent<SmartfoxClient> ();
 					sfc.InitEvents ();
 				}
-
-				var zone = GameZone;
-				if (string.IsNullOrWhiteSpace (zone)) {
-					var _regions = Util.Markets.Select (m => m.Key).ToArray ();
-					var marketIndex = UnityEditor.EditorPrefs.GetInt ("AssetMarketIndex", 0);
-					zone = marketSfsZones [_regions [marketIndex]];
-				}
-
-				SmartfoxClient.Connect (GameServer, GameZone, (success) => {
-					if (success) {
-						SmartfoxClient.Login (string.Empty, (error) => {
-							if (string.IsNullOrEmpty (error)) {
-								SmartfoxClient.JoinRoom (GameCode, false, (room, isRoomFull) => {
-									if (room != null) {
-										var roomGameType = room.GetVariable ("GameType").GetStringValue ();
-										if (roomGameType != GameType) {
-											Debug.LogError ($"{roomGameType} does not match GameProxy.GameType={GameType}");
-										} else {
-											Debug.Log ($"GameProxy: Game room {room.Name} joined succesfully");
-										}
-										SmartfoxClient.Send ("bkid", 0);
-										SmartfoxClient.Send ("name", "UnityEditor");
-										SmartfoxClient.Send ("age", 21);
-										SmartfoxClient.Send ("gender", "N/A");
-										SmartfoxClient.Send ("avatar", "ct_ghost");
-
-										InitScreens ();
-									} else {
-										Debug.LogError ($"Could not join room {GameCode} - isRoomFull={isRoomFull}");
-									}
-								});
-							} else {
-								Debug.LogError ("Error while logging in to smartfox server: " + error);
-							}
-						});
-					} else {
-						Debug.LogError ("Could not connect to smartfox server");
+				if (!SmartfoxClient.IsConnected) {
+					var zone = GameZone;
+					if (string.IsNullOrWhiteSpace (zone)) {
+						var _regions = Util.Markets.Select (m => m.Key).ToArray ();
+						var marketIndex = UnityEditor.EditorPrefs.GetInt ("AssetMarketIndex", 0);
+						zone = marketSfsZones [_regions [marketIndex]];
 					}
-				});
+
+					SmartfoxClient.Connect (GameServer, GameZone, (success) => {
+						if (success) {
+							SmartfoxClient.Login (string.Empty, (error) => {
+								if (string.IsNullOrEmpty (error)) {
+									SmartfoxClient.JoinRoom (GameCode, false, (room, isRoomFull) => {
+										if (room != null) {
+											var roomGameType = room.GetVariable ("GameType").GetStringValue ();
+											if (roomGameType != GameType) {
+												Debug.LogError ($"{roomGameType} does not match GameProxy.GameType={GameType}");
+											} else {
+												Debug.Log ($"GameProxy: Game room {room.Name} joined succesfully");
+											}
+											SmartfoxClient.Send ("bkid", 0);
+											SmartfoxClient.Send ("name", "UnityEditor");
+											SmartfoxClient.Send ("age", 21);
+											SmartfoxClient.Send ("gender", "N/A");
+											SmartfoxClient.Send ("avatar", "ct_ghost");
+
+											InitScreens ();
+										} else {
+											Debug.LogError ($"Could not join room {GameCode} - isRoomFull={isRoomFull}");
+										}
+									});
+								} else {
+									Debug.LogError ("Error while logging in to smartfox server: " + error);
+								}
+							});
+						} else {
+							Debug.LogError ("Could not connect to smartfox server");
+						}
+					});
+				}
 			}
 		}
 
