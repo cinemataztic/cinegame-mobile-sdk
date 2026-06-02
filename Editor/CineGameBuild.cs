@@ -464,7 +464,7 @@ namespace CineGameEditor.MobileComponents {
 
 			StayLoggedIn = EditorPrefs.GetBool ("CineGameStayLoggedIn");
 
-			if (CGSP () && Application.internetReachability != NetworkReachability.NotReachable) {
+			if (CGSP () && Application.internetReachability != NetworkReachability.NotReachable && !EditorApplication.isPlayingOrWillChangePlaymode) {
 				GetAccessToken (out AccessToken);
 				OnHierarchyChange ();
 			}
@@ -855,7 +855,7 @@ namespace CineGameEditor.MobileComponents {
 						  );
 			request.uploadHandler.contentType = "application/json; charset=utf-8";
 			request.SendWebRequest ();
-			while (!request.isDone) {
+			while (!request.isDone && !EditorApplication.isPlayingOrWillChangePlaymode) {
 				System.Threading.Thread.Sleep (100);
 			}
 			if (request.result == UnityWebRequest.Result.ProtocolError) {
