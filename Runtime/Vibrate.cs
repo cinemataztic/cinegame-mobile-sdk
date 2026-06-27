@@ -141,7 +141,10 @@ namespace CineGame.MobileComponents {
 			RepeatInterval = Mathf.Max (RepeatInterval, 0f);
 #if UNITY_EDITOR
 			if (iOSHapticFile != null) {
-				JObject.Parse (iOSHapticFile.text);
+				var ahapObj = JObject.Parse (iOSHapticFile.text);
+				if (!ahapObj.ContainsKey ("Pattern")) {
+					Debug.LogError ($"iOS Haptic file {iOSHapticFile.name} does not contain a definition for 'Pattern'", gameObject);
+				}
 			}
 
 			if (AndroidHapticFile != null) {

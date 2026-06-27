@@ -11,6 +11,7 @@ using UnityEngine.Networking;
 using System.Linq;
 using System.Collections;
 using System.Net;
+using Newtonsoft.Json.Linq;
 
 namespace CineGame.MobileComponents {
 
@@ -646,45 +647,17 @@ namespace CineGame.MobileComponents {
 			if (AndroidHapticCompositions.TryGetValue (hash, out AndroidJavaObject vibrationEffect)) {
 				return vibrationEffect;
 			}
-
-			using var sr = new StringReader (pattern);
-			string line = string.Empty;
-			var lineNum = 0;
-
 			try {
-				List<long> timings = new List<long> (16);
-				List<int> amplitudes = new List<int> (16);
-				while ((line = sr.ReadLine ()) != null) {
-					lineNum++;
-					if (line.Trim () == "\"timings\" : [")
-						break;
-				}
-				while ((line = sr.ReadLine ()) != null) {
-					lineNum++;
-					line = line.Trim (AndroidHapticTrimChars);
-					if (line == "]")
-						break;
-					timings.Add (long.Parse (line));
-				}
-				while ((line = sr.ReadLine ()) != null) {
-					lineNum++;
-					if (line.Trim () == "\"amplitudes\" : [")
-						break;
-				}
-				while ((line = sr.ReadLine ()) != null) {
-					lineNum++;
-					line = line.Trim (AndroidHapticTrimChars);
-					if (line == "]")
-						break;
-					amplitudes.Add (int.Parse (line));
-				}
+                var obj = JObject.Parse (pattern);
+                var timings = obj ["timings"].Select (t => t.ToObject<long> ()).ToArray ();
+				var amplitudes = obj ["amplitudes"].Select (t => t.ToObject<int> ()).ToArray ();
 				if (Application.isEditor)
 					return null;
-				vibrationEffect = AndroidVibrationEffect.CallStatic<AndroidJavaObject> ("createWaveform", timings.ToArray (), amplitudes.ToArray (), -1);
+				vibrationEffect = AndroidVibrationEffect.CallStatic<AndroidJavaObject> ("createWaveform", timings, amplitudes, -1);
 				AndroidHapticCompositions [hash] = vibrationEffect;
 				return vibrationEffect;
 			} catch (Exception ex) {
-				Debug.LogError ($"Exception while parsing Android haptic JSON file {filename} line {lineNum}: {line} => {ex}");
+				Debug.LogError ($"Exception while parsing Android haptic JSON {filename}: {ex}");
 				return null;
 			}
 		}
