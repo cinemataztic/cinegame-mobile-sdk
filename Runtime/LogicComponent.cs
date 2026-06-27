@@ -21,6 +21,7 @@ namespace CineGame.MobileComponents {
 			FrontBack,
 			LineOfSight,
 			Angle,
+			Random,
 		}
 
 		public CompareFunction Function = CompareFunction.Value;
@@ -300,11 +301,15 @@ namespace CineGame.MobileComponents {
 			if (!Continuous && thresholdIndex == CurrentThresholdIndex)
 				return;
 			if (thresholdIndex == -1) {
-				Log ($"LogicComponent.OnBelow Value={Value}\n{Util.GetEventPersistentListenersInfo (OnBelow)}");
+				if (VerboseDebug) {
+					Log ($"LogicComponent.OnBelow Value={Value}\n{Util.GetEventPersistentListenersInfo (OnBelow)}");
+				}
 				//DrawListenersLines (OnBelow, Color.yellow);
 				OnBelow.Invoke (Value);
 			} else {
-				Log ($"LogicComponent.Thresholds [{thresholdIndex}].OnAbove Value={Value}\n{Util.GetEventPersistentListenersInfo (Thresholds [thresholdIndex].OnAbove)}");
+				if (VerboseDebug) {
+					Log ($"LogicComponent.Thresholds [{thresholdIndex}].OnAbove Value={Value}\n{Util.GetEventPersistentListenersInfo (Thresholds [thresholdIndex].OnAbove)}");
+				}
                 //DrawListenersLines (Thresholds [thresholdIndex].OnAbove, Color.yellow);
                 Thresholds [thresholdIndex].OnAbove.Invoke (Value);
 			}
@@ -355,6 +360,7 @@ namespace CineGame.MobileComponents {
 				if (!isValueDynamic)
 					return;
 				object _v;
+#pragma warning disable UNT0018
 				if (SourceFieldInfo != null) {
 					_v = SourceFieldInfo.GetValue (SourceObject);
 				} else if (SourcePropertyInfo != null) {
@@ -362,6 +368,7 @@ namespace CineGame.MobileComponents {
 				} else {
 					_v = SourceMethodInfo.Invoke (SourceObject, SourceMethodParams);
 				}
+#pragma warning restore
 				Value = Convert.ToSingle (_v);
 				FireEvent ();
 			} else if (Other != null) {
@@ -383,6 +390,9 @@ namespace CineGame.MobileComponents {
 					break;
 				case CompareFunction.Angle:
 					Value = Vector3.Angle (sourceTransform.forward, Other.forward);
+					break;
+				case CompareFunction.Random:
+					Value = UnityEngine.Random.Range (0f, 1f);
 					break;
 				}
 				FireEvent ();
