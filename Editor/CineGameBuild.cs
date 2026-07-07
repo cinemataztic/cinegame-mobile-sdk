@@ -1146,6 +1146,7 @@ namespace CineGameEditor.MobileComponents {
 			{ "AngularPointerComponent.cs", "7814844a3c70f4ceb88a8b90fd1833f2" },
 			{ "AnimationEventListener.cs", "13d77d1e33ee27f428f0d7175a2076b2" },
 			{ "AnimatorParameter.cs", "40fd1fe7494a34ddba76ed6c1897cd53" },
+			{ "AppleHapticPattern.cs", "02784401418fa43898b4b4a7a0d8bfab" },
 			{ "AssetLoader.cs", "4ed6f7a1dd7ea423b9a061ff51a46565" },
 			{ "BroadcastMessage.cs", "7142418b7bd0f4de1b62fc28fbcc4c78" },
 			{ "BlobShadowComponent.cs", "903cecd01735e4d869022b0897b9bfd9" },

@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Serialization;
 ﻿using Sfs2X.Entities.Data;
 using System.Collections;
 using Newtonsoft.Json.Linq;
@@ -8,11 +9,9 @@ namespace CineGame.MobileComponents {
 	[ComponentReference ("Play haptic feedback and vibration effects when enabled or when invoked via the Play methods. You can trigger the effect from host or send haptic patterns")]
 	public class Vibrate : ReplicatedComponent {
 
-		[Tooltip ("Exported Android JSON file from HapticSync")]
-		public TextAsset AndroidHapticFile;
-
 		[Tooltip ("Standard AHAP file")]
-		public TextAsset iOSHapticFile;
+		[FormerlySerializedAs ("iOSHapticFile")]
+		public HapticPatternAsset HapticFile;
 
 		[Tooltip ("Autoplay when gameobject is enabled")]
 		public bool PlayOnEnable = true;
@@ -57,7 +56,7 @@ namespace CineGame.MobileComponents {
 		/// <param name="milliseconds">Milliseconds (only valid on Android).</param>
 		public void PlayVibration (int milliseconds) {
 			Log ("Vibrate.PlayVibration " + milliseconds);
-			Util.Vibrate ((long)milliseconds);
+			Util.Vibrate (milliseconds);
 		}
 
 		/// <summary>
@@ -88,10 +87,10 @@ namespace CineGame.MobileComponents {
 		/// <summary>
 		/// Play a haptic pattern effect. The file format depends on the platform (iOS = AHAP file, Android = custom file in the format {PRIMITIVE_ID},{intensity},{delay in msec}
 		/// </summary>
-		public void PlayHapticPattern (TextAsset textAsset) {
-			Log ("Vibrate.PlayHapticPattern " + textAsset.name);
+		public void PlayHapticPattern (HapticPatternAsset hapticPatternAsset) {
+			Log ("Vibrate.PlayHapticPattern " + hapticPatternAsset.name);
 			StopAllCoroutines ();
-			StartCoroutine (E_Play (textAsset.text));
+			StartCoroutine (E_Play (hapticPatternAsset.AhapJson));
 		}
 
 		IEnumerator E_Play (string pattern = null) {
@@ -110,10 +109,8 @@ namespace CineGame.MobileComponents {
 		/// Play the referenced platform-dependent haptic file
 		/// </summary>
 		public void Play () {
-			if (Application.platform == RuntimePlatform.Android && AndroidHapticFile != null) {
-				PlayHapticPattern (AndroidHapticFile);
-			} else if (Application.platform == RuntimePlatform.IPhonePlayer && iOSHapticFile != null) {
-				PlayHapticPattern (iOSHapticFile);
+			if (HapticFile != null) {
+				PlayHapticPattern (HapticFile);
 			} else {
 				StopAllCoroutines ();
 				StartCoroutine (E_Play ());
@@ -140,15 +137,8 @@ namespace CineGame.MobileComponents {
 			RepeatCount = Mathf.Max (RepeatCount, 1);
 			RepeatInterval = Mathf.Max (RepeatInterval, 0f);
 #if UNITY_EDITOR
-			if (iOSHapticFile != null) {
-				var ahapObj = JObject.Parse (iOSHapticFile.text);
-				if (!ahapObj.ContainsKey ("Pattern")) {
-					Debug.LogError ($"iOS Haptic file {iOSHapticFile.name} does not contain a definition for 'Pattern'", gameObject);
-				}
-			}
-
-			if (AndroidHapticFile != null) {
-				Util.CreateAndroidHapticEffect (AndroidHapticFile.text, AndroidHapticFile.name);
+			if (HapticFile != null) {
+                Util.CreateAndroidHapticEffect (HapticFile.AhapJson, HapticFile.name);
 			}
 #endif
 		}
