@@ -28,12 +28,15 @@ namespace CineGameEditor.MobileComponents {
 			var funcProperty = serializedObject.FindProperty ("Function");
 			var function = (LogicComponent.CompareFunction)funcProperty.enumValueIndex;
 			var isValueFunction = (function == LogicComponent.CompareFunction.Value);
+			var isRandomFunction = (function == LogicComponent.CompareFunction.Random);
 			var srcObjProperty = serializedObject.FindProperty ("SourceObject");
 
 			var obj = serializedObject.GetIterator ();
 			if (obj.NextVisible (true)) {
 				do {
 					if (obj.name == "SourceObject") {
+						if (isRandomFunction)
+							continue;
 						EditorGUI.BeginChangeCheck ();
 						EditorGUILayout.PropertyField (obj, true);
 						if (!isValueFunction)
@@ -86,7 +89,7 @@ namespace CineGameEditor.MobileComponents {
 						EditorGUILayout.PropertyField (obj, true);
 					} else if (obj.name != "m_Script"
 						&& obj.name != "SourceMemberName"
-						&& !(isValueFunction && obj.name == "Other")
+						&& !((isRandomFunction || isValueFunction) && obj.name == "Other")
 						&& !(!isValueFunction && obj.name == "Value")
 						&& !(obj.name == "Value" && (!isValueFunction || srcObjProperty.objectReferenceValue != null))
 						&& !(function != LogicComponent.CompareFunction.LineOfSight && obj.name == "LayerMask")
