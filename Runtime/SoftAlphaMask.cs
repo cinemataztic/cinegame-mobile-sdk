@@ -42,6 +42,9 @@ namespace CineGame.MobileComponents {
 #endif
 
         void OnEnable () {
+#if UNITY_EDITOR
+            OnValidate ();
+#endif
             OnTransformChildrenChanged ();
         }
 
@@ -69,16 +72,13 @@ namespace CineGame.MobileComponents {
                 var isEnabled = graphic.enabled;
                 graphic.enabled = false;
                 graphic.SetAllDirty ();
-                if (graphic.TryGetComponent(out Text _)) {
+                /*if (graphic.TryGetComponent(out Text _)) {
                     if (transform.parent.GetComponent<Mask> () == null)
                         transform.parent.gameObject.AddComponent<Mask> ();
 
                     transform.parent.GetComponent<Mask> ().enabled = false;
-                }
-                if (isEnabled) {
-                    graphic.enabled = true;
-                }
-                graphicsToUpdate.Add (graphic);
+                }*/
+                graphic.enabled = isEnabled;
             }
 
             UpdateMaskParameters ();
