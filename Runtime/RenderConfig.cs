@@ -1,135 +1,120 @@
 ﻿using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.Rendering;
 
 namespace CineGame.MobileComponents {
 
-	[ComponentReference ("Render and Quality settings applied in OnEnable. If AnimateSettings is enabled, then the animatable settings (colors, distances, intensities) are applied in each frame, so you can eg animate the fog color with SetScriptProperty or RemoteControl")]
-	public class RenderConfig : BaseComponent {
+    [ComponentReference ("Render and Quality settings accessible through UnityEvents")]
+    public class RenderConfig : BaseComponent {
 
-		[Tooltip ("Apply colors, intensities and distances on Update?")]
-		public bool AnimateSettings;
+        /// <summary>
+        /// Invoked when this Component or GameObject is enabled
+        /// </summary>
+        public UnityEvent m_OnEnable;
 
-		[System.Serializable]
-		public enum AALevel {
-			Disabled = 0,
-			SamplingX2 = 2,
-			SamplingX4 = 4,
-			SamplingX8 = 8,
-		}
-		public AALevel AntiAliasing = AALevel.Disabled;
+        /// <summary>
+        /// Level of MSAA: 0=None
+        /// </summary>
+		public int AntiAliasing { get { return QualitySettings.antiAliasing; } set { QualitySettings.antiAliasing = value; } }
 
-		public ShadowResolution ShadowResolution = ShadowResolution.High;
+        /// <summary>
+        /// 0=Low, 1=Medium, 2=High, 3=Very high
+        /// </summary>
+        public int ShadowResolution { get { return (int)QualitySettings.shadowResolution; } set { QualitySettings.shadowResolution = (ShadowResolution)value; } }
 
-		[Tooltip("Shadow render quality: None, Hard Only, or Hard+Soft")]
-		public ShadowQuality ShadowQuality = ShadowQuality.All;
+        /// <summary>
+        /// 0=None, 1=Hard Only, or 2=Hard+Soft
+        /// </summary>
+		public int Shadows { get { return (int)QualitySettings.shadows; } set { QualitySettings.shadows = (ShadowQuality)value; } }
 
-		[Tooltip("Shadow distance from camera. Smaller distance = finer shadows")]
-		public float ShadowDistance = 50;
-		
-		public AmbientMode AmbientMode = AmbientMode.Flat;
-		public float AmbientIntensity;
-		public SphericalHarmonicsL2 AmbientProbe;
-		[Tooltip ("Flat ambient color, or sky color if mode is TriLight")]
-		public Color AmbientSkyColor;
-		[Tooltip ("Only used in TriLight mode")]
-		public Color AmbientGroundColor;
-		[Tooltip ("Only used in TriLight mode")]
-		public Color AmbientEquatorColor;
-		[Tooltip("If mode is skybox, use this material")]
-		public Material SkyboxMaterial;
+        /// <summary>
+        /// Shadow distance from camera. Smaller = more detail
+        /// </summary>
+		public float ShadowDistance { get { return QualitySettings.shadowDistance; } set { QualitySettings.shadowDistance = value; } }
 
-		public Texture CustomReflection;
+        /// <summary>
+        /// 0=Skybox, 1=Trilight, 2=Flat, 3=Custom
+        /// </summary>
+        public int AmbientMode { get { return (int)RenderSettings.ambientMode; } set { RenderSettings.ambientMode = (AmbientMode)value; } }
 
-		public bool Fog;
-		public FogMode FogMode;
-		public Color FogColor;
-		public float FogDensity;
-		public float FogStartDistance;
-		public float FogEndDistance;
+        public float AmbientIntensity { get { return RenderSettings.ambientIntensity; } set { RenderSettings.ambientIntensity = value; } }
 
-		void OnEnable () {
-			QualitySettings.shadows = ShadowQuality;
-			QualitySettings.shadowDistance = ShadowDistance;
-			QualitySettings.shadowResolution = ShadowResolution;
-			QualitySettings.antiAliasing = (int)AntiAliasing;
-			RenderSettings.defaultReflectionMode = (CustomReflection != null)? DefaultReflectionMode.Custom : DefaultReflectionMode.Skybox;
+        public string AmbientSkyColor {
+            get { return ColorUtility.ToHtmlStringRGB (RenderSettings.ambientSkyColor); }
+            set { if (ColorUtility.TryParseHtmlString (value, out Color c)) RenderSettings.ambientSkyColor = c; }
+        }
+
+        public string AmbientGroundColor {
+            get { return ColorUtility.ToHtmlStringRGB (RenderSettings.ambientGroundColor); }
+            set { if (ColorUtility.TryParseHtmlString (value, out Color c)) RenderSettings.ambientGroundColor = c; }
+        }
+
+        public string AmbientEquatorColor {
+            get { return ColorUtility.ToHtmlStringRGB (RenderSettings.ambientEquatorColor); }
+            set { if (ColorUtility.TryParseHtmlString (value, out Color c)) RenderSettings.ambientEquatorColor = c; }
+        }
+
+        public Material Skybox { get { return RenderSettings.skybox; } set { RenderSettings.skybox = value; } }
+
+        public Texture CustomReflection
 #if UNITY_2022_3_OR_NEWER
-			RenderSettings.customReflectionTexture = CustomReflection;
+            { get { return RenderSettings.customReflectionTexture; } set { RenderSettings.customReflectionTexture = value; } }
 #else
-			RenderSettings.customReflection = CustomReflection;
+            { get { return RenderSettings.customReflection; } set { RenderSettings.customReflection = value; } }
 #endif
-			RenderSettings.ambientMode = AmbientMode;
-			RenderSettings.fog = Fog;
-			RenderSettings.fogMode = FogMode;
-			RenderSettings.fogColor = FogColor;
-			RenderSettings.fogDensity = FogDensity;
-			RenderSettings.fogStartDistance = FogStartDistance;
-			RenderSettings.fogEndDistance = FogEndDistance;
-			RenderSettings.ambientProbe = AmbientProbe;
-			RenderSettings.ambientIntensity = AmbientIntensity;
-			switch (AmbientMode) {
-			case AmbientMode.Skybox:
-				RenderSettings.skybox = SkyboxMaterial;
-				break;
-			case AmbientMode.Flat:
-				RenderSettings.ambientLight = AmbientSkyColor;
-				break;
-			case AmbientMode.Trilight:
-				RenderSettings.ambientSkyColor = AmbientSkyColor;
-				RenderSettings.ambientGroundColor = AmbientGroundColor;
-				RenderSettings.ambientEquatorColor = AmbientEquatorColor;
-				break;
-			}
-		}
 
-        void Update () {
-			if (!AnimateSettings)
-				return;
-			RenderSettings.fogColor = FogColor;
-			RenderSettings.fogDensity = FogDensity;
-			RenderSettings.fogStartDistance = FogStartDistance;
-			RenderSettings.fogEndDistance = FogEndDistance;
-			RenderSettings.ambientIntensity = AmbientIntensity;
-			if (AmbientMode == AmbientMode.Trilight) {
-				RenderSettings.ambientSkyColor = AmbientSkyColor;
-				RenderSettings.ambientGroundColor = AmbientGroundColor;
-				RenderSettings.ambientEquatorColor = AmbientEquatorColor;
-			} else {
-				RenderSettings.ambientLight = AmbientSkyColor;
-			}
-		}
+        public bool Fog { get { return RenderSettings.fog; } set { RenderSettings.fog = value; } }
 
-		void Reset () {
-			ShadowQuality = QualitySettings.shadows;
-			ShadowDistance = QualitySettings.shadowDistance;
-			ShadowResolution = QualitySettings.shadowResolution;
+        /// <summary>
+        /// 0=Linear, 1=Exponential, 2=Exp.Squared
+        /// </summary>
+		public int FogMode { get { return (int)RenderSettings.fogMode; } set { RenderSettings.fogMode = (FogMode)value; } }
 
-			AntiAliasing = (AALevel)QualitySettings.antiAliasing;
+        public string FogColor {
+            get { return ColorUtility.ToHtmlStringRGB (RenderSettings.fogColor); }
+            set { if (ColorUtility.TryParseHtmlString (value, out Color c)) RenderSettings.fogColor = c; }
+        }
 
-			AmbientMode = RenderSettings.ambientMode;
-			AmbientIntensity = RenderSettings.ambientIntensity;
-			AmbientSkyColor = (AmbientMode == AmbientMode.Flat) ? RenderSettings.ambientLight : RenderSettings.ambientSkyColor;
-			AmbientGroundColor = RenderSettings.ambientGroundColor;
-			AmbientEquatorColor = RenderSettings.ambientEquatorColor;
-			AmbientProbe = RenderSettings.ambientProbe;
+        /// <summary>
+        /// Sets density for exponential fog
+        /// </summary>
+        public float FogDensity { get { return RenderSettings.fogDensity; } set { RenderSettings.fogDensity = value; } }
 
-			SkyboxMaterial = RenderSettings.skybox;
-#if UNITY_2022_3_OR_NEWER
-			CustomReflection = RenderSettings.customReflectionTexture;
-#else
-			CustomReflection = RenderSettings.customReflection;
-#endif
-			Fog = RenderSettings.fog;
-			FogMode = RenderSettings.fogMode;
-			FogColor = RenderSettings.fogColor;
-			FogDensity = RenderSettings.fogDensity;
-			FogStartDistance = RenderSettings.fogStartDistance;
-			FogEndDistance = RenderSettings.fogEndDistance;
-		}
+        public float FogStartDistance { get { return RenderSettings.fogStartDistance; } set { RenderSettings.fogStartDistance = value; } }
 
-        void OnValidate() {
-			OnEnable ();
-		}
-	}
+        public float FogEndDistance { get { return RenderSettings.fogEndDistance; } set { RenderSettings.fogEndDistance = value; } }
+
+        void OnEnable () {
+            m_OnEnable.Invoke ();
+        }
+
+        /// <summary>
+        /// Set fog color from float[3] array
+        /// </summary>
+        public void SetFogColor (float [] rgb) {
+            RenderSettings.ambientEquatorColor = new Color (rgb [0], rgb [1], rgb [2]);
+        }
+
+        /// <summary>
+        /// Set sky color from float[3] array
+        /// </summary>
+        public void SetAmbientSkyColor (float [] rgb) {
+            RenderSettings.ambientSkyColor = new Color (rgb [0], rgb [1], rgb [2]);
+        }
+
+        /// <summary>
+        /// Set ground color from float[3] array
+        /// </summary>
+        public void SetAmbientGoundColor (float [] rgb) {
+            RenderSettings.ambientGroundColor = new Color (rgb [0], rgb [1], rgb [2]);
+        }
+
+        /// <summary>
+        /// Set equator color from float[3] array
+        /// </summary>
+        public void SetAmbientEquatorColor (float [] rgb) {
+            RenderSettings.ambientEquatorColor = new Color (rgb [0], rgb [1], rgb [2]);
+        }
+    }
 
 }
