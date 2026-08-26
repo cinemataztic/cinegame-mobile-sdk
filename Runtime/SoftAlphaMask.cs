@@ -55,33 +55,55 @@ namespace CineGame.MobileComponents {
                 mat = new Material (SoftMaskShader);
             }
 
-            var defaultUiMaterial = Graphic.defaultGraphicMaterial;
             var maskImage = MaskImage;
             graphicsToUpdate.Clear ();
-            GetComponentsInChildren (true, graphicsToUpdate);
-            var l = graphicsToUpdate.Count;
-            for (int i=0;i < l;i++) {
-                var graphic = graphicsToUpdate [i];
-                if (graphic == maskImage) {
-                    continue;
-                }
-                if (graphic.material != defaultUiMaterial) {
-                    Log ($"WARNING: Not default UI material on {graphic.gameObject.GetScenePath ()}. The graphic will most likely not render correctly after applying SoftMaskShader.");
-                }
-                graphic.material = mat;
-                var isEnabled = graphic.enabled;
-                graphic.enabled = false;
-                graphic.SetAllDirty ();
-                /*if (graphic.TryGetComponent(out Text _)) {
-                    if (transform.parent.GetComponent<Mask> () == null)
-                        transform.parent.gameObject.AddComponent<Mask> ();
-
-                    transform.parent.GetComponent<Mask> ().enabled = false;
-                }*/
-                graphic.enabled = isEnabled;
-            }
+            CollectChildGraphics (transform, graphicsToUpdate, maskImage);
 
             UpdateMaskParameters ();
+        }
+
+        /// <summary>
+        /// Recursively gathers child graphics, but stops at sub-trees that have their own SoftAlphaMask.
+        /// </summary>
+        private void CollectChildGraphics (Transform current, List<MaskableGraphic> results, Image maskImage) {
+            var defaultUiMaterial = Graphic.defaultGraphicMaterial;
+            var l = current.childCount;
+            for (int i = 0; i < l; i++) {
+                Transform child = current.GetChild (i);
+
+                // Stop traversing down this branch if a nested Mask or SoftAlphaMask is found
+                if (child.GetComponent<SoftAlphaMask> () != null || child.GetComponent<Mask> () != null) {
+                    continue;
+                }
+
+                var graphic = child.GetComponent<MaskableGraphic> ();
+                if (graphic != null && graphic != maskImage) {
+                    if (graphic.material != defaultUiMaterial) {
+                        Log ($"WARNING: Not default UI material on {graphic.gameObject.GetScenePath ()}. The graphic will most likely not render correctly after applying SoftMaskShader.");
+                    }
+                    graphic.material = mat;
+                    var isEnabled = graphic.enabled;
+                    graphic.enabled = false;
+                    graphic.SetAllDirty ();
+
+                    var text = graphic.GetComponent<Text> ();
+                    if (text != null && transform.parent != null) {
+                        if (transform.parent.GetComponent<Mask> () == null) {
+                            transform.parent.gameObject.AddComponent<Mask> ();
+                        }
+                        transform.parent.GetComponent<Mask> ().enabled = false;
+                    }
+
+                    if (isEnabled) {
+                        graphic.enabled = true;
+                    }
+
+                    results.Add (graphic);
+                }
+
+                // Recurse into deeper children
+                CollectChildGraphics (child, results, maskImage);
+            }
         }
 
         void Update () {
