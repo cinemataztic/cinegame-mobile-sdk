@@ -22,7 +22,7 @@ namespace CineGameEditor.MobileComponents {
 	public class CineGameBuild : EditorWindow {
 		static CineGameBuild instance;
 
-		static string ProgressBarTitle = "CineGame Build";
+		static readonly string ProgressBarTitle = "CineGame Build";
 
 		static string resultMessage = string.Empty;
 		//contains result description from last scene build+upload
@@ -53,7 +53,6 @@ namespace CineGameEditor.MobileComponents {
 		static readonly string [] BackendEnvironments = new string [] {
 			"production",
 			"staging",
-			"dev",
 		};
 
 		static string AccessToken;
@@ -134,11 +133,12 @@ namespace CineGameEditor.MobileComponents {
 			var passwordEntered = focusedControl == ControlNames.Password && enterKeyPressed;
 			var gameTypeEntered = focusedControl == ControlNames.GameType && enterKeyPressed;
 
-			var centeredStyle = new GUIStyle (GUI.skin.GetStyle ("Label"));
-			centeredStyle.alignment = TextAnchor.UpperCenter;
-			centeredStyle.fontStyle = FontStyle.Bold;
+            var centeredStyle = new GUIStyle (GUI.skin.GetStyle ("Label")) {
+				alignment = TextAnchor.UpperCenter,
+				fontStyle = FontStyle.Bold
+			};
 
-			EditorGUILayout.BeginHorizontal ();
+            EditorGUILayout.BeginHorizontal ();
 
 			var _marketIndex = Mathf.Clamp (MarketIndex, 0, MarketDisplayNames.Length);
 			_marketIndex = EditorGUILayout.Popup (new GUIContent ("Market:"), _marketIndex, MarketDisplayNames);
@@ -154,19 +154,19 @@ namespace CineGameEditor.MobileComponents {
 				}
 			}
 
-			if (IsSuperAdmin) {
-				var _environmentIndex = Mathf.Clamp (EnvironmentIndex, 0, BackendEnvironments.Length);
-				_environmentIndex = EditorGUILayout.Popup (new GUIContent ("Environment:"), _environmentIndex, BackendEnvironments, GUILayout.Width (250f));
-				if (EnvironmentIndex != _environmentIndex) {
-					EnvironmentIndex = _environmentIndex;
-					onSwitchEnvironment?.Invoke (isStaging: _environmentIndex == 1, isDev: _environmentIndex == 2);
-					if (!string.IsNullOrWhiteSpace (Username) && !string.IsNullOrWhiteSpace (Password)) {
-						if (!GetAccessToken (out AccessToken)) {
-							EditorUtility.DisplayDialog (ProgressBarTitle, "Failed to login. Check username and password and that you are connected to the internet", "OK");
-							return;
-						}
-						EditorPrefs.SetInt ("CineGameEnvironmentIndex", EnvironmentIndex);
+			EditorGUI.BeginDisabledGroup (!IsSuperAdmin);
+			var _environmentIndex = Mathf.Clamp (EnvironmentIndex, 0, BackendEnvironments.Length);
+			_environmentIndex = EditorGUILayout.Popup (new GUIContent ("Environment:"), _environmentIndex, BackendEnvironments, GUILayout.Width (250f));
+			EditorGUI.EndDisabledGroup ();
+			if (EnvironmentIndex != _environmentIndex) {
+				EnvironmentIndex = _environmentIndex;
+				onSwitchEnvironment?.Invoke (isStaging: _environmentIndex == 1, isDev: _environmentIndex == 2);
+				if (!string.IsNullOrWhiteSpace (Username) && !string.IsNullOrWhiteSpace (Password)) {
+					if (!GetAccessToken (out AccessToken)) {
+						EditorUtility.DisplayDialog (ProgressBarTitle, "Failed to login. Check username and password and that you are connected to the internet", "OK");
+						return;
 					}
+					EditorPrefs.SetInt ("CineGameEnvironmentIndex", EnvironmentIndex);
 				}
 			}
 
@@ -493,9 +493,10 @@ namespace CineGameEditor.MobileComponents {
 
 
 		static List<BuildTarget> GetBuildTargets () {
-			var targets = new List<BuildTarget> (2);
-			targets.Add (EditorUserBuildSettings.activeBuildTarget);
-			targets.Add ((EditorUserBuildSettings.activeBuildTarget == BuildTarget.iOS) ? BuildTarget.Android : BuildTarget.iOS);
+			var targets = new List<BuildTarget> (2) {
+				EditorUserBuildSettings.activeBuildTarget,
+				EditorUserBuildSettings.activeBuildTarget == BuildTarget.iOS ? BuildTarget.Android : BuildTarget.iOS
+			};
 			return targets;
 		}
 
@@ -604,12 +605,12 @@ namespace CineGameEditor.MobileComponents {
 
 		IEnumerator E_BuildSingleSceneForAllPlatforms () {
 			if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo ()) {
-				Debug.Log ("User cancelled build");
+				Debug.Log ("User cancelled build.");
 				yield break;
 			}
 
 			if (!CheckSceneIntegrity ()) {
-				Debug.Log ("CheckSceneIntegrity returned false");
+				Debug.Log ("CheckSceneIntegrity returned false. Aborting build.");
 				yield break;
 			}
 
@@ -1004,75 +1005,6 @@ namespace CineGameEditor.MobileComponents {
 
 		// -------------------------------------------------
 
-#if UNITY_IOS || UNITY_ANDROID
-		/// <summary>
-		/// Pre-build method for Cloud Build which assigns the proper assetbundle names to all DLC
-		/// </summary>
-		[MenuItem ("CinemaTaztic/Assign AssetBundle Names")]
-		public static void AssignAssetBundleNames () {
-#if UNITY_CLOUD_BUILD
-			//CinemaMobileBuild.InitializeRegion ();
-#endif
-			var region = Util.GetRegion ().ToString ();
-			Debug.Log ($"Assigning assetbundles for region {region} ...");
-			AssetDatabase.RemoveUnusedAssetBundleNames ();
-			AssignAssetBundleNames (region, AssetDatabase.FindAssets ("t:Scene", new string [] { "Assets/Scenes/" + region }).Select (guid => AssetDatabase.GUIDToAssetPath (guid)));
-			AssignAssetBundleNames (region, AssetDatabase.FindAssets ("t:Scene", new string [] { "Assets/GameCenter/Spil/" + region }).Select (guid => AssetDatabase.GUIDToAssetPath (guid)));
-			//AssignAssetBundleNames("gc", region, AssetDatabase.FindAssets("t:Scene", new string[] { "Assets/GameCenter/Spil/" }).Select(guid => AssetDatabase.GUIDToAssetPath(guid)));
-			AssignAssetBundleNames (region, AssetDatabase.FindAssets ("t:Scene", new string [] { "Assets/AR/Scenes/" + region }).Select (guid => AssetDatabase.GUIDToAssetPath (guid)));
-
-			CheckAssetBundleScenes ();
-		}
-
-		/// <summary>
-		/// Checks the asset bundles for multiple scenes and output error if any present.
-		/// </summary>
-		[MenuItem ("CinemaTaztic/Check AssetBundle Scenes")]
-		public static void CheckAssetBundleScenes () {
-			Debug.Log ("Checking AssetBundle Scenes ...");
-			var region = Util.GetRegion ().ToString ();
-			var assetBundleNames = AssetDatabase.GetAllAssetBundleNames ();
-			var listSceneNames = new HashSet<string> ();
-			foreach (var abName in assetBundleNames) {
-				var assetPaths = AssetDatabase.GetAssetPathsFromAssetBundle (abName);
-				Debug.LogFormat ("Checking AssetBundle '{0}' ...", abName);
-				listSceneNames.Clear ();
-				foreach (var aPath in assetPaths) {
-					if (Path.GetExtension (aPath) == ".unity") {
-						//Asset is a scenefile, log name
-						var sceneName = Path.GetFileNameWithoutExtension (aPath);
-						if (!listSceneNames.Add (sceneName)) {
-							Debug.LogErrorFormat ("ERROR: AssetBundle '{0}' contains multiple scenes with the name '{1}'. Scene names in each Asset Bundle must be unique", abName, sceneName);
-						}
-					}
-				}
-			}
-		}
-#endif
-
-		static void AssignAssetBundleNames (string marketId, IEnumerable<string> assetPaths) {
-			Debug.Log ("Removing bundlenames for downloadable scenes ...");
-			foreach (var assetPath in assetPaths) {
-				var sceneName = Path.GetFileNameWithoutExtension (assetPath);
-				var bundleName = sceneName.ToLower ();
-				AssetDatabase.RemoveAssetBundleName (bundleName, forceRemove: true);
-			}
-			AssetDatabase.SaveAssets ();
-			AssetDatabase.Refresh ();
-
-			Debug.Log ("Assigning bundlenames for downloadable scenes ...");
-			var i = 0;
-			foreach (var assetPath in assetPaths) {
-				var sceneName = Path.GetFileNameWithoutExtension (assetPath);
-				var bundleName = sceneName.ToLower ();
-				EditorUtility.DisplayProgressBar ($"Assigning {marketId} bundlenames ...", assetPath, (float)i / assetPaths.Count ());
-				var assetImporter = AssetImporter.GetAtPath (assetPath);
-				assetImporter.SetAssetBundleNameAndVariant (bundleName, string.Empty);
-				//assetImporter.SaveAndReimport ();
-				i++;
-			}
-			EditorUtility.ClearProgressBar ();
-		}
 
 		/// <summary>
 		/// Build an enumeration of all assetbundles from AssetLoader Components in loaded scenes, and if prepareBuild=true then store the needed properties of the prefab in the serialized AssetLoader.
@@ -1136,104 +1068,40 @@ namespace CineGameEditor.MobileComponents {
 			});
 		}
 
-		/// <summary>
-		/// Map of original script guids in mobile sdk runtime. These should NEVER change.
-		/// </summary>
-		static readonly Dictionary<string, string> GuidDict = new Dictionary<string, string> {
-			{ "AlignToAxes.cs", "bcde88b88311a4a6e87eed4799886cde" },
-			{ "AnchorPositionFrom3D.cs", "29803c86459594ae388d0f536654bc6d" },
-			{ "AnchorRotationFrom3D.cs", "803c1b224286b417daa694e7d4cc4243" },
-			{ "AngularPointerComponent.cs", "7814844a3c70f4ceb88a8b90fd1833f2" },
-			{ "AnimationEventListener.cs", "13d77d1e33ee27f428f0d7175a2076b2" },
-			{ "AnimatorParameter.cs", "40fd1fe7494a34ddba76ed6c1897cd53" },
-			{ "AppleHapticPattern.cs", "02784401418fa43898b4b4a7a0d8bfab" },
-			{ "AssetLoader.cs", "4ed6f7a1dd7ea423b9a061ff51a46565" },
-			{ "BroadcastMessage.cs", "7142418b7bd0f4de1b62fc28fbcc4c78" },
-			{ "BlobShadowComponent.cs", "903cecd01735e4d869022b0897b9bfd9" },
-			{ "ChoiceComponent.cs", "75ef6897842c3468ea6ec8e9cf6c8f08" },
-			{ "ChoicesComponent.cs", "5a0c36823542b4a3faf55597b502316c" },
-			{ "CodeScanner.cs", "5bbb8fbe68880405c96ff002fd702772" },
-			{ "Destroy.cs", "05255282a40314348a18c91f3f18ffc4" },
-			{ "DPadComponent.cs", "bc396f5091ed84c3591030cd477bbef9" },
-			{ "DragDropAnywhereComponent.cs", "36662550c2ffaa941b549c13cda4fec0" },
-			{ "DragDropComponent.cs", "04691ed229dff4af08511d9ceb0dfb29" },
-			{ "EffectController.cs", "3a53271574c3d42d1bc23fca32c82824" },
-			{ "FollowComponent.cs", "6ce1fb93fd2ad47d599ce2dc1e36d627" },
-			{ "GameProxy.cs", "6e2d78771f4b44644a63252576974c3b" },
-			{ "GestureComponent.cs", "8c84447952b4a4e42b6547948392fa93" },
-			{ "GetTransformChild.cs", "bbd2c6c6ead9d4f09ad1a45f3dbedcf1" },
-			{ "GetTransformProperty.cs", "5ac1a4302dfe6468e8cbe43ec944b6cc" },
-			{ "GravityComponent.cs", "a5f37167862804f4085906d19efb4f6d" },
-			{ "GyroComponent.cs", "4b2e7470ca5cd4ba28ba7ca9f9432a98" },
-			{ "JoystickComponent.cs", "e12223f1cfe254b5fa8b051b88c642a2" },
-			{ "LayoutAnimator.cs", "c11e6438a22d14a119c26a450b02d98e" },
-			{ "LogicComponent.cs", "cc7fbe9cb65b24476b1426f19a438a63" },
-			{ "LookAt.cs", "93bc52955bb1a40a5aafdaeb32f37cfe" },
-			{ "MaterialProperty.cs", "695b935104058422c99c25a86212e265" },
-			{ "MaterialSelect.cs", "957a6bc70ff794ee681b386e60222d42" },
-			{ "OnApplicationPlatform.cs", "5cd271b10ceca487f84b5d4a82517130" },
-			{ "OnCollision.cs", "276c960910d194b68b28b491a48876b1" },
-			{ "OnEnableDisable.cs", "3333ae0926977417092a70b35c7f8732" },
-			{ "OnLogin.cs", "580b8ede9eafe4579bc685643161d87d" },
-			{ "PhysicsConfig.cs", "63017d3eb48a54e138cb5be84c521fa1" },
-			{ "PinchZoomAndPan.cs", "4bb98b7706d204a0b8031f680d96308d" },
-			{ "PlaySound.cs", "091a2f98215b249199e701dd0bad8ed5" },
-			{ "PointerEventComponent.cs", "c89d64cb538764722870310bd54cf525" },
-			{ "RemoteTextComponent.cs", "f64f24ad31c70436abc2ec8635a056b4" },
-			{ "SpriteSelect.cs", "8e28a58e3594b4f2e9f6fe925e3dfb65" },
-			{ "RemoteControl.cs", "546ec569191b0428981532da17a34b76" },
-			{ "RenderConfig.cs", "8af72a6d7c2b44ba6aca576dbcc2e4d4" },
-			{ "ReplicatedComponent.cs", "3d59a6db02a9549b98fd389eb616de26" },
-			{ "SafeAreaMargin.cs", "227c6ceb230474c10b08e06660829e3e" },
-			{ "SendVariableComponent.cs", "b2c122fc170c24695abd11767c61efea" },
-			{ "SendVariableEvent.cs", "330f0810a95a11d47a520951fbeb3146" },
-			{ "SetTextComponent.cs", "297e197a819704cb99e8d5932166d81a" },
-			{ "SetParticlesColor.cs", "7c20d9a009599490fbab4aed1c760230" },
-			{ "SliderComponent.cs", "d53e99312a4974ee5ace6c2e52e52aa1" },
-			{ "SoftAlphaMask.cs", "72307fc7782d44247833082498990554" },
-            //{ "SoftMaskShader.shader", "947afae4d36f1274ea2e4098262ceef6" },
-            { "SpawnComponent.cs", "e5704d5e14eef4767b52b489559f10ed" },
-			{ "Supporter.cs", "4b77932d9977b483580fe3b666729bda" },
-			{ "SwipeComponent.cs", "c7deefd2f731cf149aebbe68b5a25954" },
-			{ "SwipeDirectionComponent.cs", "551a5488302ea714e81ec1c6d90de91a" },
-			{ "TextInputComponent.cs", "4ec468fea26b54dd487ea01d0414e68a" },
-			{ "TextureSelect.cs", "7157e5e9b02ca4990a20978d0f769673" },
-			{ "ThrowComponent.cs", "39ad5dd4450e54526be26021eeaa26d8" },
-			{ "TimerComponent.cs", "1a13d68ca6f1f4f209d3ffcd1b467e3b" },
-			{ "TimingComponent.cs", "a584f9c43c8364f49bb9fe2a0e8f84f5" },
-			{ "Vibrate.cs", "90e5e87c145124627a1cbb7394f35b0e" },
-		};
 
-		/// <summary>
-		/// Check to make sure that SDK scripts still have the original GUIDs. If not, uploads will not work, so we must enforce it
-		/// </summary>
-		[InitializeOnLoadMethod]
-		static void CheckSDKIntegrity () {
-			var scriptGuids = AssetDatabase.FindAssets ("t:Script", new string [] { "Packages/com.cinegamesdk.mobile/Runtime" });
-			var resetGuid = false;
-			foreach (var guid in scriptGuids) {
-				var path = AssetDatabase.GUIDToAssetPath (guid);
-				var filename = Path.GetFileName (path);
-				if (GuidDict.TryGetValue (filename, out string originalGuid) && guid != originalGuid) {
-					resetGuid = true;
-					Debug.LogWarning ($"GUID changed {filename} {originalGuid} => {guid} - resetting");
-					var metaPath = path + ".meta";
-					var metaLines = File.ReadAllLines (metaPath);
-					for (var i = 0; i < metaLines.Length; i++) {
-						if (metaLines [i].StartsWith ("guid: ")) {
-							metaLines [i] = "guid: " + originalGuid;
-							File.WriteAllLines (metaPath, metaLines);
-							break;
-						}
-					}
+        [MenuItem ("CinemaTaztic/Check VideoClips")]
+        public static bool CheckVideoClips () {
+			var allValid = true;
+            var videoPaths = AssetDatabase.FindAssets ("t:VideoClip").Select (guid => AssetDatabase.GUIDToAssetPath (guid));
+            Debug.Log ($"CheckVideoClips: checking {videoPaths.Count ()} VideoClips in project ...");
+            foreach (var path in videoPaths) {
+                var videoClip = AssetDatabase.LoadAssetAtPath<UnityEngine.Video.VideoClip> (path);
+				if (videoClip == null)
+					continue;
+                var width = (int)videoClip.width;
+				var height = (int)videoClip.height;
+                var assetImporter = (VideoClipImporter)AssetImporter.GetAtPath (videoPaths.First ());
+				var importSettings = assetImporter.GetTargetSettings ("Android") ?? assetImporter.defaultTargetSettings;
+                if (importSettings.resizeMode == VideoResizeMode.CustomSize) {
+					width = importSettings.customWidth;
+					height = importSettings.customHeight;
 				}
+				var isPushing = (width > 1080) || (height > 1080);
+				if (isPushing) {
+                    var isWidth8 = (width >> 3) << 3 == width;
+                    var isHeight8 = (height >> 3) << 3 == height;
+					if (!isWidth8 || !isHeight8) {
+                        Debug.LogWarning ($"VideoClip might not play on some Android devices due to hardware limitations (above 1080p): width={width} or height={height} not divisible by 8: {path}", videoClip);
+						allValid = false;
+                    }
+                }
+            }
+            EditorUtility.UnloadUnusedAssetsImmediate ();
+			if (allValid) {
+				Debug.Log ($"CheckVideoClips: No invalid VideoClips found in project.");
 			}
-			if (resetGuid) {
-				AssetDatabase.Refresh ();
-			}/* else {
-				Debug.Log ("SDK guids checked OK");
-			}*/
-		}
+            return allValid;
+        }
 
 
 		private static bool CGSP () {
