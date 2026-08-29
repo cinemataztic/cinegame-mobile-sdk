@@ -872,8 +872,18 @@ namespace CineGame.MobileComponents {
 			return false;
 		}
 
-		public static void EnsureActive (this Component c) {
+        /// <summary>
+        /// Ensure that the GameObject is active in the hierarchy by traversing upwards until root
+        /// </summary>
+        public static void EnsureActive (this Component c) {
 			c.gameObject.EnsureActive ();
+		}
+
+        /// <summary>
+        /// Convenience method to call gameObject.SetActive
+        /// </summary>
+        public static void SetActive (this Component c, bool active) {
+			c.gameObject.SetActive (active);
 		}
 	}
 

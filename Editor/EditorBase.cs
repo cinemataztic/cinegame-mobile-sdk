@@ -254,4 +254,9 @@ namespace CineGameEditor.MobileComponents {
 	[CanEditMultipleObjects]
 	public class OnApplicationPlatformEditor : EventEditorBase {
 	}
+
+    [CustomEditor (typeof (ARGameProxy))]
+    [CanEditMultipleObjects]
+    public class ARGameProxyEditor : EventEditorBase {
+    }
 }
