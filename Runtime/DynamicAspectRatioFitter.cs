@@ -20,6 +20,7 @@ namespace CineGame.MobileComponents {
 		Image myImage;
 
 		Sprite currentSprite;
+		Rect currentRect;
 
 		void Start () {
 			var c = (Component)(ApplyToParent ? transform.parent : this);
@@ -52,8 +53,8 @@ namespace CineGame.MobileComponents {
                 var height = myRectTransform.rect.height;
                 var width = height * aspectRatio;
                 if (myLayoutElement != null) {
-                    myLayoutElement.minHeight =
-                        myLayoutElement.preferredHeight = width;
+                    myLayoutElement.minWidth =
+                        myLayoutElement.preferredWidth = width;
                 }
                 myRectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
             }
@@ -62,8 +63,9 @@ namespace CineGame.MobileComponents {
         }
 
 		void Update () {
-			if (myImage.sprite != currentSprite) {
+			if (myImage.sprite != currentSprite || !myRectTransform.rect.Equals (currentRect)) {
 				currentSprite = myImage.sprite;
+				currentRect = myRectTransform.rect;
 				UpdateAspectRatio ();
 			}
 		}
